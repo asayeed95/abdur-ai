@@ -1,0 +1,10 @@
+[
+  { "date": "JUN 27", "text": "abdur.ai v1 wired — Next.js + MDX, Clay design locked, /aitldr feed live.", "tag": "abdur-ai" },
+  { "date": "JUN 26", "text": "Mnemix Beacon spec locked — six named signals, multiplicative floors, S1–S7 decomposition.", "tag": "mnemix" },
+  { "date": "JUN 25", "text": "Postmortem published: a 75% false-close rate on twelve verified safety gates. P-008 through P-012 committed to MOLL.", "tag": "moll" },
+  { "date": "JUN 24", "text": "Signal Noir v2 live across the Mnemix landing, docs, and UI primitives.", "tag": "mnemix" },
+  { "date": "JUN 23", "text": "Orchestrator now pushes one intent to Claude Code, Codex, and Aider in parallel, then reconciles the diffs.", "tag": "abdur-os" },
+  { "date": "JUN 21", "text": "dockerfile.ai proved sandbox build verification end-to-end — three for three on the eval repos.", "tag": "dockerfile" },
+  { "date": "JUN 19", "text": "brew install mnemix-ai/tap/mnemix — the CLI is one command away now.", "tag": "mnemix" },
+  { "date": "JUN 16", "text": "Cuéntame backend plus the outbound voice loop wired on a strict ten-minute cap.", "tag": "cuentame" }
+]

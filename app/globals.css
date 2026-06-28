@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   abdur.ai — Clay edition globals
+   Locked from the design bundle. Do not modify tokens without
+   updating tailwind.config.ts to match.
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-bg text-text font-body antialiased;
+  font-feature-settings: "ss01", "cv11", "tnum";
+}
+
+/* Selection */
+::selection {
+  background: #D97757;
+  color: #0B0A08;
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid #D97757;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Reveal-on-scroll utility (applied via IntersectionObserver in components) */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+              transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+[data-reveal].in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Editorial prose styling for /aitldr/[slug] post bodies */
+.prose-clay {
+  @apply text-text-soft;
+}
+.prose-clay h2 {
+  @apply font-display text-3xl md:text-4xl text-text mt-16 mb-6 tracking-tight;
+}
+.prose-clay h3 {
+  @apply font-display text-2xl text-text mt-10 mb-4 tracking-tight;
+}
+.prose-clay p {
+  @apply text-lg leading-relaxed mb-5;
+}
+.prose-clay a {
+  @apply text-clay underline underline-offset-4 decoration-clay/40 hover:decoration-clay transition-colors;
+}
+.prose-clay strong {
+  @apply text-text font-semibold;
+}
+.prose-clay blockquote {
+  @apply font-display italic text-2xl md:text-3xl text-clay border-l-2 border-clay pl-6 my-10;
+}
+.prose-clay code {
+  @apply font-mono text-sm text-text bg-surface px-1.5 py-0.5 rounded border border-border;
+}
+.prose-clay pre {
+  @apply font-mono text-sm bg-surface border border-border rounded-lg p-5 overflow-x-auto my-6;
+}
+.prose-clay pre code {
+  @apply bg-transparent border-0 p-0;
+}
+.prose-clay ul {
+  @apply list-disc list-outside ml-6 mb-5 space-y-2 text-lg;
+}
+.prose-clay ol {
+  @apply list-decimal list-outside ml-6 mb-5 space-y-2 text-lg;
+}
+.prose-clay table {
+  @apply w-full my-8 border-collapse;
+}
+.prose-clay th {
+  @apply text-left font-mono text-xs uppercase tracking-wider text-muted py-3 px-4 border-b border-border;
+}
+.prose-clay td {
+  @apply py-3 px-4 border-b border-border text-base;
+}
+.prose-clay hr {
+  @apply border-border my-12;
+}
+
+/* Mono labels — the eyebrow / system-label aesthetic */
+.eyebrow {
+  @apply font-mono text-xs tracking-widest text-clay uppercase;
+}
+.eyebrow-muted {
+  @apply font-mono text-xs tracking-widest text-muted uppercase;
+}
+
+/* Status pill */
+.status-pill {
+  @apply inline-flex items-center font-mono text-[10px] tracking-wider uppercase px-2 py-0.5 rounded-sm border;
+}
+.status-live {
+  @apply bg-clay text-bg border-clay;
+}
+.status-near {
+  @apply text-gold border-border-2;
+}
+.status-flight {
+  @apply text-good border-good-3;
+}
+.status-building {
+  @apply text-muted border-border;
+}

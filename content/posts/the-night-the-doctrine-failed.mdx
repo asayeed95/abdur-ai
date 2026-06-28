@@ -1,0 +1,199 @@
+---
+slug: the-night-the-doctrine-failed
+title: "The night the doctrine failed"
+subtitle: "A near-miss postmortem on agent-driven repo cleanup"
+description: "A seven-rule batch protocol, five rounds of adversarial audit, an independent cross-verifier as a pre-close gate. Every gate returned green. None of them were real."
+dek: "Seven-rule batch protocol. Five rounds of adversarial audit. An independent cross-verifier as the final gate. Every gate returned green. None of them were real. A 75% false-close rate."
+date: 2026-06-25T03:30:00-04:00
+author: Abdur Rahman Sayeed
+section: "Agent Systems"
+flagship: true
+pinned: true
+featured: true
+reading_time: 12
+word_count: 2494
+tags:
+  - agents
+  - verification
+  - postmortem
+  - mnemix
+  - moll
+patterns:
+  - id: P-008
+    name: Audit vs class-sweep dichotomy
+  - id: P-010
+    name: Disposition tables carry false facts forward
+  - id: P-011
+    name: Potemkin verification
+  - id: P-012
+    name: N safety layers consuming one upstream artifact
+receipts:
+  - path: "supabase/migrations/024_repair_double_encoded_jsonb.sql"
+    sha: "0d96ec3"
+    note: "Claimed to repair enrichment_data; actually only repairs custom_attributes and interactions.metadata."
+  - path: "src/services/lookup.ts"
+    sha: "4ed3951"
+    lines: "L43, L149"
+    note: "Bare Object.keys(enrichment_data) on the read path in main."
+  - path: "src/services/serialization.ts"
+    sha: "53bae35"
+    note: "PR #53 — the only fix for AGE-82 and AGE-88."
+  - path: "gemini-verify.jsonl"
+    note: "21 stub rows, semantically empty, pre-existing the authenticated Gemini session."
+citation_preferred: "Sayeed, Abdur Rahman. 'The night the doctrine failed.' abdur.ai, 25 June 2026."
+related:
+  - voice-ai-memory-latency-is-a-dead-argument
+  - cross-video-retention-pattern-detection
+  - who-owns-the-architecture-when-ai-writes-the-code
+---
+
+I had spent roughly six months building Mnemix — a contextual intelligence platform on Cloudflare Workers, Supabase, pgvector, Qdrant, Redis, R2, Vercel, and Stripe — driven by a swarm of thirty-plus agents across Claude Opus 4.8, Sonnet 4.6, and Haiku, plus Codex, Gemini, Grok, Kimi, and custom MCP servers. By late June the repo state had drifted: twenty-one stale PRs across worktrees from different sessions, branches whose names no longer matched their content, Linear issues whose status disagreed with the code.
+
+I designed a cleanup pass to close the drift. The cleanup pass came within one approved command of destroying a production fix, and the way it failed is more interesting than the way it succeeded.
+
+## The doctrine I built
+
+For the batch close, I encoded seven rules into a versioned protocol document:
+
+1. **Atomic twelve-step transaction per PR.** Rescue bundle, then close, then Linear update, then branch delete, then ledger emission. The disposition bucket (R4 close-superseded, R6 close-redundant, R7 close-and-salvage, etc.) was an emergent label produced by the audit, not a pre-decided input.
+2. **Rename-aware path-existence checks.** Any "this file no longer exists in main" verdict had to be validated with `git log --follow --diff-filter=R` so renames did not register as deletions.
+3. **Re-delegation defaults OFF.** Closing a PR could not auto-assign the work to another agent. Re-delegation required a separate batch with explicit human approval.
+4. **Rescue bundle written outside any git repo.** Anchored in `$HOME` as a sibling of every worktree, so a stray `git reset --hard` or `git clean -fdx` in any session could not destroy it.
+5. **MOLL ledger emission per PR.** Every transaction wrote one row to the Mnemix Ops Learning Layer's episodic ledger — append-only JSONL with agent, task, primary-source SHAs, outcome.
+6. **Hard-KEEP gate rebuilt on GitHub signals when Linear's delegate field was unreadable.** Default-to-KEEP on an unreadable gate, not default-to-NEEDS-DECISION, because flagging fifty PRs for human review defeats the purpose of the human gate.
+7. **Independent non-Claude cross-verifier as a pre-close gate.** Gemini 2.5 Pro at temperature 0 via the REST API, given the PR diff and disposition table separately, instructed to derive facts from primary sources rather than the table's claims, returning AGREE / DISAGREE / UNKNOWN with an explicit primary-source SHA per claim.
+
+It was the most rigorous doctrine I had ever shipped. By the end it was passing every gate.
+
+## Five rounds of adversarial audit and the convergence circuit breakers
+
+I do not trust a single audit pass on anything irreversible. The plan went through five revisions (v3 → v7), each verified by a ten-agent adversarial audit at xhigh effort with refute-by-default critic posture. Real-defect counts:
+
+| Revision | Real defects | Notes |
+|---|---|---|
+| v3 | 34 | Initial pass; mostly rename-handling and cascade-deletion paths |
+| v4 | 5 | After restructuring the atomic transaction |
+| v5 | 2 | Polish |
+| v6 | 6 | Apparent regression — turned out to be 3 real defects plus 3 phantom critics fabricating issues. Distinguished by a meta-verification pass requiring each critic to cite the exact plan line their objection referenced. |
+| v7 | 3 | Real, addressed |
+
+Two convergence circuit breakers, committed to the protocol:
+
+- **Breaker A:** real-defect count ≥ 2 in any iteration → freeze before the next iteration. Do not roll forward on momentum.
+- **Breaker B:** same class of finding in ≥ 3 sweeps → freeze for fresh eyes. Catches the case where the audit has locked onto a region and stopped finding new classes.
+
+Both fired correctly when triggered. They were the only parts of the doctrine that worked as designed.
+
+## The audit-vs-sweep dichotomy (P-008)
+
+After four rounds, the defect count plateaued at 3 → 3 (v6 → v7). The class of bug was the same each round, in different regions of the plan: "a command is described in prose but never actually performed, or its result is never checked."
+
+First useful structural insight of the night. Adversarial audits find architectural bugs. They do not find shell-pipeline silent-failure patterns like:
+
+```
+cmd | grep -qx "expected" && var="ok"
+```
+
+without the `|| HALT` that would make a silent grep miss actually halt execution. The pattern is too local for an architectural critic, but it is precisely the kind of failure that corrupts a multi-gate verification.
+
+I built a complementary class-sweep using structured grep across the entire plan — unguarded pipeline expressions, unset variables in failure paths, conditions defaulting to success on parse failure. The sweep found five more irreversibility bugs the audits had missed. The worst was S4: a `gh pr view` call whose failure path defaulted to `protected=false`. Protected PRs would have been deletable on a single transient network error.
+
+Logged as P-008: adversarial audits and class-sweeps find disjoint classes of bug. You need both.
+
+## The near-miss on PR #53
+
+I started execution on PR #53 as the smoke test. Phase A returned verdict R4 (close-superseded). The independent verifier returned AGREE. The rescue path was verified through thirteen safety checks, confirming the bundle would be written outside the Mnemix product repo, outside all ten live worktrees, and not inside any git repo. I approved with `53 approve`.
+
+Opus, executing Phase B, did something it was not strictly instructed to do. It decided to read the actual code in main rather than trusting the disposition table's claim that #53 had been superseded.
+
+What it found, in roughly this order:
+
+- Migration `024_repair_double_encoded_jsonb.sql` (SHA `0d96ec3`) was the load-bearing artifact behind the R4 verdict. The disposition table claimed it repaired the legacy `enrichment_data` field. The actual migration only repairs `custom_attributes` and `interactions.metadata`. It never touches `enrichment_data`.
+- `src/services/lookup.ts` in main, at lines 43 and 149 (SHA `4ed3951`), was still doing bare `Object.keys(enrichment_data)` with no normalization for the legacy double-encoded shape.
+- PR #53 (`src/services/serialization.ts`, SHA `53bae35`) was the only fix for a P1/P2 production bug, tracked as AGE-82 and AGE-88, that main was missing on the read side.
+
+Closing #53 would have destroyed a production fix. Every gate had cleared it.
+
+## Potemkin verification (P-011)
+
+When Opus traced backward to understand why the independent cross-verifier had returned AGREE on a verdict that was demonstrably wrong, it opened the verifier's output file. The artifact was `gemini-verify.jsonl`.
+
+In it: twenty-one rows. Each schema-conforming. Each tracking the disposition table one-to-one in its claims. None carried a verifier identity. None had a timestamp. None had a reasoning field. None had a primary-source SHA. All twenty-one had been written before the Gemini CLI was authenticated in this session.
+
+I am quoting the discovery directly because the phrasing matters:
+
+> The gemini-verify.jsonl file has a 21-row batch of bare stubs — no verifier, no timestamp, no reasoning — whose values track the disposition table ~1:1, and they predate the working Gemini path (which only came alive this session). That contradiction proves the 21 stubs are echoes of the table, not independent verifications.
+
+This is the pattern I have been calling Potemkin verification. The artifact existed on disk. The gate logic loaded it. The schema matched. The values were the values the gate expected. Every check passed. Nothing in the file was a verification.
+
+The mechanism by which it happened is contingent: the file had been pre-populated by an earlier scaffolding step intending to stub the rows for later overwrite, and the overwrite never happened because the Gemini authentication path was not yet live at scaffolding time. The mechanism is contingent. The pattern is not.
+
+The pattern is: verification artifacts on disk can be semantically empty. Gate logic that loads them and checks their schema is not verifying anything. It is verifying that a file is shaped like a verification.
+
+Logged as P-011. The prescription is concrete: any gate that consumes a verification file must verify provenance row-by-row. Verifier identity, timestamp, prompt reference, run count, and primary-source SHAs are not optional fields. A row missing any of them is not a verification; it is data shaped like one.
+
+## The ~75% false-close rate
+
+I held the batch and re-ran cross-verification on all twelve close candidates, this time deriving facts only from primary sources: PR diffs, migration contents at named SHAs, merged PR ancestry via `git log --first-parent`. The verifier was not allowed to consult the disposition table.
+
+The corrected table cleared two of twelve:
+
+- **#56** — genuine R4 supersession. Cleared.
+- **#175** — harmful to close; it reintroduces #253's already-fixed entity-scatter bug. Re-bucketed as salvage-required.
+
+The remaining ten were wrong-bucket. Four would have been catastrophic:
+
+- **#44** — would have lost the only 748-line implementation of AGE-69.
+- **#75** — would have lost a security migration (`security_invoker = true` + `REVOKE EXECUTE`) entirely absent from main.
+- **#84** — would have broken `npm run agent` in production. The PR's `package.json` script was referenced by main's docs but absent from main's actual `package.json`.
+- **#159** — would have lost an unmerged Linear OAuth implementation.
+
+Twelve candidates. Ten wrong dispositions. ~75% false-close rate.
+
+That is the number that mattered. Not 34 → 0 across the audits. Not the convergence of the breakers. The ratio of cleared-to-corrected after the gates that supposedly verified them.
+
+## Three patterns extracted
+
+These are committed as files in `mnemix-learning`. They are load-bearing in MOLL with at least three ledger rows each.
+
+**P-010 — Disposition tables are agent-authored summaries and can carry false facts forward.** Independent verifiers must derive their facts from primary sources, never from the table being verified. A verifier fed the table's claims as input is not independent. It is the table speaking with a second voice. The prescription: every cross-verification protocol must require the verifier to cite primary-source SHAs for every claim it agrees with, and the gate must reject any AGREE that lacks a SHA.
+
+**P-011 — Verification artifacts on disk can be Potemkin.** Schema-conforming, semantically empty, written by an upstream process that was never actually a verifier. Gate logic consuming verification files must verify provenance per row: verifier identity, timestamp, prompt reference, run count, primary-source SHAs. A row missing any of these is not a verification; it is data shaped like one.
+
+**P-012 — N safety layers consuming the same upstream artifact are one gate wearing N hats.** Audit doctrine that clears an irreversible action on N safety layers can still fail catastrophically if all N layers consume the same upstream artifact. Independence of layers must be verified at the input level, not asserted at the layer level. The prescription is a source-independence check on every multi-gate verification: do gates 1..N share an input that, if corrupted, corrupts them all? If yes, they are one gate.
+
+<PatternsBlock />
+
+## What actually saved it — and why I cannot rely on that at scale
+
+The doctrine did not save PR #53. The audits did not save it. The convergence breakers did not save it; they had cleared the protocol. The independent cross-verifier did not save it; it was fake.
+
+What saved it was Opus, executing Phase B, deciding to read the actual code in main rather than trusting the disposition table. That decision exceeded its instructions. It was professional judgment, exercised by a model whose scaffolding had told it the disposition was correct and whose gate had told it to proceed.
+
+Professional judgment from a frontier model is not a property I can rely on at scale. It is contingent. It will not be present on every PR, in every session, under every prompt configuration. The doctrine was supposed to make professional judgment unnecessary by encoding the same checks into protocol. The doctrine failed; the judgment did not. If I had been operating a swarm whose judgment ceiling was lower — or the same model in a different posture — the production fix would be gone.
+
+This is the gap I think the agent infrastructure and alignment teams at frontier labs already think about, and I am writing this in part to say I think about it too. There is a real distance between what a frontier model can do when it decides to look harder and what the scaffolding around it can guarantee. The scaffolding can guarantee less than the model can do. That is not a failure of the model; it is a property of scaffolding. Doctrines do not generalize. Patterns might, if they are extracted from real incidents and not hypothetical ones.
+
+## MOLL — encoding judgment into doctrine
+
+The incident seeded the broader project. MOLL is the Mnemix Ops Learning Layer. Three stores:
+
+1. **Episodic ledger.** Append-only JSONL, one row per agent task, with agent identity, task ID, primary-source SHAs, outcome, timing.
+2. **Pattern library.** Extracted hypotheses with `evidence_refs` to ledger rows and `counter_evidence` to ledger rows that contradict the hypothesis. Promotion from candidate to load-bearing requires ≥ 3 ledger rows. P-008, P-010, P-011, P-012 each cleared that bar from the incident alone.
+3. **Discipline versions.** Each discipline is committed as a diff over its predecessor, with citations to the pattern IDs that justified the change.
+
+Synthesis is multi-agent. Opus proposes pattern candidates from the ledger. Sonnet critiques them adversarially. Codex fact-checks the `evidence_refs` against the ledger. I approve or reject. Role-scoping is real: critics cannot author patterns, authors cannot fact-check their own work, the human override carries the highest weight in any conflict.
+
+The patterns from June 24–25 are row-zero of MOLL. They are not hypothetical examples used to illustrate the design. They are the first load-bearing rows in the production pattern library, and they exist because one near-miss made the design necessary.
+
+The cleanup was not the deliverable. The doctrine update was. The doctrine update was not the deliverable either. The system that produces doctrine updates from incidents — that one is the deliverable, and I am still building it.
+
+<MnemixCTA />
+
+<ReceiptsBlock />
+
+If any of these is wrong, I want to know. The whole point of the doctrine is that it can be corrected.
+
+<AsecWaitlistCTA />
+
+<NewsletterCTA />
