@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>LinkedIn carousel — The night the doctrine failed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0A08;
+    --surface: #161310;
+    --border: #2C2620;
+    --text: #F2EDE6;
+    --muted: #948B7D;
+    --muted-2: #6E665B;
+    --clay: #D97757;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #1a1a1a;
+    color: var(--text);
+  }
+  .page {
+    position: relative;
+    width: 1080px;
+    height: 1080px;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    page-break-after: always;
+    background-image:
+      linear-gradient(to right, rgba(242,237,230,0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(242,237,230,0.025) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+  .page:last-child { page-break-after: auto; }
+  .corner-frame {
+    position: absolute;
+    inset: 36px;
+    border: 1px solid var(--border);
+  }
+  .corner-mark {
+    position: absolute;
+    top: 56px;
+    right: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.22em;
+    color: var(--muted-2);
+  }
+  .corner-mark::before {
+    content: "●";
+    color: var(--clay);
+    margin-right: 8px;
+  }
+  .page-num {
+    position: absolute;
+    bottom: 56px;
+    right: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+  }
+  .footer-url {
+    position: absolute;
+    bottom: 56px;
+    left: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.14em;
+    color: var(--muted-2);
+  }
+  /* PAGE 1 — TITLE */
+  .p1 .kicker {
+    position: absolute;
+    top: 56px;
+    left: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+  }
+  .p1 .hero {
+    position: absolute;
+    top: 280px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 78px;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .p1 .hero .period { color: var(--clay); }
+  .p1 .accent-bar {
+    position: absolute;
+    top: 580px;
+    left: 72px;
+    width: 80px;
+    height: 4px;
+    background: var(--clay);
+  }
+  .p1 .deck {
+    position: absolute;
+    top: 620px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .p1 .meta {
+    position: absolute;
+    top: 820px;
+    left: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: 0.18em;
+    color: var(--text);
+  }
+  /* PAGE 2 — INCIDENT 80 WORDS */
+  .p2 .h {
+    position: absolute;
+    top: 96px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .p2 .body {
+    position: absolute;
+    top: 280px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 26px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .p2 .body p { margin-bottom: 18px; }
+  .p2 .rule {
+    position: absolute;
+    bottom: 130px;
+    left: 72px;
+    right: 72px;
+    height: 1px;
+    background: var(--border);
+  }
+  .p2 .pull {
+    position: absolute;
+    bottom: 80px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1.3;
+    color: var(--clay);
+  }
+  /* PAGE 3 — DOCTRINE: 7 RULES */
+  .p3 .h {
+    position: absolute;
+    top: 96px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 1.1;
+    color: var(--text);
+  }
+  .p3 .sub {
+    position: absolute;
+    top: 196px;
+    left: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.18em;
+    color: var(--clay);
+  }
+  .p3 ol {
+    position: absolute;
+    top: 250px;
+    left: 72px;
+    right: 72px;
+    list-style: none;
+    counter-reset: rule;
+  }
+  .p3 li {
+    counter-increment: rule;
+    padding: 12px 0 12px 52px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 19px;
+    line-height: 1.4;
+    color: var(--text);
+    position: relative;
+  }
+  .p3 li::before {
+    content: counter(rule, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 14px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.12em;
+    color: var(--clay);
+  }
+  /* PAGE 4 — P-008 */
+  .p4 .pattern-id {
+    position: absolute;
+    top: 100px;
+    left: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 36px;
+    letter-spacing: 0.18em;
+    color: var(--clay);
+  }
+  .p4 .badge {
+    position: absolute;
+    top: 110px;
+    right: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.22em;
+    color: var(--clay);
+    padding: 8px 16px;
+    border: 1px solid var(--clay);
+  }
+  .p4 .name {
+    position: absolute;
+    top: 200px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 62px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .p4 .accent-bar {
+    position: absolute;
+    top: 440px;
+    left: 72px;
+    width: 80px;
+    height: 4px;
+    background: var(--clay);
+  }
+  .p4 .body {
+    position: absolute;
+    top: 480px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .p4 .stat {
+    position: absolute;
+    bottom: 130px;
+    left: 72px;
+    right: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+  }
+  .p4 .stat .num { color: var(--clay); font-size: 28px; }
+  /* PAGE 5 — PR #53 NEAR-MISS */
+  .p5 .h {
+    position: absolute;
+    top: 96px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .p5 .sub {
+    position: absolute;
+    top: 224px;
+    left: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.2em;
+    color: var(--clay);
+  }
+  .p5 .steps {
+    position: absolute;
+    top: 280px;
+    left: 72px;
+    right: 72px;
+  }
+  .p5 .step {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 20px;
+    line-height: 1.45;
+    color: var(--text);
+  }
+  .p5 .step .label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.14em;
+    color: var(--clay);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .p5 .close {
+    position: absolute;
+    bottom: 130px;
+    left: 72px;
+    right: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.16em;
+    color: var(--clay);
+  }
+  /* PAGE 6 — P-011 CENTERPIECE */
+  .p6 .pattern-id {
+    position: absolute;
+    top: 96px;
+    left: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 36px;
+    letter-spacing: 0.18em;
+    color: var(--clay);
+  }
+  .p6 .badge {
+    position: absolute;
+    top: 110px;
+    right: 72px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.22em;
+    color: var(--clay);
+    padding: 8px 16px;
+    border: 1px solid var(--clay);
+  }
+  .p6 .name {
+    position: absolute;
+    top: 184px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 88px;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .p6 .accent-bar {
+    position: absolute;
+    top: 380px;
+    left: 72px;
+    width: 96px;
+    height: 4px;
+    background: var(--clay);
+  }
+  .p6 .body {
+    position: absolute;
+    top: 420px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .p6 .pull {
+    position: absolute;
+    bottom: 160px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 36px;
+    line-height: 1.25;
+    color: var(--clay);
+    border-left: 2px solid var(--clay);
+    padding-left: 24px;
+  }
+  /* PAGE 7 — 75% FALSE-CLOSE BIG NUMBERS */
+  .p7 .h {
+    position: absolute;
+    top: 96px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .p7 .big-num {
+    position: absolute;
+    top: 320px;
+    left: 72px;
+    right: 72px;
+    text-align: center;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 260px;
+    line-height: 1;
+    color: var(--clay);
+    letter-spacing: -0.04em;
+  }
+  .p7 .label {
+    position: absolute;
+    top: 660px;
+    left: 72px;
+    right: 72px;
+    text-align: center;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  .p7 .label .small {
+    display: block;
+    margin-top: 16px;
+    font-weight: 400;
+    font-size: 20px;
+    color: var(--muted);
+  }
+  .p7 .frac {
+    position: absolute;
+    bottom: 130px;
+    left: 72px;
+    right: 72px;
+    text-align: center;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+  }
+  /* PAGE 8 — FOUR PATTERNS */
+  .p8 .h {
+    position: absolute;
+    top: 96px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .p8 .grid {
+    position: absolute;
+    top: 240px;
+    left: 72px;
+    right: 72px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 36px;
+    row-gap: 28px;
+  }
+  .p8 .pat {
+    border-top: 2px solid var(--clay);
+    padding-top: 16px;
+  }
+  .p8 .pat .pid {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.18em;
+    color: var(--clay);
+  }
+  .p8 .pat .pn {
+    margin-top: 12px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 28px;
+    line-height: 1.15;
+    color: var(--text);
+  }
+  .p8 .pat .pb {
+    margin-top: 10px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  /* PAGE 9 — WHAT SAVED IT */
+  .p9 .h {
+    position: absolute;
+    top: 96px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 64px;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .p9 .body {
+    position: absolute;
+    top: 280px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  .p9 .body p { margin-bottom: 16px; }
+  .p9 .body p strong { color: var(--clay); font-weight: 600; }
+  .p9 .quote {
+    position: absolute;
+    bottom: 130px;
+    left: 72px;
+    right: 72px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1.3;
+    color: var(--muted);
+    border-left: 2px solid var(--clay);
+    padding-left: 24px;
+  }
+  /* PAGE 10 — CTA */
+  .p10 .eyebrow {
+    position: absolute;
+    top: 240px;
+    left: 72px;
+    right: 72px;
+    text-align: center;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: 0.22em;
+    color: var(--clay);
+  }
+  .p10 .big {
+    position: absolute;
+    top: 320px;
+    left: 72px;
+    right: 72px;
+    text-align: center;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 92px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .p10 .accent-bar {
+    position: absolute;
+    top: 640px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 96px;
+    height: 4px;
+    background: var(--clay);
+  }
+  .p10 .meta {
+    position: absolute;
+    top: 680px;
+    left: 72px;
+    right: 72px;
+    text-align: center;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .p10 .url {
+    position: absolute;
+    top: 800px;
+    left: 72px;
+    right: 72px;
+    text-align: center;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: 0.14em;
+    color: var(--clay);
+  }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 · TITLE -->
+<section class="page p1">
+  <div class="corner-frame"></div>
+  <div class="corner-mark">// FL</div>
+  <div class="kicker">ABDUR.AI &nbsp;·&nbsp; POSTMORTEM</div>
+  <h1 class="hero">
+    Every gate returned green.<br>
+    None of them were real<span class="period">.</span>
+  </h1>
+  <div class="accent-bar"></div>
+  <p class="deck">
+    A seven-rule batch protocol. Five rounds of adversarial audit. Twelve close candidates. Two cleared. A 75% false-close rate.
+  </p>
+  <div class="meta">10 PAGES &nbsp;·&nbsp; 4 MIN &nbsp;·&nbsp; TLDR_011</div>
+  <div class="footer-url">/aitldr/the-night-the-doctrine-failed</div>
+  <div class="page-num">01 / 10</div>
+</section>
+
+<!-- PAGE 2 · INCIDENT 80 WORDS -->
+<section class="page p2">
+  <div class="corner-frame"></div>
+  <div class="corner-mark">// FL</div>
+  <h2 class="h">The incident,<br>in 80 words.</h2>
+  <div class="body">
+    <p>On the night of June 24, I came within one approved command of destroying PR #53 — the only fix for a P1 production bug in Mnemix.</p>
+    <p>The doctrine that authorized the close was the most rigorous I had ever shipped: seven rules, five rounds of adversarial audit, two convergence circuit breakers, and an independent non-Claude cross-verifier as a final gate.</p>
+    <p>Every gate returned green.</p>
+    <p>None of them were real.</p>
+  </div>
+  <div class="rule"></div>
+  <div class="pull">What stopped it was Opus exceeding its instructions — reading the actual code, then questioning the table.</div>
+  <div class="footer-url">/aitldr/the-night-the-doctrine-failed</div>
+  <div class="page-num">02 / 10</div>
+</section>
+
+<!-- PAGE 3 · DOCTRINE 7 RULES -->
+<section class="page p3">
+  <div class="corner-frame"></div>
+  <div class="corner-mark">// FL</div>
+  <h2 class="h">The doctrine, in seven rules.</h2>
+  <div class="sub">V1 · LOCKED &amp; COMMITTED BEFORE EXECUTION</div>
+  <ol>
+    <li>Atomic twelve-step transaction per PR (rescue → close → ledger → branch delete).</li>
+    <li>Rename-aware path checks via <code>git log --follow --diff-filter=R</code> so renames are not deletions.</li>
+    <li>Re-delegation defaults OFF; explicit human approval required.</li>
+    <li>Rescue bundle written outside any git repo, anchored in $HOME.</li>
+    <li>MOLL ledger emission per PR (append-only JSONL with primary-source SHAs).</li>
+    <li>Hard-KEEP rebuild on GitHub signals when Linear's delegate field is unreadable.</li>
+    <li>Independent non-Claude cross-verifier (Gemini, T=0) as the pre-close gate.</li>
+  </ol>
+  <div class="footer-url">/aitldr/the-night-the-doctrine-failed</div>
+  <div class="page-num">03 / 10</div>
+</section>
+
+<!-- PAGE 4 · P-008 AUDIT vs SWEEP -->
+<section class="page p4">
+  <div class="corner-frame"></div>
+  <div class="corner-mark">// P-008</div>
+  <div class="pattern-id">P-008</div>
+  <div class="badge">DOCTRINE GAP</div>
+  <div class="name">Audits and sweeps<br>find disjoint bugs.</div>
+  <div class="accent-bar"></div>
+  <div class="body">
+    After four rounds plateaued at 3 defects, the same class of bug kept appearing in different regions of the plan: a command described in prose but never performed, or its result unchecked. Adversarial audits were too architectural to catch shell-pipeline silent-failure patterns.
+  </div>
+  <div class="stat"><span class="num">+5</span> &nbsp; IRREVERSIBILITY BUGS CAUGHT BY THE SWEEP</div>
+  <div class="footer-url">/aitldr/the-night-the-doctrine-failed</div>
+  <div class="page-num">04 / 10</div>
+</section>
+
+<!-- PAGE 5 · PR #53 NEAR-MISS -->
+<section class="page p5">
+  <div class="corner-frame"></div>
+  <div class="corner-mark">// PR #53</div>
+  <h2 class="h">One approved command<br>away from disaster.</h2>
+  <div class="sub">PHASE A → B EXECUTION TRACE</div>
+  <div class="steps">
+    <div class="step"><span class="label">01 · AUDIT</span>Disposition table returned R4 (close-superseded). 13 safety checks passed.</div>
+    <div class="step"><span class="label">02 · VERIFIER</span>Cross-verifier returned AGREE for all 21 candidates.</div>
+    <div class="step"><span class="label">03 · APPROVAL</span><code>53 approve</code>. Opus moved into Phase B.</div>
+    <div class="step"><span class="label">04 · READ</span>Opus — exceeding instructions — read main, not the table.</div>
+    <div class="step"><span class="label">05 · BLOCK</span>Migration scope ≠ claim. PR #53 was the only fix in main. Held the batch.</div>
+  </div>
+  <div class="close">"EVERY GATE HAD CLEARED IT."</div>
+  <div class="footer-url">/aitldr/the-night-the-doctrine-failed</div>
+  <div class="page-num">05 / 10</div>
+</section>
+
+<!-- PAGE 6 · P-011 CENTERPIECE -->
+<section class="page p6">
+  <div class="corner-frame"></div>
+  <div class="corner-mark">// P-011</div>
+  <div class="pattern-id">P-011</div>
+  <div class="badge">CENTERPIECE</div>
+  <div class="name">Potemkin<br>verification.</div>
+  <div class="accent-bar"></div>
+  <div class="body">
+    The cross-verifier's output file held 21 rows. Schema-conforming. Tracking the disposition table 1:1. No verifier identity. No timestamp. No reasoning. No SHA. All 21 written before the Gemini path was even authenticated.
+  </div>
+  <div class="pull">The file existed. The gate loaded it. The values matched. Nothing in the file was a verification.</div>
+  <div class="footer-url">/aitldr/the-night-the-doctrine-failed</div>
+  <div class="page-num">06 / 10</div>
+</section>
+
+<!-- PAGE 7 · 75% FALSE-CLOSE -->
+<section class="page p7">
+  <div class="corner-frame"></div>
+  <div class="corner-mark">// THE NUMBER</div>
+  <h2 class="h">The number<br>that mattered.</h2>
+  <div class="big-num">75%</div>
+  <div class="label">
+    false-close rate
+    <span class="small">on 12 verified safety gates &middot; after re-deriving facts from primary sources only</span>
+  </div>
+  <div class="frac">2 / 12 CANDIDATES CORRECTLY DISPOSITIONED &middot; 10 WERE WRONG-BUCKET</div>
+  <div class="footer-url">/aitldr/the-night-the-doctrine-failed</div>
+  <div class="page-num">07 / 10</div>
+</section>
+
+<!-- PAGE 8 · FOUR PATTERNS -->
+<section class="page p8">
+  <div class="corner-frame"></div>
+  <div class="corner-mark">// MOLL</div>
+  <h2 class="h">Four patterns<br>extracted.</h2>
+  <div class="grid">
+    <div class="pat"><div class="pid">P-008</div><div class="pn">Audits &amp; sweeps find disjoint bugs.</div><div class="pb">Use both. Adversarial audits miss pipeline silent-failure classes.</div></div>
+    <div class="pat"><div class="pid">P-010</div><div class="pn">Disposition tables are agent-authored summaries.</div><div class="pb">Cross-verifiers must derive facts from primary sources, never from the table.</div></div>
+    <div class="pat"><div class="pid">P-011</div><div class="pn">Verification artifacts can be Potemkin.</div><div class="pb">Gates verify rows, not files. Provenance fields required, not optional.</div></div>
+    <div class="pat"><div class="pid">P-012</div><div class="pn">N layers, one hat.</div><div class="pb">Independence of layers must be verified at the input level, not asserted.</div></div>
+  </div>
+  <div class="footer-url">/aitldr/the-night-the-doctrine-failed</div>
+  <div class="page-num">08 / 10</div>
+</section>
+
+<!-- PAGE 9 · WHAT SAVED IT -->
+<section class="page p9">
+  <div class="corner-frame"></div>
+  <div class="corner-mark">// JUDGMENT</div>
+  <h2 class="h">What actually<br>saved it.</h2>
+  <div class="body">
+    <p>The doctrine did <em>not</em> save PR #53. The audits did not. The breakers had cleared the protocol. The independent verifier was fake.</p>
+    <p>What saved it was <strong>Opus, exceeding its instructions</strong>, deciding to read the actual code in main rather than trusting the disposition table. That decision was <strong>professional judgment</strong> from a frontier model that the scaffolding had told it the disposition was correct.</p>
+    <p>Professional judgment from a frontier model is contingent. It will not be present on every PR, in every session, under every prompt configuration. The doctrine was supposed to make judgment unnecessary by encoding the same checks into protocol. The doctrine failed; the judgment did not.</p>
+  </div>
+  <div class="quote">"There is a real distance between what a frontier model can do when it decides to look harder and what the scaffolding around it can guarantee."</div>
+  <div class="footer-url">/aitldr/the-night-the-doctrine-failed</div>
+  <div class="page-num">09 / 10</div>
+</section>
+
+<!-- PAGE 10 · CTA -->
+<section class="page p10">
+  <div class="corner-frame"></div>
+  <div class="corner-mark">// READ</div>
+  <div class="eyebrow">→ THE FULL POSTMORTEM</div>
+  <div class="big">Read it.<br>Bring the receipts.</div>
+  <div class="accent-bar"></div>
+  <div class="meta">
+    12 minutes. SHAs, file paths, the actual doctrine that failed, and the three patterns that came out of it.
+  </div>
+  <div class="url">abdur.ai/aitldr/the-night-the-doctrine-failed</div>
+  <div class="footer-url" style="bottom: 96px; left: 72px;">ALSO: abdur.ai/aitldr</div>
+  <div class="page-num">10 / 10</div>
+</section>
+
+</body>
+</html>

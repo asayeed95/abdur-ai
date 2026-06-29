@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>The night the doctrine failed — OG cover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0A08;
+    --surface: #161310;
+    --border: #2C2620;
+    --text: #F2EDE6;
+    --muted: #948B7D;
+    --muted-2: #6E665B;
+    --clay: #D97757;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1200px; height: 630px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  body {
+    position: relative;
+    padding: 56px 64px;
+    background-image:
+      linear-gradient(to right, rgba(242,237,230,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(242,237,230,0.04) 1px, transparent 1px);
+    background-size: 80px 80px;
+    background-position: -1px -1px;
+  }
+  .frame {
+    position: absolute;
+    inset: 24px;
+    border: 1px solid var(--border);
+    pointer-events: none;
+  }
+  .kicker {
+    position: absolute;
+    top: 56px;
+    left: 64px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+  }
+  .corner-mark {
+    position: absolute;
+    top: 56px;
+    right: 64px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.14em;
+    color: var(--muted-2);
+  }
+  .corner-mark::before {
+    content: "";
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--clay);
+    margin-right: 10px;
+    vertical-align: middle;
+    opacity: 0.85;
+  }
+  .headline {
+    position: absolute;
+    left: 64px;
+    right: 64px;
+    bottom: 96px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 88px;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .headline .real {
+    display: inline-block;
+  }
+  .headline .period {
+    color: var(--clay);
+  }
+  .headline .line {
+    display: block;
+  }
+  .footer {
+    position: absolute;
+    left: 64px;
+    bottom: 40px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: var(--muted-2);
+  }
+  .footer-right {
+    position: absolute;
+    right: 64px;
+    bottom: 40px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: var(--muted-2);
+  }
+  .clay-dot {
+    color: var(--clay);
+  }
+</style>
+</head>
+<body>
+  <div class="frame" aria-hidden="true"></div>
+
+  <div class="kicker">ABDUR.AI &nbsp;·&nbsp; 25 JUN 2026 &nbsp;·&nbsp; POSTMORTEM</div>
+
+  <div class="corner-mark">// FLAGSHIP · TLDR_011</div>
+
+  <h1 class="headline">
+    <span class="line">Every gate returned green.</span>
+    <span class="line">None of them were real<span class="period">.</span></span>
+  </h1>
+
+  <div class="footer">/aitldr/the-night-the-doctrine-failed</div>
+  <div class="footer-right">12 min read &nbsp;·&nbsp; with receipts</div>
+</body>
+</html>

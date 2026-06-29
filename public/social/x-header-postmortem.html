@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>X header — campaign mode</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0A08;
+    --border: #2C2620;
+    --text: #F2EDE6;
+    --muted: #948B7D;
+    --muted-2: #6E665B;
+    --clay: #D97757;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1500px; height: 500px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  body {
+    position: relative;
+    padding: 0;
+    background-image:
+      linear-gradient(to right, rgba(242,237,230,0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(242,237,230,0.035) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+  .monogram {
+    position: absolute;
+    top: 60px;
+    left: 80px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 320px;
+    line-height: 0.85;
+    color: var(--clay);
+    opacity: 0.4;
+    letter-spacing: -0.04em;
+  }
+  .header-stack {
+    position: absolute;
+    top: 50%;
+    left: 480px;
+    transform: translateY(-50%);
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.22em;
+    color: var(--clay);
+    margin-bottom: 32px;
+  }
+  .eyebrow::before {
+    content: "●";
+    margin-right: 14px;
+    vertical-align: middle;
+  }
+  .hook {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.45;
+    letter-spacing: 0;
+    color: var(--text);
+    text-transform: lowercase;
+  }
+  .hook .real {
+    color: var(--clay);
+  }
+  .hook .arrow {
+    display: block;
+    margin-top: 18px;
+    color: var(--muted-2);
+    font-size: 24px;
+  }
+  .footer {
+    position: absolute;
+    right: 60px;
+    bottom: 30px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.18em;
+    color: var(--muted-2);
+  }
+  .corner-tl {
+    position: absolute;
+    top: 30px;
+    left: 60px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.22em;
+    color: var(--muted-2);
+  }
+</style>
+</head>
+<body>
+  <div class="monogram">AS</div>
+  <div class="corner-tl">ABDUR.AI · POSTMORTEM · CAMPAIGN MODE</div>
+  <div class="header-stack">
+    <div class="eyebrow">LAUNCH WEEK</div>
+    <div class="hook">
+      every gate returned green.<br>
+      none of them were <span class="real">real.</span>
+      <span class="arrow">→ abdur.ai/postmortem</span>
+    </div>
+  </div>
+  <div class="footer">/aitldr/the-night-the-doctrine-failed</div>
+</body>
+</html>

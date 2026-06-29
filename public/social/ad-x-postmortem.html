@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Ad — X 1200x628</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0A08;
+    --border: #2C2620;
+    --text: #F2EDE6;
+    --muted: #948B7D;
+    --muted-2: #6E665B;
+    --clay: #D97757;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1200px; height: 628px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  body {
+    position: relative;
+    padding: 72px 80px;
+    background-image:
+      linear-gradient(to right, rgba(242,237,230,0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(242,237,230,0.035) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+  .corner-frame { position: absolute; inset: 32px; border: 1px solid var(--border); }
+  .kicker {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+  .kicker::before {
+    content: "●";
+    color: var(--clay);
+    margin-right: 12px;
+    vertical-align: middle;
+  }
+  .headline {
+    margin-top: 56px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 76px;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    max-width: 1000px;
+  }
+  .headline .line { display: block; }
+  .headline .real { color: var(--clay); }
+  .accent-bar {
+    width: 88px;
+    height: 4px;
+    background: var(--clay);
+    margin-top: 40px;
+  }
+  .metric {
+    margin-top: 32px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 28px;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  .metric .num {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+    font-size: 64px;
+    color: var(--clay);
+    line-height: 1;
+    vertical-align: -8px;
+    margin-right: 12px;
+  }
+  .cta {
+    position: absolute;
+    right: 80px;
+    bottom: 80px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.18em;
+    color: var(--text);
+    background: var(--clay);
+    padding: 18px 28px;
+    border: 0;
+  }
+  .footer-url {
+    position: absolute;
+    left: 80px;
+    bottom: 80px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.16em;
+    color: var(--muted-2);
+  }
+</style>
+</head>
+<body>
+  <div class="corner-frame"></div>
+  <div class="kicker">ABDUR.AI &nbsp;·&nbsp; AITLDR POSTMORTEM</div>
+  <h1 class="headline">
+    <span class="line">Every gate returned green.</span>
+    <span class="line">None of them were <span class="real">real.</span></span>
+  </h1>
+  <div class="accent-bar"></div>
+  <p class="metric"><span class="num">75%</span>false-close rate on 12 verified safety gates.</p>
+  <a class="cta" href="#">Read the postmortem →</a>
+  <div class="footer-url">/aitldr/the-night-the-doctrine-failed</div>
+</body>
+</html>
