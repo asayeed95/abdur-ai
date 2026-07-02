@@ -28,7 +28,7 @@ export default function HirePage() {
             <li>Forward Deployed Engineer</li>
             <li>AI Systems Architect / AI Systems Design</li>
           </ul>
-          <p>At <strong className="text-text">OpenAI or Anthropic</strong> specifically — though I&apos;ll talk to any team working at the frontier of applied AI.</p>
+          <p>At <strong className="text-text">frontier AI labs and teams building AI-native products</strong> — anywhere the bar is &quot;ship systems that actually work,&quot; not &quot;talk about them.&quot;</p>
 
           <h2 className="font-display text-3xl text-text pt-6">What I bring</h2>
           <ul className="space-y-3 list-disc list-outside ml-6">
