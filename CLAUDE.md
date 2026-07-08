@@ -1,5 +1,21 @@
 # CLAUDE.md — abdur.ai handoff
 
+## Build discipline (read this section first, every session)
+
+This repo runs a **light** build-discipline gate — right-sized for a near-done public content site (no auth, no live payments). Full rules: **`PROCESS.md`**. Read it before `PROCESS.md`'s own detail supersedes anything below if they ever conflict.
+
+1. **Read `PROCESS.md` and `docs/superpowers/specs/build-plan.md` first.** They're the source of truth for current phase and remaining tasks — treat the handoff checklist further down in *this* file as a historical snapshot, not live status (some of it has already shipped; `PROCESS.md` has the verified-current table).
+2. **Lead your response with `Phase: 1 — <task-id>`** (task-id from `build-plan.md`). If nothing matches, propose a task-id or ask before writing code.
+3. **Run `./scripts/check-phase.sh` before and after every change.** `--hard` mode is what the pre-commit hook enforces.
+4. **[NEVER-SKIP] Design/content lock is a real gate now, not just prose.** `tailwind.config.ts` and `app/globals.css` are grep-gated — a staged edit to either fails the check unless `docs/superpowers/specs/overrides.md` has a matching `design-token-override:` entry. See `PROCESS.md`'s Soft-Gate Procedure for the format. The "do not redesign / do not invent copy" rule two paragraphs down is the human-readable version of this same gate.
+5. **Verify before you report.** Don't write "done," "deployed," or a number unless a command produced it this turn.
+6. **Own branch, explicit staging.** Never commit on whatever branch is checked out; never `git add -A`.
+7. **End every coding response with the PR checklist** from `PROCESS.md`.
+
+See `AGENTS.md` for the same rules phrased for Codex-style runners, and `PLAYBOOK.md` for how to actually run a session (session-start ritual, verify-before-report habits, committing discipline).
+
+---
+
 You are picking up a Next.js 15 + Tailwind + MDX project that is **scaffolded to ~85% complete**. The visual design, content, and architecture decisions are all locked. Your job is to finish wiring, deploy to Vercel, and add the persistence layer.
 
 Do **not** redesign anything. Do **not** invent new copy. Read the existing components and content — they're the source of truth. The design system tokens are in `tailwind.config.ts` and `app/globals.css`. Do not touch them.
