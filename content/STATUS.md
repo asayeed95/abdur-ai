@@ -29,8 +29,9 @@ Updated 2026-07-10 (post cloud→local pivot). Green = works today, verified by 
 ## 🔴 Not yet wired
 
 - **Pipedream workflows 1+2** (durable hands) — blocked on the paid-tier decision.
-- **Ledger backfill** — pillar-1's already-published posts should be added to `posted.jsonl` so the dedup corpus reflects reality.
 - **Reddit/HN guided-packet flow** — the rule is encoded (human-fire-only, ≤1/day); the packet generator itself is a later add to the brains.
+
+(Done since first draft of this list: ledger backfill — pillar-1 X + LinkedIn permalinks are in `posted.jsonl`; IG deliberately excluded, fire never verified. CodeRabbit Majors on PR #3 fixed: capture-not-generate NeuralSphere rule, exact claims/slugs, canonical asset path.)
 
 ## The end-to-end, once you run the installer
 
