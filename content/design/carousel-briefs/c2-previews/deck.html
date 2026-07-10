@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#09090b; --ink:#fafafa; --ink-2:#a1a1aa; --ink-3:#71717a; --ink-4:#52525b;
+    --grid:rgba(255,255,255,.024); --cyan:#22d3ee; --violet:#c9a8ff; --rose:#fb7185;
+    --mono:"Geist Mono",ui-monospace,Menlo,monospace; --sans:"Manrope",system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#000;font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .slide{position:relative;width:1080px;height:1350px;background:var(--bg);color:var(--ink);
+    padding:108px 96px;display:flex;flex-direction:column;overflow:hidden;isolation:isolate}
+  .slide::before{content:"";position:absolute;inset:0;z-index:0;
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:48px 48px}
+  .slide::after{content:"";position:absolute;bottom:-300px;right:-240px;width:680px;height:680px;z-index:0;
+    background:radial-gradient(ellipse at center,#0c1024 0%,rgba(12,16,36,0) 70%)}
+  .slide>*{position:relative;z-index:1}
+  .wm{font-family:var(--mono);font-size:25px;letter-spacing:.34em;color:var(--ink);font-weight:500}
+  .grow{flex:1;display:flex;flex-direction:column;justify-content:center}
+  .kicker{font-family:var(--mono);font-size:25px;letter-spacing:.26em;color:var(--cyan);font-weight:500;margin-bottom:36px}
+  .kicker.rose{color:var(--rose)}
+  h1{font-family:var(--sans);font-weight:700;letter-spacing:-.022em;line-height:1.05}
+  .h-xl{font-size:100px}.h-lg{font-size:78px}.h-md{font-size:60px}
+  .cy{color:var(--cyan)} .ro{color:var(--rose)} .mut{color:var(--ink-3)}
+  .lead{font-size:37px;line-height:1.46;color:var(--ink-2);font-weight:400;max-width:860px}
+  .code{font-family:var(--mono);font-size:30px;line-height:1.55;color:var(--ink-2);margin-top:8px}
+  .code .old{color:var(--ink-4)}
+  .code .new{color:var(--cyan)}
+  .code .xr{color:var(--rose);font-weight:500}
+  .code .ck{color:var(--cyan);font-weight:500}
+  .foot{position:absolute;left:96px;right:96px;bottom:64px;display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:23px;color:var(--ink-4);z-index:1;letter-spacing:.05em}
+  .foot .b{color:var(--ink-3)}
+</style>
+</head>
+<body>
+  <!-- C2 card 1 -->
+  <section class="slide">
+    <div class="wm">◆ MNEMIX</div>
+    <div class="grow">
+      <div class="kicker">// build in public</div>
+      <h1 class="h-lg">It counts every recall.<br><span class="cy">It charges nobody.</span><br><span class="mut">On purpose.</span></h1>
+      <p class="lead" style="margin-top:42px">You don't wire Stripe before you trust the count. The metering ledger shipped counting-only.</p>
+    </div>
+    <div class="foot"><span class="b">@Mnemix_official · agent memory layer</span><span>01 / 04</span></div>
+  </section>
+  <!-- C2 card 2 -->
+  <section class="slide">
+    <div class="wm">◆ MNEMIX</div>
+    <div class="grow">
+      <div class="kicker rose">// append-only, twice</div>
+      <h1 class="h-md">RLS alone isn't append-only.<br><span class="ro">A future migration can silently un-protect the table.</span></h1>
+      <div class="code" style="margin-top:44px">
+        <span class="ck">gate 1</span>&nbsp;&nbsp;<span class="new">row-level security</span><br><br>
+        <span class="ck">gate 2</span>&nbsp;&nbsp;<span class="new">role-aware trigger — blocks UPDATE/DELETE</span><br>
+        <span class="old">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;regardless of what RLS does</span>
+      </div>
+      <p class="lead" style="margin-top:44px">Two unrelated failure modes have to align before history can be edited.</p>
+    </div>
+    <div class="foot"><span class="b">@Mnemix_official · agent memory layer</span><span>02 / 04</span></div>
+  </section>
+</body>
+</html>
