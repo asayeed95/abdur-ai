@@ -7,9 +7,9 @@ System: Clay (`../abdur-ai-design-system.md`). Template: `../higgsfield-prompts/
 ---
 
 ## A1 — "Every gate returned green. None of them were real." (angle: anti-vibe-coding / the doctrine failure)
-**Supports:** the flagship post `the-night-the-doctrine-failed.mdx` (real 75% false-close receipt).
+**Supports:** `content/posts/the-night-the-doctrine-failed.mdx` (real receipts: seven-rule protocol, five audit rounds, independent cross-verifier; twelve close candidates, ten wrong dispositions — ~75% false-close rate).
 1. `Every gate returned green.` / `None of them were real.` — Playfair headline, clay accent rule. *Visual: quote-card.*
-2. `75% false-close rate on twelve "verified" safety gates.` — the number in JetBrains Mono. *Visual: stat-callout.*
+2. `Twelve close candidates. Ten wrong. A ~75% false-close rate — after seven rules, five audits, and a cross-verifier all said go.` — the numbers in JetBrains Mono, exactly as the post states them. *Visual: stat-callout.*
 3. `The fix wasn't better prompts. It was gates that can't lie: checks a script runs, not claims a model makes.`
 4. `Full post-mortem at abdur.ai` — soft CTA card.
 

@@ -135,9 +135,10 @@ MOTION TYPE: slow-rotate — the NeuralSphere motif rotating on a fixed axis, no
 cyan/violet at irregular intervals to suggest live recall, not decoration
 CAMERA: static
 LOOP SEAM: must-be-seamless
-SOURCE STILL: (none — pure text-to-video; reuse existing NeuralSphere component reference
-in `mnemix/web/src/components/NeuralSphere.jsx` for node-density/line-style guidance if
-regenerating rather than reusing the live WebGL asset)
+SOURCE STILL: (n/a — the NeuralSphere mark is NEVER text-to-video generated. Capture the
+shipped WebGL component `mnemix/web/src/components/NeuralSphere.jsx` via the capture rig
+(mnemix PR #414, 1440p/25fps). Generative video is allowed only for non-mark surrounding
+footage/compositing around the captured sphere.)
 
 Composition: ambient, not narrative — this loop sits behind the site hero headline, it does
 not tell a beginning-middle-end story. Motion should be slow and hypnotic, not attention-

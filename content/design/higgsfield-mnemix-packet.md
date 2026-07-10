@@ -191,11 +191,13 @@ percentages, no company logos, no drop shadows or glassmorphism.
 
 **Format:** 9:16 vertical for Reels/Shorts/TikTok-style cuts, 16:9 for X/LinkedIn native video and YouTube thumbnails-with-motion.
 
+> **⚠️ THE MARK IS CAPTURED, NEVER GENERATED.** The canonical NeuralSphere is the shipped WebGL component (`web/src/components/NeuralSphere.jsx`); its motion comes from the **capture rig (mnemix PR #414 — 1440p/25fps GPU capture)**, never from a generative model. A prompt-generated sphere is an off-brand stand-in and must not ship. The "prompts" below are **capture/edit direction** for the real component; Higgsfield generates only non-mark elements (background drift, text fades, surrounding B-roll, compositing).
+
 **#6 — Angle: Real demos (motion clip syncing to an actual request/response)**
 ```
-Model: kling3_0 (draft/volume) → veo3_1 or Gemini Ultra Veo 3.1 web (hero final)
+Source: WebGL capture rig (mnemix PR #414) for the sphere; kling3_0/veo3_1 ONLY for non-mark B-roll/compositing
 Aspect: 9:16 vertical, 6-8s loopable
-Prompt: Start on the NeuralSphere in its dim rest state — cyan #22d3ee
+Capture/edit direction: Start on the NeuralSphere in its dim rest state — cyan #22d3ee
 ghost-mesh on void #09090b, slow ambient drift, low opacity. A single thin
 line of Geist Mono text fades in at the bottom edge reading a generic
 request line (POST /v1/recall_and_enrich) — no fabricated payload values.
@@ -213,9 +215,9 @@ implied by the visual (music sourced separately, keep this clinical/calm).
 
 **#7 — Angle: Recall collapse (motion — the failure-state counterpart to #6)**
 ```
-Model: kling3_0
+Source: WebGL capture rig (mnemix PR #414) for the sphere; kling3_0 ONLY for non-mark compositing
 Aspect: 9:16 or 1:1, 4-6s loop
-Prompt: NeuralSphere in dim rest state, cyan #22d3ee ghost-mesh, void
+Capture/edit direction: NeuralSphere in dim rest state, cyan #22d3ee ghost-mesh, void
 #09090b background. The same request-line text fades in as in the
 successful-recall clip, but this time the sphere does NOT awaken — instead
 one hub node flickers briefly in rose #fb7185 and a single thin edge
@@ -265,7 +267,7 @@ Reuses the Mnemix voice contract — a visual's on-screen text or accompanying c
 5. Does it map to exactly one content angle from §2 — memory failures, race conditions, recall collapse, evidence refs, audit trails, bi-temporal memory, build discipline, or real demos?
 6. Is it free of stock-photo/generic-AI-art tells (brain illustrations, lightbulbs, glassmorphism dashboards, human faces, handshake/team-photo clichés)?
 7. Would this frame survive being asked "what specific, real thing does this visual point to?" — if the honest answer is "nothing, it's just vibes," don't ship it.
-8. Asset banked per the Creative Stack rule — generated assets that only live in Higgsfield's CDN expire from working memory; save finals into `docs/content/design/` (or the relevant channel-variant path) once selected.
+8. Asset banked per the Creative Stack rule — generated assets that only live in Higgsfield's CDN expire from working memory; save finals into `content/design/` (next to the brief they fulfill; prompt+asset refs into `content/sources/design-refs/`) once selected.
 
 ---
 
