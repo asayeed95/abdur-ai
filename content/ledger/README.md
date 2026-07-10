@@ -44,6 +44,7 @@ The ledger is how the whole system remembers what it already said, so no post is
 ## Append discipline (don't corrupt the ledger)
 
 - **One JSON object per line, newline-terminated. No pretty-printing, no trailing commas.**
+- **Normalize permalinks before writing or comparing: strip `www.`** (`://www.` → `://`). A `www` mismatch once defeated the backfill dedup and produced a duplicate row.
 - Append with `>>`, never rewrite the file. Concurrent writers: append is atomic for small lines; if a process must batch, write to a temp file and `cat >>` once.
 - Every state transition = one new line. A post goes `scheduled` → (fires) → `posted`: that's two lines with the same `id`, not an edit.
 - `id` is the join key across lines. Keep it stable for a given piece of content.

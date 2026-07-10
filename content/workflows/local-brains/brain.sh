@@ -85,7 +85,12 @@ $RECENT
 EOF
 
 # --- generate (no tools, no network, pure text out) ---
-DRAFT=$(cd "$REPO" && claude -p "$(cat "$COMPOSED")" --model claude-sonnet-5 --allowedTools "" 2>>"$LOG") || { echo "claude -p failed"; exit 1; }
+# NOTE: --allowedTools is an auto-approval list, NOT a whitelist — headless denies un-allowed
+# tools, but belt-and-braces we explicitly disallow every side-effect tool as well.
+DRAFT=$(cd "$REPO" && claude -p "$(cat "$COMPOSED")" --model claude-sonnet-5 \
+  --allowedTools "" \
+  --disallowedTools "Bash,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,Task,NotebookEdit" \
+  2>>"$LOG") || { echo "claude -p failed"; exit 1; }
 rm -f "$COMPOSED"
 [ -n "$DRAFT" ] || { echo "empty draft"; exit 1; }
 echo "$DRAFT" > "${LOG%.log}-draft.md"   # persist for post-mortem on gate rejects

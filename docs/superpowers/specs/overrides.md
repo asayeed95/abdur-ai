@@ -10,7 +10,7 @@ Append an entry here, then re-run `./scripts/check-phase.sh --hard` to confirm i
 
 ```
 - task-id: <id from build-plan.md>
-  design-token-override: tailwind.config.ts   # or app/globals.css — one entry per file
+  design-token-override: <locked-file>   # write the real filename; placeholder is deliberately non-matching so this example can never satisfy the gate
   reason: <why this specific change is warranted — not "needed a color">
   approved-by: <name/date>
 ```
@@ -19,7 +19,7 @@ Append an entry here, then re-run `./scripts/check-phase.sh --hard` to confirm i
 
 ```
 - task-id: <id from build-plan.md>
-  content-publish-override: content/posts/<slug>.mdx   # exact published path
+  content-publish-override: content/posts/<slug>.mdx   # exact published path (the <slug> placeholder cannot match a real staged file)
   reason: <why this is going straight to published, not through _drafts/>
   approved-by: <name/date>
 ```
