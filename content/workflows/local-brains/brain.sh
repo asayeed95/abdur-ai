@@ -38,7 +38,23 @@ if [ "$PROJECT" = "abdur-ai" ] && [ -f "$REPO/content/ship-log.json" ]; then
 $(head -40 "$REPO/content/ship-log.json")"
 fi
 
-# --- context: recent drafts in the channel (dedup corpus) ---
+# --- context: ledger angles (dedup corpus part 1 — everything already posted/scheduled) ---
+LEDGER_DIR="$DIR/../../ledger"
+LEDGER_ANGLES=$(python3 -c "
+import json, pathlib
+seen=[]
+for name in ('posted.jsonl','scheduled.jsonl'):
+    p=pathlib.Path('$LEDGER_DIR')/name
+    if p.exists():
+        for line in p.read_text().splitlines():
+            try:
+                d=json.loads(line)
+                seen.append(f\"- [{d.get('state','')}] {d.get('project','')}/{d.get('channel','')}: {d.get('angle','')[:150]}\")
+            except Exception: pass
+print('\n'.join(seen[-40:]) if seen else '(ledger empty)')
+")
+
+# --- context: recent drafts in the channel (dedup corpus part 2) ---
 RECENT=$(curl -s -H "Authorization: Bearer $SLACK_TOKEN" \
   "https://slack.com/api/conversations.history?channel=$CHANNEL&limit=20" |
   python3 -c "
@@ -61,7 +77,10 @@ $GITLOG
 
 $EXTRA
 
-RECENT DRAFTS ALREADY IN THE CHANNEL (do NOT repeat any of these angles):
+ALREADY POSTED OR SCHEDULED (ledger — do NOT repeat any of these angles):
+$LEDGER_ANGLES
+
+RECENT DRAFTS ALREADY IN THE CHANNEL (do NOT repeat these either):
 $RECENT
 EOF
 
