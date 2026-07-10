@@ -4,7 +4,7 @@
 
 ## Owner
 
-The **Mnemix Daily Content Brain** — cloud routine `trig_01EHoBCKX68iahC8hcGeiGvk`, runs 08:06 ET. It generates; the hands schedule; the founder vetoes. (Manage via the claude.ai routines UI / RemoteTrigger.)
+The **Mnemix Daily Content Brain** — Mac-mini launchd job `content-brain-mnemix` (`../workflows/local-brains/brain.sh mnemix`), runs 08:06 local. It generates; the hands schedule; the founder vetoes. (Moved from a claude.ai cloud routine 2026-07-10 after an account switch orphaned it — see `../workflows/local-brains/README.md`.)
 
 ## Source material (in priority order)
 

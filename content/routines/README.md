@@ -4,9 +4,9 @@ These are the standing operating procedures. Each one is a loop an agent (cloud 
 
 | Routine | Cadence | Owner | Guarantees |
 |---|---|---|---|
-| [daily-posting-routine](daily-posting-routine.md) | every morning | cloud brains + Pi5/Pipedream hands | the master loop; ≥1 post/day floor |
-| [mnemix-daily-x-routine](mnemix-daily-x-routine.md) | every day | Mnemix daily brain (`trig_01EHoBCKX68iahC8hcGeiGvk`) | Mnemix appears daily via `@mnemix_official` |
-| [abdur-tldr-blog-routine](abdur-tldr-blog-routine.md) | every day | abdur.ai daily brain | abdur.ai TLDRs/blogs/posts, founder/media layer |
+| [daily-posting-routine](daily-posting-routine.md) | every morning | Mac-mini brains + local hands (Pipedream durable target) | the master loop; ≥1 post/day floor |
+| [mnemix-daily-x-routine](mnemix-daily-x-routine.md) | every day | Mnemix daily brain (Mac-mini launchd, `../workflows/local-brains/`) | Mnemix appears daily via `@mnemix_official` |
+| [abdur-tldr-blog-routine](abdur-tldr-blog-routine.md) | every day | abdur.ai daily brain (Mac-mini launchd) | abdur.ai TLDRs/blogs/posts, founder/media layer |
 | [design-higgsfield-routine](design-higgsfield-routine.md) | on approved content | design loop | turns approved content into visuals, on-brand only |
 
 ## The guaranteed-daily contract

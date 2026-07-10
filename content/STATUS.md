@@ -1,35 +1,45 @@
 # STATUS — what's wired now vs what needs a secret / API / your call
 
-Updated 2026-07-09. This is the honest state. Green = works today. Yellow = needs a human decision. Red = needs secrets/wiring before it runs.
+Updated 2026-07-10 (post cloud→local pivot). Green = works today, verified by a command this session. Yellow = needs a human decision/action. Red = needs wiring.
+
+> **What changed 2026-07-10:** the claude.ai account switch orphaned both cloud routines (404, empty routine list, no environments on the new account). The brains were rebuilt as **local Mac-mini jobs** (`workflows/local-brains/`) — which also matches the architecture principle: the Mac mini owns repo truth + draft generation. Old-account routines may still exist; delete them at claude.ai/code/routines (old login) to prevent double-drafting if that account's spend cap resets.
 
 ## 🟢 Implemented and verified now
 
-- **The content OS itself** — this whole `content/` tree: README, voice rules (+ banned-phrases lint list), ledger schema + dedup rules, workflow specs (Pipedream/Blotato/Slack-Telegram), routines, design systems + briefs, starter drafts. Committed to abdur-ai.
-- **Mnemix Daily Content Brain** — cloud routine `trig_01EHoBCKX68iahC8hcGeiGvk`, daily **08:06 ET**. Reads locks + pillars + `git log`, dedups against `#mnemix-content`, drafts a locks-clean X thread + LinkedIn, posts to `#mnemix-content` for `APPROVE·EDIT·SKIP`. **Publishes nothing.** Verified: it produced a real, on-voice, char-verified draft on first run.
-- **abdur.ai Daily Content Brain** — sibling cloud routine (created this session), daily. Drafts `@abdur_sayeed` operator-diary + TLDR/blog to Slack for approval. Publishes nothing.
-- **Blotato REST publishing path** — verified live (accounts, thread shape, schedule/delete = veto window). Documented in `workflows/blotato/`.
-- **Distribution blueprint** — mnemix repo PR #428 (`docs/marketing/CONTENT-AUTOMATION-BLUEPRINT.md`).
+- **The content OS** — this whole `content/` tree (PR #3): README, voice rules + banned-phrases machine block, ledger schema + dedup rules, routines, workflow specs, Clay + Signal Noir design systems, Higgsfield packets + prompt library, carousel/image/motion briefs, 5 starter drafts (all tweets weighted ≤280, lint clean).
+- **Mnemix Daily Content Brain (local)** — `brain.sh mnemix`: gathers git log + recent channel drafts (dedup), generates via `claude -p` (no tools, no secrets in the model), passes 3 gates (json block, weighted ≤280, banned-phrases), posts to `#mnemix-content` for APPROVE·EDIT·SKIP. **Verified end-to-end: posted a real draft.** Publishes nothing.
+- **abdur.ai Daily Content Brain (local)** — `brain.sh abdur-ai`, same pipeline, `[ABDUR.AI]`-tagged. **Verified end-to-end** (its first draft was a meta post about this very system — and its reject-gate correctly fired on an earlier draft that quoted banned phrases). Equal priority to Mnemix.
+- **Hands-scheduler (built + dry-run verified)** — `hands_scheduler.py`: Slack `APPROVED:` → re-lint → Blotato next-morning schedule (veto window) → Telegram fire times → ledger append. Idempotent by Slack ts. `DRY_RUN=1` path verified against live Slack (0 approvals pending).
+- **Buffer monitor (verified live)** — checks Blotato queue for both accounts, Telegrams status. **First live run correctly RED-alerted: nothing queued for the next 48h.**
+- **Blotato REST publishing path** — re-verified live today (`GET /v2/schedules` 200). Telegram founder-DM path verified live.
 
-## 🟡 Needs your decision / approval
+## 🟡 Needs your action / decision
 
-- **The "hands" (scheduler).** Decided: **B2 Pi5 interim tonight**, **B1 Pipedream durable target.** Pi5 cron is being wired (see 🔴). Pipedream workflows are spec'd + paste-ready in `workflows/pipedream/` but need the paid tier.
-- **Paid Pipedream tier.** Free tier is refuted for this load. You provision it, then paste the two builder prompts.
-- **`#abdur-content` Slack channel.** Doesn't exist yet — abdur.ai/dockerfile/heycli/mnemix-learning drafts route to `#mnemix-content` with a `[project]` tag until you create it.
-- **Design batches.** Carousel/image/motion briefs are written, but **no mass production** until you approve the first 1–2 designs (the design gate).
-- **Reddit / HN.** No auto-posting, ever, without your explicit approval of a specific manual/public-launch workflow. Guided drafts only.
+1. **Install the launchd jobs (one command, founder-run — the classifier correctly requires your hand for standing services):**
+   ```
+   ! bash ~/projects/abdur-ai/content/workflows/local-brains/install-launchd.sh
+   ```
+   Until run, the brains/hands/monitor only fire when started manually.
+2. **The 48h buffer is EMPTY.** Two drafts are waiting in `#mnemix-content` (Mnemix + `[ABDUR.AI]`). Reply `APPROVED:` + the json block to one of each, and the hands will queue them (after the installer runs; or ask an agent to run `hands-scheduler.sh` once).
+3. **Delete the orphaned cloud routines** on the OLD claude.ai account (claude.ai/code/routines) — prevents double-drafting later.
+4. **Paid Pipedream tier** — still the durable orchestration target (`workflows/pipedream/` has both paste-ready builder prompts). Local hands are the interim.
+5. **`#abdur-content` Slack channel** — optional; until created, everything routes to `#mnemix-content` with project tags.
+6. **Design batches** — briefs ready; no mass production until you approve the first 1–2 designs.
 
-## 🔴 Needs secrets / wiring before it runs
+## 🔴 Not yet wired
 
-- **Pi5 interim hands cron** (task in flight). Reads `APPROVED:` drafts from Slack → schedules via Blotato → Telegrams fire times → writes `scheduled.jsonl`. Needs the Slack read token + `BLOTATO_API_KEY` + Telegram token (all already in Pi5's Doppler); the cron code + install is the remaining work.
-- **Pipedream workflows 1 + 2.** Builder prompts ready; need the paid tier + a paste-build, and the workspace env vars (`BLOTATO_API_KEY`, `TELEGRAM_BOT_TOKEN`).
-- **Ledger backfill.** The already-published pillar-1 "voice has no cookies" posts should be added as `posted.jsonl` lines so the dedup corpus reflects reality.
-- **Cloud → hands handoff.** The brains draft to Slack (no local secrets in cloud); the hands (Pi5 now, Pipedream later) are what actually schedule. Until a hands lane runs, an approved draft must be hand-pushed to Blotato.
+- **Pipedream workflows 1+2** (durable hands) — blocked on the paid-tier decision.
+- **Ledger backfill** — pillar-1's already-published posts should be added to `posted.jsonl` so the dedup corpus reflects reality.
+- **Reddit/HN guided-packet flow** — the rule is encoded (human-fire-only, ≤1/day); the packet generator itself is a later add to the brains.
 
-## The end-to-end, once the hands are live
+## The end-to-end, once you run the installer
 
 ```
-brain (cloud, daily) → draft to Slack → you: APPROVE → hands (Pi5→Pipedream) →
-Blotato schedule (veto window) → Telegram fire time → fires → ledger + permalink
+08:06/08:30  brains draft → Slack (gated: json, ≤280, banned-phrases)
+morning      you: APPROVED: + json  (or EDIT / SKIP; silence = hold)
+≤30 min      hands schedule Blotato next-morning fire → Telegram veto notice → ledger
+next morning posts fire on @mnemix_official / @abdur_sayeed
+20:00        buffer monitor: RED alert if the next 48h is empty
 ```
 
-Every box above the "hands" is 🟢 today. The hands are the last wire.
+Everything in that loop is built and individually verified; the installer is the last wire.
