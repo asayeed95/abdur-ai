@@ -9,7 +9,10 @@
 #      (tailwind.config.ts / app/globals.css) without an explicit, on-record
 #      override in docs/superpowers/specs/overrides.md — turns the existing
 #      prose rule in CLAUDE.md/README.md into an enforced gate.
-#   2. The site actually builds, lints, and typechecks clean.
+#   2. [NEVER-SKIP] Nobody publishes content (content/posts/*.mdx outside
+#      _drafts/) without an explicit, on-record override in the same file —
+#      see content/posts/_drafts/CONTENT-ROUTING-RULE.md for why.
+#   3. The site actually builds, lints, and typechecks clean.
 #
 # Usage:
 #   ./scripts/check-phase.sh              # soft: report, exit 0
@@ -75,6 +78,33 @@ else
   warn "not inside a git work tree — skipping design-token lock check"
 fi
 
+# ---------- [NEVER-SKIP] Content publish lock ----------
+echo "==> [NEVER-SKIP] Content publish lock (content/posts/*.mdx outside _drafts/)"
+
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  STAGED_PUBLISHED=$(git diff --cached --name-only 2>/dev/null | grep -E '^content/posts/[^/]+\.mdx$' || true)
+
+  if [ -n "$STAGED_PUBLISHED" ]; then
+    UNCOVERED=""
+    for f in $STAGED_PUBLISHED; do
+      if [ -f "$OVERRIDES" ] && grep -qE "content-publish-override:[[:space:]]*${f}([[:space:]]|\$|#)" "$OVERRIDES" 2>/dev/null; then
+        :
+      else
+        UNCOVERED="$UNCOVERED $f"
+      fi
+    done
+    if [ -n "$UNCOVERED" ]; then
+      fail "published content staged with NO matching override:$UNCOVERED — per CONTENT-ROUTING-RULE.md, all content lands in content/posts/_drafts/ first; add a 'content-publish-override:' entry to $OVERRIDES to publish deliberately"
+    else
+      warn "published content staged ($STAGED_PUBLISHED) — override entry found in $OVERRIDES, allowing"
+    fi
+  else
+    pass "no direct-to-published content staged"
+  fi
+else
+  warn "not inside a git work tree — skipping content publish lock check"
+fi
+
 # ---------- Typecheck ----------
 echo "==> Typecheck"
 if npm run typecheck >/tmp/.bd-typecheck.out 2>&1; then
@@ -110,7 +140,7 @@ fi
 
 echo
 if [ "$FAILS" -gt 0 ]; then
-  echo "==> $FAILS gate failure(s). The design-token lock is [NEVER-SKIP] — only a named entry in $OVERRIDES clears it, not re-running with different flags."
+  echo "==> $FAILS gate failure(s). The design-token and content-publish locks are [NEVER-SKIP] — only a named entry in $OVERRIDES clears either, not re-running with different flags."
   [ "$HARD" -eq 1 ] && exit 1
   echo "    (soft mode: fix before committing; --hard mirrors what the pre-commit hook enforces)"
 else

@@ -29,5 +29,5 @@ A draft is "ready for review" when:
 
 ## Enforcement
 
-- Add `[NEVER-SKIP]` rule to AGENTS.md: "All generated content goes to `content/posts/_drafts/` first. Never write to `content/posts/` or deploy without explicit approval."
-- Pre-commit hook: reject commits by non-human authors touching `content/posts/*.mdx` (excluding `_drafts/`)
+- `[NEVER-SKIP]` rule in AGENTS.md: "All generated content goes to `content/posts/_drafts/` first. Never write to `content/posts/` or deploy without explicit approval."
+- Pre-commit gate (`scripts/check-phase.sh`): any staged `.mdx` file directly under `content/posts/` (i.e. NOT in `_drafts/`) requires a matching `content-publish-override:` entry in `docs/superpowers/specs/overrides.md`, same mechanism already used for the design-token lock. **Not** author-detection — this repo's AI-authored and human-authored commits share the identical git author identity (`abdur@asec.co`), so gating on commit author cannot distinguish them. The override file is the actual enforcement point.
