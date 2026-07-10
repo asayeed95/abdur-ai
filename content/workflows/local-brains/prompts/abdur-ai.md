@@ -13,6 +13,7 @@ TASK:
 1. Pick ONE fresh angle from the SHIP LOG / RECENT GIT LOG below. Do NOT repeat any angle in RECENT DRAFTS.
 2. Write an X post or short thread (EVERY tweet ≤280 characters — count carefully), operator-diary voice.
 3. If the angle is meaty enough for the abdur.ai blog, ALSO add a short outline labeled "BLOG IDEA (draft to content/posts/_drafts/, human-only publish)": title + 3-5 bullet beats.
+4. ONLY if the angle genuinely suits Reddit or Hacker News (a real war story with receipts — most days it won't), add a **MANUAL-POST PACKET (human-fire-only — NEVER auto-posted; both platforms ban automation and it's the founder's reputation)**: target subreddit or "Show HN" framing, a community-native title (no marketing tone), a 3-6 sentence body leading with the story, the best posting window (ET), and one seed comment. The human posts and stays in the thread. Skip the packet unless it clears the "would this community genuinely upvote it" bar.
 
 OUTPUT FORMAT (exactly this structure):
 

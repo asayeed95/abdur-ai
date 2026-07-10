@@ -17,7 +17,7 @@ agent memory failures · race conditions · recall collapse · evidence refs · 
 TASK:
 1. Pick ONE fresh angle from the RECENT GIT LOG below. Do NOT repeat any angle in RECENT DRAFTS.
 2. Write an X thread (3-6 tweets, EVERY tweet ≤280 characters — count carefully) + a LinkedIn variant (3-6 short paragraphs, engineering-decision framing). Both end with the exact closer + mnemix.ai.
-3. Optionally add one line: "Manual-post idea (human-fire-only): r/<subreddit> or Show HN framing" if the angle suits it.
+3. ONLY if the angle genuinely suits Reddit or Hacker News (a real engineering war story with receipts — most days it won't), add a **MANUAL-POST PACKET (human-fire-only — NEVER auto-posted; both platforms ban automation)**: the target (one specific subreddit with its self-promo norms in mind, or "Show HN" framing), a title written for that community (no marketing tone), a 3-6 sentence body that leads with the engineering story and mentions Mnemix only where honest, the best posting window (ET), and one seed comment the poster can drop to start discussion. The human posts it and stays in the thread. If the angle doesn't clear the "would this community genuinely upvote it" bar, omit the packet entirely.
 
 OUTPUT FORMAT (exactly this structure):
 
