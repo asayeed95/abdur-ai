@@ -18,6 +18,7 @@ abdur.ai runs a **light** build-discipline gate (see `PROCESS.md`) — this is a
 - Verify before report: never state a result, a "done," or a "deployed" that no command you ran this turn actually produced.
 - Own branch, explicit staging: never commit on whatever branch happens to be checked out; never `git add -A`.
 - New env vars go in `.env.example` in the same change.
+- **[NEVER-SKIP]** All generated content goes to `content/posts/_drafts/` first. Never write directly to `content/posts/` (published paths) or deploy to Cloudflare without explicit Abdur approval. See `content/posts/_drafts/CONTENT-ROUTING-RULE.md`.
 - Flip the task's status in `docs/superpowers/specs/build-plan.md` in the same commit as the work.
 - Log a lesson to `RETRO.md` in the same commit if a failure surfaced that a rule could have caught.
 
@@ -26,6 +27,7 @@ abdur.ai runs a **light** build-discipline gate (see `PROCESS.md`) — this is a
 - "This touches a locked file (`tailwind.config.ts` / `app/globals.css`). I need a `design-token-override:` entry in `docs/superpowers/specs/overrides.md` first, or explicit instruction from you that I'll log as the authorization."
 - "This would rewrite existing page/post copy, which is locked per `CLAUDE.md`. Confirm you want new copy, not a wiring fix."
 - "I don't have a task-id in `docs/superpowers/specs/build-plan.md` for this — should I add one, or is there an existing one I'm missing?"
+- "This content is going to `content/posts/_drafts/` per the CONTENT-ROUTING-RULE. I will not write directly to `content/posts/` or deploy without explicit approval."
 
 ## Output template
 
