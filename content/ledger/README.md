@@ -17,8 +17,12 @@ The ledger is how the whole system remembers what it already said, so no post is
 {
   "id": "2026-07-09-mnemix-metering-ledger",   // stable slug: date-project-angle
   "ts": "2026-07-09T12:06:03Z",                // when this state change happened (UTC)
-  "project": "mnemix",                          // mnemix | abdur-ai | dockerfile-ai | heycli | mnemix-learning
-  "channel": "x",                               // x | linkedin | ig | blog | reddit-draft | hn-draft
+  "project": "mnemix",                          // this OS drafts for: mnemix | abdur-ai | dockerfile-ai | heycli | mnemix-learning
+                                                 // OBSERVED-ONLY (from parallel-pipeline backfill, not drafted by this OS): retention-lab
+  "channel": "x",                               // this OS's own short codes: x | linkedin | ig | blog | reddit-draft | hn-draft
+                                                 // OBSERVED-ONLY (raw Blotato platform names, backfilled rows): instagram | threads
+                                                 //   (twitter is normalized to "x" at backfill time; instagram/threads are not — "ig" is
+                                                 //    this OS's convention for content it drafts, "instagram" is what a backfill records)
   "account": "@mnemix_official",                // handle or account id
   "angle": "metering ledger: count before you charge; double-gate append-only",
   "source": "sources/repo-events/pr-406.md",    // REQUIRED — traces to real work
