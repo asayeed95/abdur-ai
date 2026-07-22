@@ -4,12 +4,24 @@
 # The model gets NO tools and NO secrets: the wrapper gathers all context and does all I/O.
 # PUBLISHES NOTHING — Slack draft only. Approval + scheduling happen downstream (hands-scheduler.sh).
 #
-# Usage: brain.sh <mnemix|abdur-ai> [--test]
+# Usage: brain.sh <mnemix|abdur-ai> [--test] [--emit-only <outfile>]
+#   --emit-only: write the draft to <outfile> and DON'T post to Slack — the r-c1 loop
+#   (rc1_loop.py) owns gating + revision + batch assembly in that mode. Gate failures
+#   still emit the draft (exit 3) so the loop can revise instead of losing the attempt.
 set -euo pipefail
 
-PROJECT="${1:?usage: brain.sh <mnemix|abdur-ai> [--test]}"
+PROJECT="${1:?usage: brain.sh <mnemix|abdur-ai> [--test] [--emit-only <outfile>]}"
 TEST_PREFIX=""
-[ "${2:-}" = "--test" ] && TEST_PREFIX="[TEST-RUN] "
+EMIT_ONLY=""
+DRAFT_OUT=""
+shift || true
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --test) TEST_PREFIX="[TEST-RUN] " ;;
+    --emit-only) EMIT_ONLY=1; DRAFT_OUT="${2:?--emit-only needs an output path}"; shift ;;
+  esac
+  shift
+done
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 CHANNEL="C0BAMF2P4L8"
@@ -133,8 +145,19 @@ rm -f "$COMPOSED"
 [ -n "$DRAFT" ] || { echo "empty draft"; exit 1; }
 echo "$DRAFT" > "${LOG%.log}-draft.md"   # persist for post-mortem on gate rejects
 
+# In --emit-only mode a gate failure still hands the draft to the loop (exit 3 = revisable).
+emit_reject() {
+  echo "REJECT: $1"
+  if [ -n "$EMIT_ONLY" ]; then
+    printf '%s' "$DRAFT" > "$DRAFT_OUT"
+    echo "EMITTED (gates failed) -> $DRAFT_OUT"
+    exit 3
+  fi
+  exit 1
+}
+
 # --- gate 1: must contain the machine-readable json block ---
-echo "$DRAFT" | grep -q '```json' || { echo "REJECT: draft has no json block"; echo "$DRAFT" | head -20; exit 1; }
+echo "$DRAFT" | grep -q '```json' || { echo "$DRAFT" | head -20; emit_reject "draft has no json block"; }
 
 # --- gate 2: weighted tweet-length check on the json thread ---
 COUNTS=$(echo "$DRAFT" | python3 -c "
@@ -154,7 +177,7 @@ print('OVER ' + ' '.join(bad) if bad else 'OK')
 ")
 case "$COUNTS" in
   OK) echo "tweet lengths OK" ;;
-  *)  echo "REJECT: $COUNTS"; exit 1 ;;
+  *)  emit_reject "$COUNTS" ;;
 esac
 
 # --- gate 3: banned-phrases lint on the whole draft ---
@@ -162,8 +185,15 @@ BANNED_FILE="$DIR/../../voice/banned-phrases.md"
 if [ -f "$BANNED_FILE" ]; then
   VIOL=$(awk '/^## MACHINE-CHECK BLOCK/,0' "$BANNED_FILE" | sed -n '/^```$/,/^```$/p' | sed '1d;$d' |
     while IFS= read -r ph; do [ -n "$ph" ] && echo "$DRAFT" | grep -qiF "$ph" && echo "$ph"; done || true)
-  if [ -n "$VIOL" ]; then echo "REJECT: banned phrases: $VIOL"; exit 1; fi
+  if [ -n "$VIOL" ]; then emit_reject "banned phrases: $VIOL"; fi
   echo "banned-phrases lint OK"
+fi
+
+# --- emit-only mode stops here: the loop owns approval routing ---
+if [ -n "$EMIT_ONLY" ]; then
+  printf '%s' "$DRAFT" > "$DRAFT_OUT"
+  echo "EMITTED (gates green) -> $DRAFT_OUT"
+  exit 0
 fi
 
 # --- post to Slack for approval ---

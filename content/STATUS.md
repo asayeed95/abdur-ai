@@ -1,6 +1,8 @@
 # STATUS — what's wired now vs what needs a secret / API / your call
 
-Updated 2026-07-16 (repo-delegation: "one inbox, multiple outbound"). Green = works today, verified by a command this session. Yellow = needs a human decision/action. Red = needs wiring.
+Updated 2026-07-22 (content-ops Slice 1). Green = works today, verified by a command this session. Yellow = needs a human decision/action. Red = needs wiring.
+
+> **What changed 2026-07-22 (content-ops Slice 1 — task C-4; spec: Mnemix `docs/superpowers/specs/CONTENT-OPS-SYSTEM.md`, RATIFIED 2026-07-22):** the generation feed + one-yes morning batch landed. New: `gates.py` (deterministic H1–H6 claim/voice/dedup/scrub gates), `rc1_loop.py` (draft→gates→judge→revise, ≤3 iterations, `needs_human` on guard trip), `batchlib.py` + batch layer in `hands_scheduler.py` (ratified reply grammar incl. per-item verbs and `stop content` kill switch, (batch-id,item-id) idempotency, live-Blotato-queue spacing, risk auto-pause after 3 rail failures, `runs.jsonl`/`risk.jsonl`), `batch_assemble.py` + `r-c1.sh`/`r-c2-send.sh` (06:30 harvest+loop · 07:30 single batch message), installer rewired (per-project brain jobs superseded). 51 offline tests green. **Not armed:** launchd install remains founder-run (item 1 below); first LIVE release additionally gated on the D-7 parallel-lane cleanup (delete the old-account routines named in local-brains/README gotchas) and runs floor-only per D-8.
 
 > **What changed 2026-07-16:** the content inbox now ingests ALL five portfolio repos.
 > `local-brains/capture-repo-events.sh` (new) turns merged-to-main commits into permanent

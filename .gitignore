@@ -40,3 +40,7 @@ next-env.d.ts
 
 # content-brains machine-local state (per-machine git cursors — never commit)
 content/workflows/local-brains/.cursors/
+content/workflows/local-brains/.out/
+content/workflows/local-brains/.paused
+content/workflows/local-brains/.risk-state.json
+content/workflows/local-brains/__pycache__/
