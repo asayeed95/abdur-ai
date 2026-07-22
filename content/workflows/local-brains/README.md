@@ -8,9 +8,12 @@ The daily generation + scheduling machinery, running **on this Mac mini** with l
 |---|---|---|
 | `brain.sh mnemix` | generate ONE locks-clean Mnemix draft → post to Slack `#mnemix-content` for APPROVE·EDIT·SKIP | daily 08:06 local |
 | `brain.sh abdur-ai` | generate ONE abdur.ai operator-diary draft (tagged `[ABDUR.AI]`) → same channel | daily 08:30 local |
+| `brain.sh dockerfile-ai` | generate ONE Dockerfile.ai devlog draft (tagged `[DOCKERFILE.AI]`) → same channel | **manual only** — not launchd-scheduled yet (2026-07-16 repo-delegation redefinition; see `../repo-delegation/README.md`) |
+| `brain.sh heycli` | generate ONE HeyCLI devlog draft (tagged `[HEYCLI]`) → same channel | **manual only** — same as above |
+| `capture-repo-events.sh` | turn real commits across all 5 watched repos into permanent, cursor-tracked `content/sources/repo-events/*.md` records (dry-run safe by default) | **manual only** — not launchd-scheduled yet |
 | `hands-scheduler.sh` | scan channel for founder `APPROVED:` messages → schedule via Blotato for a **next-morning fire (veto window)** → Telegram fire times → append `ledger/scheduled.jsonl` | every 30 min, 08:00–23:00 |
 | `buffer-monitor.sh` | RED-alert Telegram if `@mnemix_official` or `@abdur_sayeed` has nothing queued in the next 48h | daily 20:00 local |
-| `install-launchd.sh` | one-time installer for all four jobs (**founder-run**) | — |
+| `install-launchd.sh` | one-time installer for the original four jobs (**founder-run**) — does NOT yet install the two new brains or the capture script; needs a decision on cadence/fire-time first (see `../repo-delegation/README.md`) | — |
 
 ## Design rules encoded
 
@@ -26,7 +29,11 @@ The daily generation + scheduling machinery, running **on this Mac mini** with l
 |---|---|---|---|
 | mnemix | `@mnemix_official` 18856 | 09:07 | 21401 @ 10:07 (if `linkedin_text`) |
 | abdur-ai | `@abdur_sayeed` 20072 | 10:07 | 21401 @ 11:07 |
-| dockerfile-ai / heycli / mnemix-learning | `@abdur_sayeed` 20072 | 11:07 | — |
+| dockerfile-ai | `@abdur_sayeed` 20072 | 11:07 | — |
+| heycli | `@abdur_sayeed` 20072 | 11:07 | — |
+| mnemix-learning | `@abdur_sayeed` 20072 (hands_scheduler ROUTES supports it if an APPROVED draft carries this project key) | 11:07 | — |
+
+*mnemix-learning has a route but **no brain**: nothing generates drafts for it daily. Recommendation (open decision, see `../repo-delegation/README.md`): keep it that way — feed its captured `sources/repo-events/` records into the abdur-ai brain's context so MOLL stories surface as operator-diary angles instead of a 4th daily slot on the same account.*
 
 ## Install / operate
 

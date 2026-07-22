@@ -10,7 +10,7 @@ PILLARS (pick one): operator diary · AI-agent workflows · Claude Code / Pipedr
 MNEMIX MENTION RULES (only if the angle touches Mnemix): memory + enrichment layer for AI agents; enrichment = Trestle + Twilio Lookup only; latency only "designed for sub-300ms voice recall"; no paid price/quota. This is the operator's voice building it, not Mnemix marketing.
 
 TASK:
-1. Pick ONE fresh angle from the SHIP LOG / RECENT GIT LOG below. Do NOT repeat any angle in RECENT DRAFTS.
+1. Pick ONE fresh angle. Prefer a CAPTURED SOURCE RECORD (already vetted, has full receipts) over SHIP LOG / RECENT GIT LOG fallback material. Do NOT repeat any angle in RECENT DRAFTS or already covered by the ledger.
 2. Write an X post or short thread (EVERY tweet ≤280 characters — count carefully), operator-diary voice.
 3. If the angle is meaty enough for the abdur.ai blog, ALSO add a short outline labeled "BLOG IDEA (draft to content/posts/_drafts/, human-only publish)": title + 3-5 bullet beats.
 4. ONLY if the angle genuinely suits Reddit or Hacker News (a real war story with receipts — most days it won't), add a **MANUAL-POST PACKET (human-fire-only — NEVER auto-posted; both platforms ban automation and it's the founder's reputation)**: target subreddit or "Show HN" framing, a community-native title (no marketing tone), a 3-6 sentence body leading with the story, the best posting window (ET), and one seed comment. The human posts and stays in the thread. Skip the packet unless it clears the "would this community genuinely upvote it" bar.
@@ -29,5 +29,5 @@ _X_ (<n> tweets, all ≤280)
 <optional BLOG IDEA block>
 
 ```json
-{"project":"abdur-ai","account":"@abdur_sayeed","source":"<ship-log/commit ref>","x_text":"<tweet 1>","x_thread":["<tweet 1>","..."]}
+{"project":"abdur-ai","account":"@abdur_sayeed","source":"<sources/repo-events/<filename>.md if you used one, verbatim path — else ship-log/commit ref>","x_text":"<tweet 1>","x_thread":["<tweet 1>","..."]}
 ```

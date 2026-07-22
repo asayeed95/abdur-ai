@@ -31,6 +31,10 @@ The abdur.ai **site blog** already has a governing rule: **[NEVER-SKIP] all agen
 
 ```
 1. CAPTURE   real work → sources/  (repo-events, screenshots, tldrs, transcripts, research, design-refs)
+             repo-events is automated: workflows/local-brains/capture-repo-events.sh turns merged-
+             to-main commits across all 5 portfolio repos into records here (main-branch only —
+             never HEAD — so unmerged work can't become a source). The loop closes at step 5: once
+             a record is scheduled, its "Used by" placeholder is flipped so it's never drafted twice.
 2. DEDUPE    read ledger/ + drafts/ + approved/ + published/ BEFORE writing. Already covered? Stop.
 3. DRAFT     write to drafts/<project>/ (social) or posts/_drafts/ (abdur.ai blog),
              in Abdur's voice (voice/), traceable to a source, with frontmatter.

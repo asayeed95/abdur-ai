@@ -15,7 +15,7 @@ CONTENT PILLARS (pick the angle from the git log below, mapped to one of these):
 agent memory failures · race conditions · recall collapse · evidence refs · audit trails · bi-temporal memory · validator-validation · build discipline · real demos · founder build logs.
 
 TASK:
-1. Pick ONE fresh angle from the RECENT GIT LOG below. Do NOT repeat any angle in RECENT DRAFTS.
+1. Pick ONE fresh angle. Prefer a CAPTURED SOURCE RECORD (already vetted, has full receipts) over the RECENT GIT LOG fallback. Do NOT repeat any angle in RECENT DRAFTS or already covered by the ledger.
 2. Write an X thread (3-6 tweets, EVERY tweet ≤280 characters — count carefully) + a LinkedIn variant (3-6 short paragraphs, engineering-decision framing). Both end with the exact closer + mnemix.ai.
 3. ONLY if the angle genuinely suits Reddit or Hacker News (a real engineering war story with receipts — most days it won't), add a **MANUAL-POST PACKET (human-fire-only — NEVER auto-posted; both platforms ban automation)**: the target (one specific subreddit with its self-promo norms in mind, or "Show HN" framing), a title written for that community (no marketing tone), a 3-6 sentence body that leads with the engineering story and mentions Mnemix only where honest, the best posting window (ET), and one seed comment the poster can drop to start discussion. The human posts it and stays in the thread. If the angle doesn't clear the "would this community genuinely upvote it" bar, omit the packet entirely.
 
@@ -37,5 +37,5 @@ _LinkedIn_
 <optional manual-post idea line>
 
 ```json
-{"project":"mnemix","account":"@mnemix_official","source":"<commit/PR ref>","x_text":"<tweet 1>","x_thread":["<tweet 1>","<tweet 2>","..."],"linkedin_text":"<full linkedin text with \n between paragraphs>"}
+{"project":"mnemix","account":"@mnemix_official","source":"<sources/repo-events/<filename>.md if you used one, verbatim path — else the bare commit sha>","x_text":"<tweet 1>","x_thread":["<tweet 1>","<tweet 2>","..."],"linkedin_text":"<full linkedin text with \n between paragraphs>"}
 ```

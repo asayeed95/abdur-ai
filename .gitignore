@@ -37,3 +37,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# content-brains machine-local state (per-machine git cursors — never commit)
+content/workflows/local-brains/.cursors/

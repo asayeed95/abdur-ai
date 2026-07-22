@@ -21,6 +21,9 @@ SLACK = os.environ["SLACK_TOKEN"]; BLOTATO = os.environ["BLOTATO_KEY"]
 TG_TOKEN = os.environ["TG_TOKEN"]; TG_CHAT = os.environ["TG_CHAT"]
 LEDGER_DIR = Path(os.environ["LEDGER_DIR"]).resolve()
 BANNED_FILE = Path(os.environ.get("BANNED_FILE", ""))
+CONTENT_DIR = LEDGER_DIR.parent  # .../content/ledger -> .../content
+SOURCES_ROOT = (CONTENT_DIR / "sources").resolve()
+USED_PLACEHOLDER = "**Used by:** _(none yet — pending draft)_"
 
 # project -> (X blotato accountId, X fire hour ET, linkedin accountId or None, linkedin fire hour ET)
 ROUTES = {
@@ -76,6 +79,31 @@ def ledger_ids():
                 try: ids.add(json.loads(line).get("id"))
                 except Exception: pass
     return ids
+
+def mark_source_used(source_rel, note):
+    """Close the capture->draft loop: flip a sources/repo-events/*.md record's placeholder
+    'Used by' line once it's actually SCHEDULED, so tomorrow's brain run (which only offers
+    UNUSED records — see brain.sh) can't draft the same material twice. Best-effort and
+    NEVER fatal: the real side effect (the Blotato schedule) already succeeded by the time
+    this runs, so a bug here must not surface as a scheduling failure or block the Telegram
+    confirmation. Path-traversal guarded: only ever writes under content/sources/."""
+    if not source_rel or not source_rel.startswith("sources/"):
+        return  # not a capture-repo-events.sh record (e.g. a bare commit sha) — nothing to mark
+    try:
+        p = (CONTENT_DIR / source_rel).resolve()
+        if os.path.commonpath([str(p), str(SOURCES_ROOT)]) != str(SOURCES_ROOT):
+            print(f"mark_source_used: refused out-of-tree path {source_rel!r}"); return
+        if not p.is_file():
+            print(f"mark_source_used: no such file {source_rel!r} — leaving unmarked"); return
+        txt = p.read_text()
+        if USED_PLACEHOLDER not in txt:
+            return  # already marked (or hand-authored, non-placeholder format) — leave it alone
+        if DRY_RUN:
+            print(f"[dry-run] would mark source used: {source_rel}"); return
+        p.write_text(txt.replace(USED_PLACEHOLDER, f"**Used by:** {note}"))
+        print(f"marked source used: {source_rel}")
+    except Exception as e:
+        print(f"mark_source_used failed (non-fatal) for {source_rel!r}: {e}")
 
 def ledger_append(obj):
     if DRY_RUN:
@@ -154,6 +182,8 @@ def main():
                            "channel": "x", "account": route["x_account"], "source": d.get("source", ""),
                            "state": "scheduled", "blotato_id": x_id, "hash": body_hash,
                            "keywords": sorted(set(re.findall(r"[a-z]{5,}", corpus.lower())))[:12]})
+            mark_source_used(d.get("source", ""),
+                              f"{project} draft scheduled for {when_x} (X), ledger id `{mid}`.")
             if d.get("linkedin_text") and route["li_account"]:
                 when_li = next_morning(route["li_hour"])
                 li_id = blotato_schedule(route["li_account"], "linkedin", d["linkedin_text"], None, when_li)

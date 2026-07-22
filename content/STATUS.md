@@ -1,6 +1,22 @@
 # STATUS — what's wired now vs what needs a secret / API / your call
 
-Updated 2026-07-10 (post cloud→local pivot). Green = works today, verified by a command this session. Yellow = needs a human decision/action. Red = needs wiring.
+Updated 2026-07-16 (repo-delegation: "one inbox, multiple outbound"). Green = works today, verified by a command this session. Yellow = needs a human decision/action. Red = needs wiring.
+
+> **What changed 2026-07-16:** the content inbox now ingests ALL five portfolio repos.
+> `local-brains/capture-repo-events.sh` (new) turns merged-to-main commits into permanent
+> `sources/repo-events/*.md` records — cursor-tracked, dry-run-safe, **main-branch-only**
+> (HEAD on these clones is usually an unmerged feature branch; capturing it would market
+> unshipped work). First real run captured 25 records (mnemix 10, dockerfile-ai 10,
+> mnemix-learning 3, abdur-ai 2, heycli 0 — heycli's wake-word/reconnect work is all
+> unmerged, so it has nothing merged to talk about yet: honest). New brains
+> `brain.sh dockerfile-ai` / `brain.sh heycli` (+ prompts) exist but are **manual-only, not
+> launchd-scheduled**. Phase 2 (GitHub Action → Pipedream webhook) is a template only —
+> `workflows/repo-delegation/`. Open decision: mnemix-learning feeds the abdur-ai brain vs
+> its own slot. Strategy framing: `workflows/MARKETING-PIPELINE-V2-REDEFINITION-2026-07-16.md`.
+> `.cursors/` is machine-local state, now gitignored — the cursor lives on whichever machine
+> runs the capture (currently: Abdur's MacBook ran the first pass; if the Mac mini becomes
+> the scheduled runner its own first run re-baselines to "last 15" and the filename-exists
+> check dedupes the overlap).
 
 > **What changed 2026-07-10:** the claude.ai account switch orphaned both cloud routines (404, empty routine list, no environments on the new account). The brains were rebuilt as **local Mac-mini jobs** (`workflows/local-brains/`) — which also matches the architecture principle: the Mac mini owns repo truth + draft generation. Old-account routines may still exist; delete them at claude.ai/code/routines (old login) to prevent double-drafting if that account's spend cap resets.
 

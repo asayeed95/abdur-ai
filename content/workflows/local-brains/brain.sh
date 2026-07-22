@@ -19,8 +19,14 @@ exec > >(tee -a "$LOG") 2>&1
 echo "=== brain.sh $PROJECT $(date -u +%FT%TZ) ==="
 
 case "$PROJECT" in
-  mnemix)   REPO="$HOME/projects/mnemix" ;;
-  abdur-ai) REPO="$HOME/projects/abdur-ai" ;;
+  mnemix)        REPO="$HOME/projects/mnemix" ;;
+  abdur-ai)      REPO="$HOME/projects/abdur-ai" ;;
+  dockerfile-ai) REPO="$HOME/projects/dockerfile-ai" ;;
+  heycli)        REPO="$HOME/projects/remotecli" ;;
+  # 2026-07-16: dockerfile-ai + heycli added (repo-delegation redefinition). Both route to
+  # #mnemix-content with a [project] tag until #abdur-content exists, and to @abdur_sayeed
+  # per ../repo-delegation/README.md's routing table. NOT launchd-scheduled yet — run manually
+  # (`brain.sh dockerfile-ai` / `brain.sh heycli`) until Abdur confirms cadence + fire time.
   *) echo "unknown project: $PROJECT"; exit 1 ;;
 esac
 PROMPT_FILE="$DIR/prompts/$PROJECT.md"
@@ -37,6 +43,32 @@ if [ "$PROJECT" = "abdur-ai" ] && [ -f "$REPO/content/ship-log.json" ]; then
   EXTRA="SHIP LOG (real cross-project milestones):
 $(head -40 "$REPO/content/ship-log.json")"
 fi
+
+# --- context: captured source records (preferred material — see ../repo-delegation/README.md) ---
+# capture-repo-events.sh writes one file per merged-to-main event worth drafting from, already
+# filtered to real feat/fix/decision commits with full receipts (not just an oneline subject).
+# A record is "used" once its placeholder Used-by line is replaced (mark_source_used() in
+# hands_scheduler.py does this at schedule time) — only UNUSED records are offered here, so a
+# source can't get drafted twice. Filename convention: "$PROJECT-<sha>-<slug>.md", except the
+# one real collision in this key set: "mnemix-*" globs also match "mnemix-learning-*" (mnemix
+# is a prefix of mnemix-learning) — guarded below.
+SOURCES_DIR="$DIR/../../sources/repo-events"
+UNUSED_SOURCES=""
+if [ -d "$SOURCES_DIR" ]; then
+  for f in "$SOURCES_DIR/$PROJECT"-*.md; do
+    [ -f "$f" ] || continue
+    base="$(basename "$f")"
+    if [ "$PROJECT" = "mnemix" ]; then
+      case "$base" in mnemix-learning-*) continue ;; esac
+    fi
+    grep -q '_(none yet — pending draft)_' "$f" || continue   # already used elsewhere — skip
+    UNUSED_SOURCES="$UNUSED_SOURCES
+
+--- sources/repo-events/$base ---
+$(cat "$f")"
+  done
+fi
+[ -z "$UNUSED_SOURCES" ] && UNUSED_SOURCES="(none captured yet for $PROJECT — run capture-repo-events.sh, or everything captured is already used; falling back to RECENT GIT LOG below)"
 
 # --- context: ledger angles (dedup corpus part 1 — everything already posted/scheduled) ---
 LEDGER_DIR="$DIR/../../ledger"
@@ -72,7 +104,13 @@ cat "$PROMPT_FILE" > "$COMPOSED"
 cat >> "$COMPOSED" << EOF
 
 ---
-RECENT GIT LOG (your raw material — pick a REAL shipped thing):
+CAPTURED SOURCE RECORDS (PREFERRED — already vetted, real, merged-to-main, full receipts.
+If you use one, cite its exact path, e.g. "sources/repo-events/$PROJECT-abc1234-slug.md", as
+the json "source" field verbatim so it can be marked used and never redrafted):
+$UNUSED_SOURCES
+
+RECENT GIT LOG (FALLBACK ONLY — use if nothing above fits; oneline subjects only, no receipts.
+If you draft from here instead, put the bare commit sha as the json "source" field):
 $GITLOG
 
 $EXTRA
