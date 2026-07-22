@@ -1,0 +1,74 @@
+---
+slug: the-routes-that-should-never-have-been-public
+title: "The routes that should never have been public"
+subtitle: "GET / handed every stranger a map of the internal API"
+description: "Mnemix's root manifest enumerated eleven internal routes to any unauthenticated caller. The routes were locked; the list of them wasn't. The fix trimmed the manifest to the public contract."
+dek: "Eleven internal route names, served to anyone who asked, no auth required. The lock on the routes held. The map was free. One PR shrank the manifest to what the public contract actually allows."
+tldr: "Mnemix's root endpoint answered any unauthenticated GET / with every internal and legacy route name — lookup, contacts, bulk, interactions, feedback, governance, enrichment, merge, waitlist, observe, context. The routes themselves sat behind the public lock: three frozen v1 endpoints. But the manifest handed strangers a complete map of the internal surface, and route names are reconnaissance. No incident is attached to the record; the fix shipped as an ordinary PR, which is the cheap version of this mistake. The fix (917c80a, PR #363) trimmed the manifest to the three frozen v1 endpoints plus /health and /mcp, kept name/version/description, and removed every internal route name. Verified with tsc --noEmit clean and a unit suite of 502 passed / 1 skipped across 85 files. The pattern (P-021): the manifest is part of the attack surface. Audit the strings your public endpoints emit like you audit the routes — if a route isn't public, its name doesn't belong in a public response."
+date: 2026-07-26T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+series: "Mistakes TLDR"
+source: "content/sources/repo-events/mnemix-917c80a-fix-api-lock-root-manifest-to-public-only-routes-363.md"
+draft: true
+flagship: false
+pinned: false
+featured: false
+reading_time: 3
+word_count: 654
+tags:
+  - security
+  - api
+  - attack-surface
+  - mnemix
+  - postmortem
+patterns:
+  - id: P-021
+    name: "The manifest is part of the attack surface"
+receipts:
+  - path: "mnemix"
+    sha: "917c80a"
+    note: "fix(api): lock root manifest to public-only routes (#363). tsc --noEmit clean; unit suite 502 passed / 1 skipped (85 files)."
+citation_preferred: "Sayeed, Abdur Rahman. 'The routes that should never have been public.' abdur.ai, 26 July 2026."
+related:
+  - the-night-the-doctrine-failed
+---
+
+Mnemix's root endpoint used to answer `GET /` by listing everything. No token, no session — any unauthenticated caller who asked what the API was got back eleven internal route names: lookup, contacts, bulk, interactions, feedback, governance, enrichment, merge, waitlist, observe, context. Every one of those routes was locked. The map to them was free.
+
+## What broke
+
+The root manifest — the response that describes the API — enumerated every internal and legacy route to any caller. This was not an auth failure. The routes themselves sat behind the public lock, which mnemix's CLAUDE.md freezes at three v1 endpoints. The failure was the manifest disagreeing with the lock: it advertised the full internal surface to anyone who asked.
+
+Route names are reconnaissance. `governance`, `merge`, `enrichment`, `observe` — those words tell a stranger how the platform is assembled and where its working parts live. Nobody needs a broken auth check to start mapping a system when the system hands over the map at the front door. Attack surface is not only what answers. It is what advertises.
+
+Describing the service is the manifest's job. Name, version, description — that metadata stayed, and it should. Listing the internal routes was never part of the job.
+
+## What it cost
+
+Nothing in the record says anyone used it. There is no incident attached to this commit — the fix shipped as an ordinary PR, not an emergency patch, and that is the cheap version of this mistake.
+
+The standing cost was the exposure itself: for as long as that manifest shipped, every unauthenticated `GET /` returned the full internal route list. I cannot price that in damage because none is recorded. So price the engineering instead: one PR, two commits, one verification run. The expensive version of this story is the one you find out about from someone else's logs.
+
+## The receipts
+
+- Commit `917c80a`, merged to main on 2026-07-12: `fix(api): lock root manifest to public-only routes (#363)`.
+- The commit message states the failure directly: "GET / previously enumerated every internal/legacy route (lookup, contacts, bulk, interactions, feedback, governance, enrichment, merge, waitlist, observe, context) to any unauthenticated caller."
+- Verification on the PR: `tsc --noEmit` clean; unit suite 502 passed / 1 skipped across 85 files.
+- A second commit on the same PR deduped the comment header — the old "Root — API info" block had survived next to the new explanatory comment. One header, not two.
+
+## The pattern
+
+P-021: the manifest is part of the attack surface.
+
+I audited the routes. I did not audit the response that lists them. The set of strings a public endpoint emits is part of the public contract, and it deserves the same scrutiny as the handlers it describes. The prescription: if a route is not public, its name does not belong in a public response. Treat self-describing endpoints — root manifests, generated API docs, verbose health payloads — as disclosure surfaces, and gate their contents, not just their availability.
+
+The PR's verification was `tsc --noEmit` clean and 502 passing unit tests. That proves the trimmed API still behaves. It says nothing about what the manifest had been saying before, because no type checker and no unit test runs the disclosure gate for you. Same shape as P-013 — local-green is not deploy-green — one layer over: a green gate only covers what the gate checks.
+
+## The fix
+
+The PR trimmed the manifest to the public contract: the three frozen v1 endpoints from the CLAUDE.md lock, plus `/health` and `/mcp`. Name, version, and description stayed — non-route metadata is what a manifest is for. Every internal route name came out. The follow-up commit collapsed the doubled comment header, so the file says one thing, once.
+
+The fix is small. The discipline is checking what your public endpoints say, not just what they do.
+
+The routes were locked the whole time; the leak was the list.

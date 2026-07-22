@@ -1,0 +1,78 @@
+---
+slug: the-case-sensitive-todo-that-lied-about-status
+title: "The case-sensitive TODO that lied about status"
+subtitle: "One regex flag made the mandated status vocabulary un-validatable"
+description: "PROCESS.md sanctioned `status: todo` as a valid build-plan value. The CI judges matched TODO case-insensitively and flagged it as template boilerplate. One regex flag made the mandated vocabulary un-validatable."
+dek: "The protocol said `status: todo` was valid. The validators said it was template boilerplate. One case-insensitive regex flag, and the layer everything else trusts would report the opposite of reality."
+tldr: "PROCESS.md sanctioned bare `status: todo` as a valid build-plan value. Three CI judges, built to catch template boilerplate, matched the TODO/TBD family case-insensitively — so the lowercase `todo` in a correctly marked row was flagged as an unfilled template marker. The mandated vocabulary became un-validatable the moment any row used it, and the status layer everything else trusts would report the opposite of reality. The contradiction surfaced while working the PLAN-CANON-001 spec PR (#43), which needed the sanctioned vocabulary to validate. The fix (acf48e4, PR #44): match `\\bTODO\\b` and `\\bTBD\\b` case-sensitively — real template markers are always uppercase — while keeping phrase markers like PROMPT TO FILL case-insensitive. Verified in both directions: lowercase `todo` passes, uppercase `TODO` still caught, all three validators green on main's build-plan. The pattern: whenever a gate matches more loosely than the spec defines its tokens, it will eventually flag the mandated thing as the forbidden thing. Test both directions — forbidden still caught, sanctioned still passes."
+date: 2026-07-29T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+series: "Mistakes TLDR"
+source: "content/sources/repo-events/dockerfile-ai-acf48e4-fix-scripts-match-todo-tbd-case-sensitively-so-status-todo-v.md"
+draft: true
+flagship: false
+pinned: false
+featured: false
+reading_time: 3
+word_count: 655
+tags: [validators, ci, regex, dockerfile-ai, postmortem]
+patterns:
+  - id: P-024
+    name: "A case-insensitive gate over a case-sensitive vocabulary"
+receipts:
+  - path: "dockerfile-ai"
+    sha: "acf48e4"
+    note: "fix(scripts): match TODO/TBD case-sensitively so status:todo validates (#44) — merged to main 2026-07-01."
+citation_preferred: "Sayeed, Abdur Rahman. 'The case-sensitive TODO that lied about status.' abdur.ai, 29 July 2026."
+related:
+  - the-night-the-doctrine-failed
+---
+
+PROCESS.md sanctioned `status: todo` as a valid build-plan value. The CI judges whose job is catching template boilerplate flagged that exact token as template boilerplate. One case-insensitive regex flag, and the layer everything else trusts would report the opposite of reality.
+
+## What broke
+
+dockerfile-ai's PROCESS.md has a Task Status Protocol. It sanctions bare `status: todo` as a valid value in the build plan. A row marked that way is correctly marked.
+
+The repo also runs three CI judges that scan the build plan for template boilerplate — the markers an unfilled template ships with. `TODO`, `TBD`, "PROMPT TO FILL", "placeholder", "usually one task". Their job is honesty enforcement: no row gets to look filled-in while it is still template.
+
+The judges matched the TODO/TBD family case-insensitively. So the lowercase `todo` in a sanctioned `status: todo` matched the check for an uppercase template `TODO`. The verdict inverted. A row using the exact vocabulary the protocol mandates would be reported as a row still containing template boilerplate. The mandated vocabulary became un-validatable the moment any row used it.
+
+This is not a display bug. The status validators are infrastructure — the layer the process reads to know what is true about the plan. When that layer contradicts the protocol it enforces, every consumer of its verdicts inherits the contradiction.
+
+## What it cost
+
+Nothing in the record shows a wrong verdict reaching a consumer. What it shows is the contradiction surfacing where it had to: the PLAN-CANON-001 spec PR (#43) needed the sanctioned vocabulary to validate, and the validators said no.
+
+The cost was one extra PR and one blocked lane. The fix could not ride inside #43, because #43 is lane-pure — Architect lane, `spec/*` only. So the validator fix was split into its own DevOps PR (#44) and landed first, as the prerequisite #43 depends on. A one-flag change held up a spec PR. That is the right order of operations, and it is still annoying.
+
+The honest way to price it: small diff, large position. The bug sat in the layer whose output everything else treats as ground truth.
+
+## The receipts
+
+`git -C dockerfile-ai log -1 acf48e4`, merged to main 2026-07-01:
+
+> fix(scripts): match TODO/TBD case-sensitively so status:todo validates (#44)
+
+The offending behavior, from the commit record: three CI judges matched `/TODO|...|TBD/i` — case-insensitive — flagging the lowercase status token as template boilerplate.
+
+The verification, also from the record, ran in both directions after the fix: lowercase `todo` no longer flagged, uppercase `TODO` still caught, and all three validators still green on main's current build-plan.
+
+## The pattern
+
+P-024: a case-insensitive gate over a case-sensitive vocabulary.
+
+The spec drew a real distinction. Template markers are always uppercase; the sanctioned status value is lowercase. The `/i` flag collapsed that distinction, and the enforcement layer started forbidding what the protocol mandates.
+
+Generalized: whenever a check matches more loosely than the spec defines the tokens, it will eventually flag the mandated thing as the forbidden thing. The fix is not only to tighten the match. It is to test in both directions — prove the forbidden token is still caught, and prove the sanctioned token passes. The commit record shows exactly that pair of checks.
+
+This sits near the Potemkin-verification family (P-011), with one distinction that matters. These validators were real and running. Their rule was wrong, not their existence. A gate that executes perfectly still inverts the truth if its matching rule contradicts the spec it enforces.
+
+## The fix
+
+Match the template tokens case-sensitively — `\bTODO\b` and `\bTBD\b` — and keep the phrase markers ("PROMPT TO FILL", "placeholder", "usually one task") case-insensitive. Real template markers are always uppercase, so honesty enforcement is unchanged. The lowercase status value stops matching.
+
+One flag, scoped to the tokens where case carries meaning, verified in both directions.
+
+If a gate can flag the vocabulary your own protocol mandates, the gate was wrong before the code ever was.

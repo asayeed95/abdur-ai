@@ -1,0 +1,82 @@
+---
+slug: the-health-check-that-became-a-retry-storm
+title: "The health check that became a retry storm"
+subtitle: "A shared fuse, an unbounded claim, and a 200 that meant \"aborted\""
+description: "Bounding the Redis retries on a Linear webhook's /health path took three designs: a shared abort fuse that fired inside unrelated writes, an unbounded claim that could stall past Linear's 5s deadline, and an SDK that answers a mid-request abort with a synthetic 200."
+dek: "The Redis retries on the Linear webhook's /health path existed to absorb slowness. Two designs in, they could amplify it: a shared abort fuse that fired inside unrelated writes, an unbounded claim that could stall past Linear's 5-second deadline, and a synthetic 200 from the SDK that read real first deliveries as duplicates. The fix was a factory and one rule — only null means duplicate."
+tldr: "The Linear webhook claims deliveries in Redis against Linear's 5-second deadline, and its /health path ran Redis retries to ride out slowness. Bounding them took three designs. The first created one static AbortSignal.timeout() at setup and shared it across requests — a creation-anchored fuse that bounded nothing per-call and, on slow requests, fired inside the detached post-ack bookkeeping writes. The retry-only replacement dropped the fuse footgun but left a silently-hung request able to stall the awaited claim past the deadline. Merged underneath, the duplicate check classified anything that wasn't result === 'OK' as a duplicate — and when a static abort fires mid-request, @upstash/redis doesn't throw; it fabricates a synthetic 200 whose result is 'Aborted'. A real first delivery would read as a duplicate and be silently dropped: fail-closed, the worst mode for a fail-open webhook. The fix: a signal factory the SDK invokes per command (worst case 2 attempts x 1.5s + 150ms, about 3.15s), and one rule — only a null SETNX reply means duplicate; everything else fails open and goes to Sentry."
+date: 2026-07-23T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+series: "Mistakes TLDR"
+source: "content/sources/repo-events/mnemix-6dcc316-fix-linear-bound-webhook-redis-retries-on-health-retry-stabi.md"
+draft: true
+flagship: false
+pinned: false
+featured: false
+reading_time: 4
+word_count: 762
+tags:
+  - webhooks
+  - redis
+  - linear
+  - retries
+  - timeouts
+  - postmortem
+patterns:
+  - id: P-018
+    name: "The creation-anchored fuse"
+receipts:
+  - path: "mnemix"
+    sha: "6dcc316"
+    note: "PR #431 — fix(linear): bound webhook Redis retries on /health + retry-stability comment fix (post-#423 follow-up); merged to main 2026-07-11."
+  - path: "error-8y4qG0W2.d.mts"
+    sha: "6dcc316"
+    note: "Installed @upstash/redis SDK, line 132: the signal option types as AbortSignal | (() => AbortSignal); the requester invokes the factory per command."
+  - path: "chunk-IH7W44G6.mjs"
+    sha: "6dcc316"
+    note: 'The requestOptions.signal?.aborted branch that fabricates a synthetic 200 Response with result "Aborted".'
+citation_preferred: "Sayeed, Abdur Rahman. 'The health check that became a retry storm.' abdur.ai, 23 July 2026."
+related:
+  - the-night-the-doctrine-failed
+---
+
+The Linear webhook's `/health` path ran Redis retries to ride out slowness. Bounding them took three designs, and the first two turned the safety gear into a second way to fail. Merged underneath both was a duplicate check that could take a real first delivery and file it as a duplicate.
+
+## What broke
+
+The webhook claims each delivery in Redis before acking. The claim is awaited inline, against Linear's 5-second deadline. The bookkeeping writes are detached — they run after the ack.
+
+Design one: a single static `AbortSignal.timeout()`, created once and shared by every request. A creation-anchored fuse. It bounded nothing per-call — and on slow requests it fired late, inside the detached post-ack bookkeeping writes, aborting work that had nothing to do with whatever was slow. That is why it was removed.
+
+Design two: keep the retries, drop the signal. The fuse footgun was gone, but so was every bound. One silently-hung Redis request could now stall the awaited claim past Linear's 5-second deadline. The retries existed to absorb a slow Redis; unbounded, they could hold a whole delivery hostage to one.
+
+The third problem was older and worse, and it was already merged in #423. The duplicate check classified anything that wasn't `result === 'OK'` as a duplicate. But when a static abort fires mid-request, `@upstash/redis` does not throw. It fabricates a synthetic 200 Response whose result is `"Aborted"`. `"Aborted"` is not `'OK'`, so a legitimate first delivery would read as a duplicate and be silently dropped. Fail-closed on timeout — the worst mode for a webhook whose whole design is fail-open.
+
+## What it cost
+
+No dropped delivery was ever recorded. The unbounded stall merged with #423; Codex's reviews on the #431 follow-up caught it, and the handoff review caught the duplicate-classification hazard alongside it. The cost was engineering time: three designs, two review cycles, and the regression tests that now pin both fixes.
+
+The number worth keeping is the alternate timeline. Any claim whose static fuse fired mid-request would have come back as a synthetic 200, read as a duplicate, and dropped a first delivery with no error and no alert — missing events that look exactly like healthy dedupe.
+
+## The receipts
+
+- Commit `6dcc316` in `mnemix`, merged to main 2026-07-11: PR #431, `fix(linear): bound webhook Redis retries on /health + retry-stability comment fix (post-#423 follow-up)`.
+- The factory form is verified against the installed SDK, not the docs: `error-8y4qG0W2.d.mts:132` types the option as `AbortSignal | (() => AbortSignal)`, and the requester branches on `typeof signal === "function"` and calls it per command.
+- The synthetic 200 lives in `chunk-IH7W44G6.mjs`: the `else if (requestOptions.signal?.aborted)` branch builds a Response whose result is `"Aborted"`.
+- The budget: 2 attempts × 1.5s + 150ms ≈ 3.15s worst case for the awaited claim, against Linear's 5s deadline.
+- Two regression tests pin the fix: config tests assert the configured signal is a function producing a fresh, non-aborted AbortSignal; another pins the `"Aborted"`-resolution case to fail-open.
+
+## The pattern
+
+**P-018 — the creation-anchored fuse.** A timeout created once at setup and shared across requests bounds nothing per-call. Either it hasn't fired when you need it, or it fires inside unrelated later work. Bounds belong anchored to the operation, not the process: hand the SDK a factory it invokes per command, so every attempt gets a fresh fuse of its own.
+
+The same PR carries a companion rule for fail-open systems: only the one known-benign reply may close the gate. Null — SETNX's one legitimate key-exists reply — is the only response allowed to classify a delivery as a duplicate. Every other non-OK reply is an indeterminate write: fail open and Sentry it. A 200-shaped artifact is not a success, the same way a schema-shaped artifact is not a verification (P-011).
+
+## The fix
+
+Codex's review on #431 surfaced the piece both prior designs missed: `@upstash/redis` accepts `signal: () => AbortSignal.timeout(ms)` — a factory the requester invokes per request. Per-command bounding, zero fuse sharing. The awaited claim's worst case is 2 attempts × 1.5s + 150ms ≈ 3.15s, inside the 5-second deadline, and each detached bookkeeping write gets its own fresh fuse instead of inheriting a lit one. The factory branch also throws on abort, which lands in the fail-open catch — the synthetic-200 path is unreachable in this configuration.
+
+The classification fix deliberately does not depend on which signal form is configured: only null means duplicate. Everything else fails open and goes to Sentry.
+
+Share the fuse and the safety gear stops absorbing failure and starts choosing which operation to kill.

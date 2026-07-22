@@ -1,0 +1,81 @@
+---
+slug: the-meter-that-counted-cache-hits-as-cash
+title: "The meter that counted cache hits as cash"
+subtitle: "Three bugs review caught in a ledger that charged no one"
+description: "Usage-based pricing needs a ledger you can trust before you attach Stripe. Mine survived a green test suite with three real bugs: a cache-hit double-count, an RLS hole over billing history, and an orphan table squatting on the canonical name."
+dek: "The ledger charged no one, the flag was off, and the migration never touched prod. Review still found three bugs — one that would have billed tenants for free cache hits, one that let a tenant rewrite its own billing history, and a table in prod that no migration created."
+tldr: "I built Mnemix's usage ledger before charging anyone: append-only, RLS-scoped per tenant, integer micro-dollars, flag off by default. Review found three bugs before prod saw any of it. The enrichment meter counted cache hits as live vendor calls — it would have billed tenants for free lookups. The RLS policy had no FOR clause, so a tenant could update or delete its own billing history. And applying the migration hit a different usage_events table already living in prod: 12 rows, last write 2026-04-25, created by no migration, read by no code. Fixes: gate the meter on !cacheHit, INSERT/SELECT-only policies plus an append-only trigger, and rename the orphan to usage_events_legacy_20260425. Pattern P-019: count before you charge — a flag-off ledger is the cheapest place to break billing code."
+date: 2026-07-24T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+series: "Mistakes TLDR"
+draft: true
+flagship: false
+pinned: false
+featured: false
+reading_time: 4
+word_count: 798
+tags:
+  - metering
+  - billing
+  - postgres
+  - rls
+  - postmortem
+  - mnemix
+patterns:
+  - id: P-019
+    name: "Count before you charge"
+receipts:
+  - path: "src/services/usage.ts"
+    sha: "21326b0"
+    note: "recordUsageEvent — best-effort (returns false, never throws), ENABLE_USAGE_METERING flag default off. The double-count fix gates the enrichment_query meter on !cacheHit."
+  - path: "mnemix migration 032 (usage_events)"
+    sha: "21326b0"
+    note: "RLS split to INSERT/SELECT-only, meter CHECK, role-aware append-only trigger, orphan renamed to usage_events_legacy_20260425. Merged to main 2026-07-08 (PR #406)."
+source: "content/sources/repo-events/mnemix-21326b0-feat-usage-usage-events-metering-ledger-counting-only-flag-g.md"
+citation_preferred: "Sayeed, Abdur Rahman. 'The meter that counted cache hits as cash.' abdur.ai, 24 July 2026."
+related:
+  - the-night-the-doctrine-failed
+---
+
+I built the money ledger for Mnemix before charging anyone. Migration 032 created `usage_events`: append-only, RLS-scoped per tenant, integer micro-dollar costs, all behind an `ENABLE_USAGE_METERING` flag that defaults to off. The Stripe path is a separate, founder-gated effort. The point of shipping the counter first was to break it while breaking it was free.
+
+Review broke it three times before prod saw the migration.
+
+## What broke
+
+**One: the enrichment meter counted cache hits as cash.** `/v1/recall_and_enrich` emits two meters — `recall`, the primary value metric, and `enrichment_query` when vendors were called. The second decided "vendors were called" by reading `sourcesCalled`, which is populated from *either* a cache hit (`Object.keys(cachedEnrichment)`) *or* a live vendor race. A cache hit makes zero Trestle/Twilio requests; that cost was already counted on the request that populated the cache. Every cache hit would have been billed as a fresh vendor lookup — on a path with zero test coverage.
+
+**Two: the RLS policy let a tenant rewrite its own billing history.** The `usage_events` policy had no `FOR` clause. In Postgres, a policy without one applies to every command — including UPDATE and DELETE.
+
+**Three: the name was already taken in prod.** Applying the migration hit a conflict: a different `usage_events` table already lived there. Different schema (`kind`, `cost_cents`, `sub_tenant_id`, `provider`, `request_id`). No migration file anywhere created it. No current code reads it. Twelve rows, last write 2026-04-25. An orphan squatting on the canonical name.
+
+## What it cost
+
+Nothing reached users — that is the point of the design. The ledger charges no one, the flag was off, and the migration was never applied to prod, gated on a founder go. All three died in review on PR #406 — two CodeRabbit rounds and one founder decision — so the cost was engineering time: three fix rounds and a suite that grew from 581 passing tests to 604/605.
+
+The counterfactual is expensive. Had the double-count survived until the Stripe path (§M4) went live, Mnemix would have billed tenants for the lookups that cost nothing — the ones that are free *because* the cache worked. The better the hit rate, the more phantom revenue. That class of bug throws no error. It just quietly overbills.
+
+## The receipts
+
+- `git -C mnemix log -1 21326b0` — `feat(usage): usage_events metering ledger — counting only, flag-gated (DEC-USAGE-METERING §M2) (#406)`, merged to main 2026-07-08.
+- `src/services/usage.ts` — `recordUsageEvent` is best-effort: a metering failure returns `false`, never throws — metering can't break or slow a user request.
+- The double-count fix gates the `enrichment_query` meter on `!cacheHit`, plus three route tests (live call emits both meters, cache hit emits recall only, flag off emits nothing) — the path had none.
+- The RLS fix splits the policy into INSERT + SELECT only — with no UPDATE/DELETE policy, append-only holds for `mnemix_app` (NOBYPASSRLS). A role-aware `BEFORE UPDATE OR DELETE` trigger is the second, independent gate: `mnemix_maint`/`service_role` (BYPASSRLS) pass for legitimate admin corrections, everyone else is blocked.
+- The meter column got `CHECK (meter IN ('recall','enrichment_query','observe_write'))`, so a typo can't create an un-billable phantom meter.
+- The orphan was preserved: `ALTER TABLE IF EXISTS usage_events RENAME TO usage_events_legacy_20260425` (metadata-only, no data rewrite), then `CREATE TABLE usage_events` under the canonical design. The down migration is symmetric and restores the pre-apply state.
+- Squawk and migration-lint clean at every round; the rename and down-migration drops trip table warnings, accepted as intentional.
+
+## The pattern
+
+P-019: **count before you charge.** Build the ledger before the billing path, flag it off, and review it as hard as you would the charger. A meter that bills no one yet is the only environment where billing bugs are free to find — all three of mine survived a green suite, because tests only cover what you thought to test. Review covers the rest.
+
+The orphan table is a companion lesson, close to P-013: a migration that is green on a fresh database is not green on prod. Prod carries state your migration history never created. Inspect the real database before the apply, not after the conflict.
+
+## The fix
+
+The double-count: gate on `!cacheHit`, and cover the route with tests. The RLS hole: INSERT/SELECT-only policies, the meter CHECK, and the append-only trigger. The orphan: a founder decision to preserve rather than destroy — we are in a disclosed-secret posture (DEC-TENANTS-RLS SD4), and we don't destroy data we don't fully understand. The runbook verifies the orphan survived (12 rows under the legacy name) and notes a separate follow-up decision: archive or drop after 90 days of zero queries.
+
+One known hole was documented, not silently dropped: `recordUsageEvent` has no idempotency key, so a client HTTP retry could double-count. Acceptable while the ledger is display-only under §M2; it goes back on the table when §M4 makes exactly-once accounting real.
+
+A ledger that charges no one is the only place billing bugs are free — build the meter first, and review it like the money is already moving.

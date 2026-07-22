@@ -1,0 +1,96 @@
+---
+slug: seven-real-defects-and-a-freeze
+title: "Seven real defects and a freeze"
+subtitle: "The harden-audit loop has no fixed point, so the discipline stopped iterating"
+description: "Ten refute critics ran the freshly hardened v5.1 gates and found seven real second-order defects, every one introduced by the hardening itself. The stopping rule fired, and the version froze instead of iterating."
+dek: "The gates passed hardening. Ten refute critics then ran them and found seven real defects, every one authored by the hardening itself. The loop has no fixed point, so I froze the version."
+tldr: "I hardened the audit gates in mnemix-learning to v5.1 (commit 6cddcbe, logged 16/16 smarter-variant) and ran a confirmation audit against the hardened gates themselves: ten refute critics plus one positive gate, pinned at the hardening commit. The critics claimed eight breaks; seven deduped to REAL, each reproduced against the live committed gates. All seven were second-order defects, introduced by the v5.1 hardening itself, in the same two shapes every audit round finds: comment/string false-matches from grepping prose runbooks, and unsanitized gate input. No users were affected; v5.1 was still a draft and v3.0 never stopped being operational. But the stopping rule fired mechanically: count(REAL and deduped) = 7, which is 2 or more, so FREEZE. Instead of a v5.2, I stamped v5.1-DRAFT.md FROZEN, kept v3.0 in force, and recorded the methodology learning: harden-audit-harden has no fixed point (P-014), because hardening breeds the next audit's defects (P-022). No further iteration without a methodology change."
+date: 2026-07-27T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+series: "Mistakes TLDR"
+source: "content/sources/repo-events/mnemix-learning-5f87145-freeze-v5-1-confirmation-audit-freeze-7-deduped-real-defects.md"
+draft: true
+flagship: false
+pinned: false
+featured: false
+reading_time: 3
+word_count: 622
+tags:
+  - postmortem
+  - verification
+  - agents
+  - build-discipline
+  - mnemix-learning
+patterns:
+  - id: P-022
+    name: "Hardening breeds second-order defects"
+receipts:
+  - path: "mnemix-learning"
+    sha: "6cddcbe"
+    note: "The v5.1 gate-hardening under audit, logged as 16/16 smarter-variant and pinned as the ref the critics ran against."
+  - path: "swarm_runs/2026-06-27-v5.1-DRAFT-meta-verify.md"
+    sha: "5f87145"
+    note: "The I-14 ledger: validated --raw 8 --expect-real 7. Eight claimed breaks, seven deduped real."
+  - path: "discipline/v5.1-DRAFT.md"
+    sha: "5f87145"
+    note: "Stamped FROZEN and deliberately not renamed to v5.1.md; v3.0 stayed operational."
+  - path: "discipline/CHANGELOG.md"
+    sha: "5f87145"
+    note: "v3.0 in force; v4.0, v5.0, and v5.1 kept as the frozen audit trail."
+citation_preferred: "Sayeed, Abdur Rahman. 'Seven real defects and a freeze.' abdur.ai, 27 July 2026."
+related:
+  - the-night-the-doctrine-failed
+---
+
+I spent late June hardening the audit gates in mnemix-learning, the repo where my build discipline lives. The hardening passed. Then I pointed ten refute critics at the hardened gates themselves, and they broke them seven different ways. Every break was real, and every one was a defect the hardening had introduced.
+
+## What broke
+
+The v5.1 pass was a gate-hardening: commit `6cddcbe`, logged as 16/16 smarter-variant. Before letting it become the operational discipline, I ran a confirmation audit — a clone of the earlier workflow `wf_e9a06b19-1d1`, run as `wf_fcffe7a5-b7c`: ten refute critics plus one positive gate, pinned at ref `6cddcbe`. The critics did not review the prose. They ran the hardened gates.
+
+The critics claimed eight breaks. Deduped, seven were real; the eighth was a restatement of another. Opus reproduced all seven personally against the live committed gates in the same turn.
+
+The shape of the seven matters more than the count. Every one was second-order: introduced by the v5.1 hardening itself. And they fell into the same two kinds every audit round finds.
+
+Comment/string false-match — the gates grep over prose runbooks, and prose fights back:
+
+- γ — a fake `#` boundary comment re-enables the step-4.5-1 bug its own fix had closed.
+- θ — a disagree verdict smuggled in through a comment.
+- ι — `--candidates` appearing in a comment.
+
+Unsanitized gate input:
+
+- ζ — an uppercase REFUTE evades the case-sensitive counter.
+- η — a non-integer `--raw` bypasses the gap-check.
+- ε — a git-show metadata span passes D3.
+- β — whitespace in an input name false-merges roots.
+
+## What it cost
+
+No users saw any of this. v5.1 was a draft; v3.0 never stopped being the operational discipline. The seven defects were caught inside the audit loop that found them.
+
+The real cost was the answer the audit returned. The hardening had already passed its own checks — 16/16 on the smarter variants — and the very next audit still found seven real defects in the hardening's own changes. Iterating again would buy one more round of the same: new fixes, new second-order defects, another audit. The loop has no fixed point.
+
+## The receipts
+
+- `6cddcbe` — the v5.1 gate-hardening under audit, logged as 16/16 smarter-variant, pinned as the ref the critics ran against.
+- `wf_fcffe7a5-b7c` — the confirmation audit run: ten refute critics plus one positive gate, cloned from `wf_e9a06b19-1d1`.
+- `swarm_runs/2026-06-27-v5.1-DRAFT-meta-verify.md` — the I-14 ledger, validated `--raw 8 --expect-real 7`: eight claimed breaks, seven deduped real.
+- `5f87145` — the freeze commit. `discipline/v5.1-DRAFT.md` stamped FROZEN; `discipline/CHANGELOG.md` keeps v4.0, v5.0, and v5.1 as a frozen audit trail.
+
+The stopping rule is mechanical: count(REAL ∧ deduped) = 7 ≥ 2 → FREEZE. No v5.2 that session.
+
+## The pattern
+
+P-022: hardening breeds second-order defects. A fix to the gate machinery is new code in the gate machinery. It gets the same bugs any new code gets, and in this system they keep arriving in the same two shapes — string-matching over prose, and unsanitized input. The next audit does not audit the old gates. It audits your fix.
+
+The follow-on already had a name in the record: P-014, non-termination. Harden → audit → find smarter breaks → harden does not converge. If each round introduces the defects the next round finds, more rounds are not progress. They are motion.
+
+## The fix
+
+The fix was not a patch. It was a refusal to patch.
+
+I stamped `discipline/v5.1-DRAFT.md` FROZEN and deliberately did not rename it to `v5.1.md`. v3.0 stayed operational. `discipline/STATUS.md` now records the operational version, the frozen drafts, and the methodology learning. `discipline/CHANGELOG.md` keeps v3.0 in force with v4.0 through v5.1 as the audit trail. The README points at STATUS. The rule going forward is written into the record: no further v_n iteration without a methodology change.
+
+When the loop that finds your defects is also the loop that authors them, the correct move is to stop iterating and change the method.
