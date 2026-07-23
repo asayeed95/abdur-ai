@@ -1,0 +1,43 @@
+{
+  "slug": "flightcast",
+  "company": "Flightcast",
+  "companyUrl": "https://flightcast.com",
+  "role": "The Role Worth Creating",
+  "brand": {
+    "accent": "#e8503a",
+    "tagline": "Stop guessing what content works."
+  },
+  "hero": {
+    "headline": "I didn't describe the job. I've been doing it.",
+    "subline": "Flightcast's support-engineer posting closed before this page went live — but you've said it yourself: no vacancy? You'll create a role for the right person. Below is that case: your own job description, mapped line by line to work I've already shipped."
+  },
+  "fitMap": [
+    {
+      "theirNeed": "Most customer issues are actual bugs — you want first-line debugging in TypeScript/Next.js from someone who talks to customers like an engineer, not a script.",
+      "myProof": "I'm the only support engineer my own products have. mnemix.ai runs on TypeScript, Cloudflare Workers and Supabase; Baylio ships React 19 + tRPC; dockerfile.ai ships Next.js 15. When something breaks there's no one to escalate to: I read the logs, find the root cause, ship the fix, and explain it to the affected user in plain English. That loop is my normal day, not an aspiration."
+    },
+    {
+      "theirNeed": "Turn recurring tickets into product improvements and documentation — including docs that train the AI support chat.",
+      "myProof": "Verified, written-up examples from my own systems: an AI pipeline emitting empty text that violated OpenAI's embedding-API contract two layers downstream (traced, fixed, documented); a double-reservation billing bug; a cross-tenant idempotency-scope bug; and a runbook defining safe AI-agent behavior on ambiguous identity — documentation written to train the AI, not just the humans."
+    },
+    {
+      "theirNeed": "AI-native product intuition — knowing how AI features fail in the wild and how to guardrail them.",
+      "myProof": "I operate a multi-agent fleet daily under a written governance doctrine: agents decide from evidence, log every decision with its rollback path, adversarially review each other's work, and ship behind kill switches and caps. I don't just use AI features — I run them in production and know exactly where they break."
+    },
+    {
+      "theirNeed": "Creator empathy — the user you're supporting publishes, clips, and lives in analytics.",
+      "myProof": "I publish my own content across X, LinkedIn and Instagram, and I build automation for my own publishing and content pipeline — so I've personally felt the workflow Flightcast exists to fix."
+    }
+  ],
+  "cultureChips": [
+    "Attitude over CV — test it, don't take my word",
+    "Did the job instead of describing it",
+    "Taking you up on “we'll create a role for the right person”",
+    "Builder, debugger, and support team — same person"
+  ],
+  "autonomyBand": true,
+  "closer": {
+    "line": "You said get the right people on the bus first. I'm asking for a seat.",
+    "email": "sayeed965@gmail.com"
+  }
+}

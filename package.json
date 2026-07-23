@@ -2,13 +2,14 @@
   "name": "abdur-ai",
   "version": "0.1.0",
   "private": true,
-  "description": "abdur.ai — solo AI founder's logbook. Portfolio + TLDR + tools. Lead magnet for Mnemix.",
+  "description": "abdur.ai \u2014 solo AI founder's logbook. Portfolio + TLDR + tools. Lead magnet for Mnemix.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "validate:apply": "node scripts/validate-applications.mjs"
   },
   "dependencies": {
     "next": "15.5.19",
