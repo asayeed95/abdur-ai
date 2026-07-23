@@ -2,14 +2,14 @@
   "slug": "flightcast",
   "company": "Flightcast",
   "companyUrl": "https://flightcast.com",
-  "role": "Support Engineer",
+  "role": "The Role Worth Creating",
   "brand": {
     "accent": "#e8503a",
     "tagline": "Stop guessing what content works."
   },
   "hero": {
     "headline": "I didn't describe the job. I've been doing it.",
-    "subline": "Flightcast's support engineer debugs real TypeScript/Next.js bugs and stays human with the customers who hit them. As a solo founder I'm both the engineer and the entire support team for my own production SaaS — this page maps that job description to work that's already shipped."
+    "subline": "Flightcast's support-engineer posting closed before this page went live — but you've said it yourself: no vacancy? You'll create a role for the right person. Below is that case: your own job description, mapped line by line to work I've already shipped."
   },
   "fitMap": [
     {
@@ -32,7 +32,7 @@
   "cultureChips": [
     "Attitude over CV — test it, don't take my word",
     "Did the job instead of describing it",
-    "Hungry to learn at DOAC scale",
+    "Taking you up on “we'll create a role for the right person”",
     "Builder, debugger, and support team — same person"
   ],
   "autonomyBand": true,
