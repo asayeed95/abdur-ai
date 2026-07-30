@@ -131,6 +131,39 @@ class IngestTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ingest.ingest({"kind": "signup"}, self.ledger, CANDIDATES, IcpClient(), RULES)
 
+    def test_engager_is_enriched_via_handle_and_recorded(self):
+        seen = {}
+
+        class Spy(IcpClient):
+            def enrich_prospect(self, email=None, handle=None):
+                seen["email"], seen["handle"] = email, handle
+                return {"title": "Staff Engineer", "stack": ["retell"]}
+
+        ev = ingest.ingest(
+            {"kind": "engager", "observed_at": "2026-07-30T12:00:00Z",
+             "handle": "@dev", "ref": "r_a"},
+            self.ledger, CANDIDATES, Spy(), RULES,
+        )
+        self.assertEqual(ev.packet_id, "pkt_a")
+        self.assertEqual(ev.stage, "engager")
+        self.assertEqual(ev.identity, "@dev")
+        self.assertTrue(ev.icp_qualified)
+
+        # the engager path must use the handle slot, never the email slot
+        self.assertIsNone(seen["email"])
+        self.assertEqual(seen["handle"], "@dev")
+
+        vec = funnel.fold_funnel(self.ledger, "pkt_a")
+        self.assertEqual(vec.engagers, ["@dev"])
+        self.assertEqual(vec.icp_qualified_engagers, 1)
+
+    def test_validate_rejects_engager_without_handle(self):
+        ok, errors = ingest.validate_payload(
+            {"kind": "engager", "observed_at": "2026-07-30T12:00:00Z"}
+        )
+        self.assertFalse(ok)
+        self.assertTrue(any("handle" in e for e in errors))
+
 
 if __name__ == "__main__":
     unittest.main()
