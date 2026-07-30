@@ -8,8 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from funnel import parse_ts, read_rows
-from ingest import UNATTRIBUTED
+from funnel import UNATTRIBUTED, parse_ts, read_rows
 
 
 def _events_in_window(ledger_path: Path, since: str, until: str) -> list[dict]:
@@ -27,7 +26,9 @@ def weekly_report(ledger_path: Path, since: str, until: str) -> dict:
 
     per_artifact: dict[str, dict] = {}
     # icp_qualified_engagers is rendered as "ICP engager(s)" — a count of people. One
-    # person engaging twice is one engager, exactly as in funnel.fold_funnel.
+    # person engaging twice is one engager, exactly as in funnel.fold_funnel. The set
+    # holds identity hashes; distinctness is all this count needs, and a hash is stable
+    # per person, so the count is unchanged by pseudonymisation.
     icp_engagers_seen: dict[str, set[str]] = {}
     attributed = 0
     unattributed = 0
@@ -51,11 +52,11 @@ def weekly_report(ledger_path: Path, since: str, until: str) -> dict:
         elif stage == "ref_click":
             bucket["ref_click_throughs"] += 1
         elif stage == "engager" and icp:
-            identity = row.get("identity")
-            if identity:
+            identity_hash = row.get("identity_hash")
+            if identity_hash:
                 seen = icp_engagers_seen.setdefault(pid, set())
-                if identity not in seen:
-                    seen.add(identity)
+                if identity_hash not in seen:
+                    seen.add(identity_hash)
                     bucket["icp_qualified_engagers"] += 1
 
     total = attributed + unattributed

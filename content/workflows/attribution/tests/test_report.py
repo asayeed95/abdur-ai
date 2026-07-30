@@ -11,7 +11,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import funnel
-import ingest
 import report
 
 
@@ -23,23 +22,23 @@ class ReportTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def _signup(self, packet_id, identity, when="2026-07-30T12:00:00Z", icp=False):
+    def _signup(self, packet_id, identity_hash, when="2026-07-30T12:00:00Z", icp=False):
         funnel.append_event(self.ledger, funnel.StageEvent(
-            event_id=funnel.make_event_id(packet_id, "signup", identity, when),
+            event_id=funnel.make_event_id(packet_id, "signup", identity_hash, when),
             packet_id=packet_id, stage="signup", observed_at=when,
-            confidence="ref", identity=identity, icp_qualified=icp,
+            confidence="ref", identity_hash=identity_hash, icp_qualified=icp,
         ))
 
-    def _event(self, packet_id, stage, identity=None, when="2026-07-30T12:00:00Z", icp=False):
+    def _event(self, packet_id, stage, identity_hash=None, when="2026-07-30T12:00:00Z", icp=False):
         funnel.append_event(self.ledger, funnel.StageEvent(
-            event_id=funnel.make_event_id(packet_id, stage, identity, when),
+            event_id=funnel.make_event_id(packet_id, stage, identity_hash, when),
             packet_id=packet_id, stage=stage, observed_at=when, confidence="ref",
-            identity=identity, icp_qualified=icp))
+            identity_hash=identity_hash, icp_qualified=icp))
 
     def test_report_splits_attributed_from_unattributed(self):
-        self._signup("pkt_a", "a@example.com", icp=True)
-        self._signup("pkt_a", "b@example.com")
-        self._signup(ingest.UNATTRIBUTED, "c@example.com")
+        self._signup("pkt_a", "idh_a", icp=True)
+        self._signup("pkt_a", "idh_b")
+        self._signup(funnel.UNATTRIBUTED, "idh_c")
 
         rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
         self.assertEqual(rep["attributed_signups"], 2)
@@ -47,16 +46,16 @@ class ReportTests(unittest.TestCase):
         self.assertAlmostEqual(rep["unattributed_share"], 1 / 3, places=4)
 
     def test_unattributed_is_excluded_from_the_artifact_table(self):
-        self._signup("pkt_a", "a@example.com")
-        self._signup(ingest.UNATTRIBUTED, "c@example.com")
+        self._signup("pkt_a", "idh_a")
+        self._signup(funnel.UNATTRIBUTED, "idh_c")
 
         rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
         ids = [row["packet_id"] for row in rep["artifacts"]]
         self.assertIn("pkt_a", ids)
-        self.assertNotIn(ingest.UNATTRIBUTED, ids)
+        self.assertNotIn(funnel.UNATTRIBUTED, ids)
 
     def test_events_outside_the_window_are_excluded(self):
-        self._signup("pkt_a", "a@example.com", when="2026-07-01T12:00:00Z")
+        self._signup("pkt_a", "idh_a", when="2026-07-01T12:00:00Z")
         rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
         self.assertEqual(rep["attributed_signups"], 0)
 
@@ -65,18 +64,18 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(rep["unattributed_share"], 0.0)
 
     def test_render_text_names_the_unattributed_bucket(self):
-        self._signup(ingest.UNATTRIBUTED, "c@example.com")
+        self._signup(funnel.UNATTRIBUTED, "idh_c")
         rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
         text = report.render_text(rep)
         self.assertIn("unattributed", text.lower())
 
     def test_per_artifact_fields_are_counted_by_stage(self):
-        self._signup("pkt_a", "a@example.com", icp=True)
-        self._signup("pkt_a", "b@example.com")
+        self._signup("pkt_a", "idh_a", icp=True)
+        self._signup("pkt_a", "idh_b")
         self._event("pkt_a", "ref_click", None, when="2026-07-30T12:05:00Z")
         self._event("pkt_a", "ref_click", None, when="2026-07-30T12:06:00Z")
-        self._event("pkt_a", "engager", "@dev", icp=True)
-        self._event("pkt_a", "engager", "@other")
+        self._event("pkt_a", "engager", "idh_dev", icp=True)
+        self._event("pkt_a", "engager", "idh_other")
 
         rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
         row = next(r for r in rep["artifacts"] if r["packet_id"] == "pkt_a")
@@ -88,17 +87,17 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(rep["attributed_signups"], 2)
 
     def test_window_boundaries_are_inclusive(self):
-        self._signup("pkt_a", "a@example.com", when="2026-07-29T00:00:00Z")
-        self._signup("pkt_b", "b@example.com", when="2026-07-31T00:00:00Z")
+        self._signup("pkt_a", "idh_a", when="2026-07-29T00:00:00Z")
+        self._signup("pkt_b", "idh_b", when="2026-07-31T00:00:00Z")
         rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
         self.assertEqual(rep["attributed_signups"], 2)
 
     # --- I1: "ICP engager(s)" is a count of people in the report too ---
 
     def test_icp_qualified_engagers_in_the_report_count_people_not_events(self):
-        self._event("pkt_a", "engager", "@dev", when="2026-07-30T12:00:00Z", icp=True)
-        self._event("pkt_a", "engager", "@dev", when="2026-07-30T13:00:00Z", icp=True)
-        self._event("pkt_a", "engager", "@other", when="2026-07-30T14:00:00Z", icp=True)
+        self._event("pkt_a", "engager", "idh_dev", when="2026-07-30T12:00:00Z", icp=True)
+        self._event("pkt_a", "engager", "idh_dev", when="2026-07-30T13:00:00Z", icp=True)
+        self._event("pkt_a", "engager", "idh_other", when="2026-07-30T14:00:00Z", icp=True)
 
         rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
         row = next(r for r in rep["artifacts"] if r["packet_id"] == "pkt_a")
@@ -107,9 +106,9 @@ class ReportTests(unittest.TestCase):
     # --- I2: the unattributed residual is reported, not computed then discarded ---
 
     def test_unattributed_ref_clicks_and_engagers_are_reported_not_discarded(self):
-        self._event(ingest.UNATTRIBUTED, "ref_click", None, when="2026-07-30T12:00:00Z")
-        self._event(ingest.UNATTRIBUTED, "ref_click", None, when="2026-07-30T12:01:00Z")
-        self._event(ingest.UNATTRIBUTED, "engager", "@ghost", when="2026-07-30T12:02:00Z", icp=True)
+        self._event(funnel.UNATTRIBUTED, "ref_click", None, when="2026-07-30T12:00:00Z")
+        self._event(funnel.UNATTRIBUTED, "ref_click", None, when="2026-07-30T12:01:00Z")
+        self._event(funnel.UNATTRIBUTED, "engager", "idh_ghost", when="2026-07-30T12:02:00Z", icp=True)
 
         rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
         self.assertEqual(rep["unattributed_ref_click_throughs"], 2)

@@ -49,36 +49,70 @@ transport; nothing in this package is wired to a live endpoint yet.
 | `ref` | string | no | strongest machine carrier |
 | `utm_campaign` | string | no | |
 | `declared_source` | string | no | "how did you hear about us?" — strongest carrier overall |
-| `nonce` | string | **for `ref_click`** | caller-supplied uniqueness token — see below |
+| `nonce` | string | **yes, for `ref_click`** | caller-supplied uniqueness token — enforced, see below |
 
-### `nonce` — required for `ref_click`
+`ingest.ingest()` additionally takes **`identity_pepper`** as a required keyword
+argument. It is not part of the POST body — it is a secret the caller holds. See
+"Pseudonymous identity" below.
 
-`event_id` is derived from `(packet_id, stage, identity, observed_at, nonce)`. A
-`ref_click` is anonymous, so its `identity` is always `None`, and its timestamp has
+### `nonce` — required for `ref_click`, and enforced
+
+`event_id` is derived from `(packet_id, stage, identity_hash, observed_at, nonce)`. A
+`ref_click` is anonymous, so its `identity_hash` is always `None`, and its timestamp has
 one-second resolution: **two genuinely distinct clicks on the same artifact in the
 same second produce the same `event_id` and the second is dropped as a replay.** The
 caller must supply a `nonce` — a request id is the natural source — because only the
 caller can tell a real second click from a retry of the first. The same applies to any
 future identity-less kind added to `ingest.IDENTITY_LESS_KINDS`.
 
-Two consequences worth stating plainly:
-
-- `validate_payload()` does **not** reject a `ref_click` with no `nonce`. It is required
-  by this contract, not enforced by the code. A caller that omits it silently
-  under-counts same-second clicks, and nothing in this package will say so.
+- `validate_payload()` **rejects** a `ref_click` whose `nonce` is missing, `null`, or
+  whitespace-only, and `ingest.ingest()` raises on it. Silently under-counting
+  same-second clicks is exactly the failure this library exists not to have, so the
+  requirement is enforced at the door rather than documented and hoped for.
 - For `signup` and `engager`, `nonce` is ignored. Those kinds are already distinguished
   by their identity, and re-posting an identical payload must stay a no-op.
 
+### Pseudonymous identity
+
+The ledger stores **only** `identity_hash` — `funnel.hash_identity(identity, pepper)`,
+a `sha256` of the peppered, normalised (`strip()` + `lower()`) identity, prefixed
+`idh_`. A raw email or handle is never written: the ledger is append-only and is never
+rewritten, so PII persisted once is persisted permanently. The raw value lives in
+memory only long enough to call the enricher, which is the last component that sees it.
+
+**The pepper is supplied by the caller and has no default.** `hash_identity` takes it
+as a required positional argument and `ingest.ingest()` as a required keyword argument.
+An unpeppered SHA-256 of an email address is reversible by rainbow table — the space of
+real addresses is small enough to enumerate — so an unpeppered digest would be
+obfuscation, not pseudonymisation. A library-supplied default would be a published
+constant and therefore no pepper at all; forcing it at each call site makes it an
+explicit choice. `hash_identity` raises `ValueError` on a blank identity rather than
+merge every unidentified subject into one synthetic person.
+
+`engagers` and the ICP-engager dedupe operate on hashes. Both only ever count *distinct
+people*, and a hash is stable per person, so the counts are unchanged.
+
 ## Invariants
 
-- Unattributed signups are stored against `__unattributed__` and reported. Never dropped.
-- `ref_click` is anonymous and is never sent to the enricher.
+- **The ledger stores only pseudonymous `identity_hash` values — never a raw email or
+  handle.** The raw identity reaches the enricher and nothing else.
+- **The pepper must be supplied by the caller.** `hash_identity` and `ingest.ingest()`
+  both require it and neither has a default; an unpeppered digest is not
+  pseudonymisation.
+- Unattributed signups are stored against `funnel.UNATTRIBUTED` (`__unattributed__`)
+  and reported. Never dropped. The constant lives in the domain layer, not in the
+  ingress module.
+- `ref_click` is anonymous and is never sent to the enricher. It is rejected without a
+  non-blank `nonce`.
 - A dead enricher raises `EnrichmentUnavailable`; nothing is written.
 - Re-posting an identical payload is a no-op (`event_id` is deterministic).
 - Two candidates matching at **any** carrier tier ⇒ that tier credits nothing and
   resolution falls through to the next. Credit is never split, at any tier.
 - A duplicate `event_id` row in the ledger is read once. Idempotency holds on the
   read path, not only on append.
+- **The same `event_id` carrying different contents raises `ValueError`** on both
+  append and read. That is corruption, not a replay: collapsing the two would pick a
+  winner silently and report the result as fact.
 - An unrecognised `stage` or a row missing a required field raises `ValueError` on
   read. An absent check never passes as a zero.
 - `icp_qualified_engagers` counts people, never events — like `engagers`.

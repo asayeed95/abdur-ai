@@ -26,31 +26,31 @@ class FunnelTests(unittest.TestCase):
         with self.ledger.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(row, sort_keys=True) + "\n")
 
-    def _event(self, stage, identity=None, icp=False, when="2026-07-30T10:00:00Z"):
+    def _event(self, stage, identity_hash=None, icp=False, when="2026-07-30T10:00:00Z"):
         return funnel.StageEvent(
-            event_id=funnel.make_event_id("pkt_a", stage, identity, when),
+            event_id=funnel.make_event_id("pkt_a", stage, identity_hash, when),
             packet_id="pkt_a",
             stage=stage,
             observed_at=when,
             confidence="ref",
-            identity=identity,
+            identity_hash=identity_hash,
             icp_qualified=icp,
         )
 
     def test_append_then_fold_counts_each_stage(self):
-        funnel.append_event(self.ledger, self._event("signup", "a@example.com", icp=True))
+        funnel.append_event(self.ledger, self._event("signup", "idh_a", icp=True))
         funnel.append_event(self.ledger, self._event("ref_click", None, when="2026-07-30T11:00:00Z"))
-        funnel.append_event(self.ledger, self._event("engager", "@dev", icp=True))
+        funnel.append_event(self.ledger, self._event("engager", "idh_dev", icp=True))
 
         vec = funnel.fold_funnel(self.ledger, "pkt_a")
         self.assertEqual(vec.signups, 1)
         self.assertEqual(vec.icp_qualified_signups, 1)
         self.assertEqual(vec.ref_click_throughs, 1)
-        self.assertEqual(vec.engagers, ["@dev"])
+        self.assertEqual(vec.engagers, ["idh_dev"])
         self.assertEqual(vec.icp_qualified_engagers, 1)
 
     def test_duplicate_event_id_is_a_noop(self):
-        ev = self._event("signup", "a@example.com", icp=True)
+        ev = self._event("signup", "idh_a", icp=True)
         self.assertTrue(funnel.append_event(self.ledger, ev))
         self.assertFalse(funnel.append_event(self.ledger, ev))
 
@@ -58,7 +58,7 @@ class FunnelTests(unittest.TestCase):
         self.assertEqual(vec.signups, 1)
 
     def test_fold_ignores_other_packets(self):
-        funnel.append_event(self.ledger, self._event("signup", "a@example.com"))
+        funnel.append_event(self.ledger, self._event("signup", "idh_a"))
         other = funnel.StageEvent(
             event_id="e_other", packet_id="pkt_b", stage="signup",
             observed_at="2026-07-30T10:00:00Z",
@@ -77,7 +77,7 @@ class FunnelTests(unittest.TestCase):
             funnel.append_event(self.ledger, bad)
 
     def test_corrupt_row_raises_rather_than_silently_skipping(self):
-        funnel.append_event(self.ledger, self._event("signup", "a@example.com"))
+        funnel.append_event(self.ledger, self._event("signup", "idh_a"))
         with self.ledger.open("a", encoding="utf-8") as fh:
             fh.write("{not json\n")
         with self.assertRaises(ValueError):
@@ -92,7 +92,7 @@ class FunnelTests(unittest.TestCase):
 
     def test_duplicate_event_id_row_in_the_ledger_is_counted_once(self):
         """A duplicate row (concurrent append, ledger merge, restored backup) must not inflate."""
-        funnel.append_event(self.ledger, self._event("signup", "a@example.com", icp=True))
+        funnel.append_event(self.ledger, self._event("signup", "idh_a", icp=True))
         already_written = self.ledger.read_text(encoding="utf-8")
         with self.ledger.open("a", encoding="utf-8") as fh:
             fh.write(already_written)
@@ -128,7 +128,7 @@ class FunnelTests(unittest.TestCase):
             funnel.read_rows(self.ledger)
 
     def test_corrupt_row_error_names_the_file_and_line(self):
-        funnel.append_event(self.ledger, self._event("signup", "a@example.com"))
+        funnel.append_event(self.ledger, self._event("signup", "idh_a"))
         self._write_raw({"packet_id": "pkt_a", "stage": "signup",
                          "observed_at": "2026-07-30T10:00:00Z"})
         with self.assertRaises(ValueError) as ctx:
@@ -140,12 +140,12 @@ class FunnelTests(unittest.TestCase):
 
     def test_icp_qualified_engagers_counts_people_not_events(self):
         funnel.append_event(self.ledger, self._event(
-            "engager", "@dev", icp=True, when="2026-07-30T10:00:00Z"))
+            "engager", "idh_dev", icp=True, when="2026-07-30T10:00:00Z"))
         funnel.append_event(self.ledger, self._event(
-            "engager", "@dev", icp=True, when="2026-07-30T11:00:00Z"))
+            "engager", "idh_dev", icp=True, when="2026-07-30T11:00:00Z"))
 
         vec = funnel.fold_funnel(self.ledger, "pkt_a")
-        self.assertEqual(vec.engagers, ["@dev"])
+        self.assertEqual(vec.engagers, ["idh_dev"])
         self.assertEqual(vec.icp_qualified_engagers, 1)
         self.assertLessEqual(vec.icp_qualified_engagers, len(vec.engagers))
 
@@ -157,8 +157,8 @@ class FunnelTests(unittest.TestCase):
         self.assertNotEqual(a, b)
 
     def test_make_event_id_without_a_nonce_is_still_deterministic(self):
-        a = funnel.make_event_id("pkt_a", "signup", "a@example.com", "2026-07-30T10:00:00Z")
-        b = funnel.make_event_id("pkt_a", "signup", "a@example.com", "2026-07-30T10:00:00Z")
+        a = funnel.make_event_id("pkt_a", "signup", "idh_a", "2026-07-30T10:00:00Z")
+        b = funnel.make_event_id("pkt_a", "signup", "idh_a", "2026-07-30T10:00:00Z")
         self.assertEqual(a, b)
 
     # --- I7: one timestamp parser for the package, one error type ---
@@ -177,6 +177,90 @@ class FunnelTests(unittest.TestCase):
         self.assertEqual(aware.utcoffset().total_seconds(), 0)
         self.assertEqual(naive.utcoffset().total_seconds(), 0)
         self.assertEqual(aware, naive)
+
+    # --- R1: hash_identity is the only way an identity becomes storable ---
+
+    def test_hash_identity_is_stable_and_prefixed(self):
+        first = funnel.hash_identity("dev@example.com", "pep")
+        second = funnel.hash_identity("dev@example.com", "pep")
+        self.assertEqual(first, second)
+        self.assertTrue(first.startswith("idh_"))
+        self.assertNotIn("dev@example.com", first)
+
+    def test_hash_identity_normalises_case_and_surrounding_whitespace(self):
+        """The same person must always hash identically or dedupe silently splits them."""
+        self.assertEqual(
+            funnel.hash_identity("dev@example.com", "pep"),
+            funnel.hash_identity("  DEV@Example.COM  ", "pep"),
+        )
+
+    def test_hash_identity_requires_a_pepper_argument(self):
+        with self.assertRaises(TypeError):
+            funnel.hash_identity("dev@example.com")
+
+    def test_a_different_pepper_yields_a_different_digest(self):
+        self.assertNotEqual(
+            funnel.hash_identity("dev@example.com", "pep-a"),
+            funnel.hash_identity("dev@example.com", "pep-b"),
+        )
+
+    def test_hash_identity_rejects_a_blank_identity(self):
+        for blank in ("", "   ", "\t\n"):
+            with self.subTest(identity=blank):
+                with self.assertRaises(ValueError):
+                    funnel.hash_identity(blank, "pep")
+
+    # --- R3: an exact replay is a no-op; the same id with different contents is corruption ---
+
+    def test_conflicting_content_under_the_same_event_id_raises_on_append(self):
+        first = self._event("signup", "idh_aaa")
+        self.assertTrue(funnel.append_event(self.ledger, first))
+
+        conflicting = funnel.StageEvent(
+            event_id=first.event_id, packet_id="pkt_a", stage="signup",
+            observed_at=first.observed_at, confidence="ref",
+            identity_hash="idh_bbb", icp_qualified=True,
+        )
+        with self.assertRaises(ValueError) as ctx:
+            funnel.append_event(self.ledger, conflicting)
+        self.assertIn(first.event_id, str(ctx.exception))
+
+        # the ledger is untouched by the rejected write
+        self.assertEqual(len(funnel.read_rows(self.ledger)), 1)
+
+    def test_conflicting_content_under_the_same_event_id_raises_on_read(self):
+        """A ledger holding one id twice with different contents is corruption, not a replay."""
+        self._write_raw({"event_id": "e_dup", "packet_id": "pkt_a", "stage": "signup",
+                         "observed_at": "2026-07-30T10:00:00Z", "confidence": "ref",
+                         "identity_hash": "idh_aaa", "icp_qualified": False})
+        self._write_raw({"event_id": "e_dup", "packet_id": "pkt_a", "stage": "signup",
+                         "observed_at": "2026-07-30T10:00:00Z", "confidence": "ref",
+                         "identity_hash": "idh_bbb", "icp_qualified": True})
+
+        with self.assertRaises(ValueError) as ctx:
+            funnel.read_rows(self.ledger)
+        message = str(ctx.exception)
+        self.assertIn("attribution.jsonl", message)
+        self.assertIn(":2", message)
+        self.assertIn("e_dup", message)
+
+    def test_an_identical_replay_is_still_a_silent_noop_on_both_paths(self):
+        """The conflict guard must not turn a legitimate exact duplicate into an error."""
+        ev = self._event("signup", "idh_aaa", icp=True)
+        self.assertTrue(funnel.append_event(self.ledger, ev))
+        self.assertFalse(funnel.append_event(self.ledger, ev))
+
+        already_written = self.ledger.read_text(encoding="utf-8")
+        with self.ledger.open("a", encoding="utf-8") as fh:
+            fh.write(already_written)
+
+        self.assertEqual(len(funnel.read_rows(self.ledger)), 1)
+        self.assertEqual(funnel.fold_funnel(self.ledger, "pkt_a").signups, 1)
+
+    # --- R4: UNATTRIBUTED belongs to the domain layer ---
+
+    def test_unattributed_is_defined_in_the_domain_layer(self):
+        self.assertEqual(funnel.UNATTRIBUTED, "__unattributed__")
 
 
 if __name__ == "__main__":
