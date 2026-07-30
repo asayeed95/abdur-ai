@@ -49,11 +49,16 @@ class IcpTests(unittest.TestCase):
         self.assertIn("senior_title", res.reasons)
 
     def test_score_is_capped_at_100(self):
-        res = icp.score_profile(
-            {"title": "Staff Engineer", "company_stage": "series a", "stack": ["vapi", "livekit"]},
-            RULES,
-        )
-        self.assertLessEqual(res.score, 100)
+        over_100 = {
+            "threshold": 60,
+            "signals": [
+                {"name": "a", "field": "title", "any_of": ["engineer"], "points": 70},
+                {"name": "b", "field": "stack", "any_of": ["vapi"], "points": 70},
+            ],
+        }
+        res = icp.score_profile({"title": "Staff Engineer", "stack": ["vapi"]}, over_100)
+        self.assertEqual(res.score, 100)
+        self.assertEqual(res.reasons, ["a", "b"])
 
     def test_a_signal_fires_at_most_once(self):
         res = icp.score_profile(
