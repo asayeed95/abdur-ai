@@ -18,16 +18,28 @@ class EnrichmentUnavailable(RuntimeError):
 
 
 def probe(client) -> dict:
-    """Liveness + quota check. Reports health; does not raise on an unhealthy vendor."""
+    """Liveness + quota check. Reports health; does not raise on an unhealthy vendor.
+
+    Response reading happens inside the try for the same reason the call does: a vendor
+    that answers `None`, a list, or an HTML error body is precisely the unhealthy state
+    this function exists to detect, and detecting it by raising out of a health check
+    would leave the caller with no health answer at all.
+    """
     try:
         raw = client.ping()
+        if not isinstance(raw, dict):
+            return {
+                "ok": False,
+                "detail": f"vendor returned {type(raw).__name__}, not a health object",
+                "quota_remaining": None,
+            }
+        return {
+            "ok": bool(raw.get("ok")),
+            "detail": str(raw.get("detail", "")),
+            "quota_remaining": raw.get("quota_remaining"),
+        }
     except Exception as exc:  # noqa: BLE001 - probe must report, never propagate
         return {"ok": False, "detail": f"{type(exc).__name__}: {exc}", "quota_remaining": None}
-    return {
-        "ok": bool(raw.get("ok")),
-        "detail": str(raw.get("detail", "")),
-        "quota_remaining": raw.get("quota_remaining"),
-    }
 
 
 def _call(client, *, email=None, handle=None):

@@ -10,6 +10,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import carriers
 
+SHIPPED_CONFIG = Path(__file__).resolve().parent.parent / "config" / "attribution.json"
+
 
 def cand(pid, published, ref=None, utm=None, token=None):
     return {"packet_id": pid, "published_at": published,
@@ -81,6 +83,67 @@ class CarrierTests(unittest.TestCase):
     def test_unparseable_timestamp_raises(self):
         with self.assertRaises(ValueError):
             carriers.resolve_attribution(signup("not-a-date"), [cand("pkt_a", "2026-07-30T09:00:00Z")])
+
+    def test_non_string_timestamp_raises_valueerror_through_the_shared_parser(self):
+        with self.assertRaises(ValueError):
+            carriers.resolve_attribution(signup(20260730), [cand("pkt_a", "2026-07-30T09:00:00Z")])
+
+    # --- L9: "never split" applies at every tier, not just time_window ---
+
+    def test_two_candidates_sharing_a_declared_token_fall_through_never_split(self):
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z", declared="the caller memory thread"),
+            [cand("pkt_a", "2026-07-30T09:00:00Z", token="the caller memory thread"),
+             cand("pkt_b", "2026-07-30T10:00:00Z", token="The Caller Memory Thread")],
+        )
+        self.assertIsNone(res.packet_id)
+        self.assertEqual(res.confidence, "none")
+
+    def test_two_candidates_sharing_a_ref_fall_through_never_split(self):
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z", ref="r_a"),
+            [cand("pkt_a", "2026-07-30T09:00:00Z", ref="r_a"),
+             cand("pkt_b", "2026-07-30T10:00:00Z", ref="r_a")],
+        )
+        self.assertIsNone(res.packet_id)
+        self.assertEqual(res.confidence, "none")
+
+    def test_ambiguous_utm_falls_through_to_a_lone_time_window_candidate(self):
+        """One campaign, many artifacts is the normal case — it must not silently pick the first."""
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z", utm="camp_c"),
+            [cand("pkt_a", "2026-07-27T09:00:00Z", utm="camp_c"),
+             cand("pkt_b", "2026-07-27T10:00:00Z", utm="camp_c"),
+             cand("pkt_c", "2026-07-30T09:00:00Z")],
+        )
+        self.assertEqual(res.packet_id, "pkt_c")
+        self.assertEqual(res.confidence, "time_window")
+
+    def test_a_lone_ref_match_still_wins_after_the_ambiguity_guard(self):
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z", ref="r_a"),
+            [cand("pkt_a", "2026-07-30T09:00:00Z", ref="r_a"),
+             cand("pkt_b", "2026-07-30T10:00:00Z", ref="r_other")],
+        )
+        self.assertEqual(res.packet_id, "pkt_a")
+        self.assertEqual(res.confidence, "ref")
+
+    # --- I5: the shipped config file is exercised, not merely shipped ---
+
+    def test_shipped_attribution_config_loads_a_positive_window(self):
+        hours = carriers.load_window_hours(SHIPPED_CONFIG)
+        self.assertIsInstance(hours, int)
+        self.assertGreater(hours, 0)
+
+    def test_shipped_window_drives_a_real_resolution(self):
+        hours = carriers.load_window_hours(SHIPPED_CONFIG)
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z"),
+            [cand("pkt_a", "2026-07-30T09:00:00Z")],
+            window_hours=hours,
+        )
+        self.assertEqual(res.packet_id, "pkt_a")
+        self.assertEqual(res.confidence, "time_window")
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@
 Run: python3 content/workflows/attribution/tests/test_report.py
 """
 
+import json
 import sys
 import tempfile
 import unittest
@@ -91,6 +92,46 @@ class ReportTests(unittest.TestCase):
         self._signup("pkt_b", "b@example.com", when="2026-07-31T00:00:00Z")
         rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
         self.assertEqual(rep["attributed_signups"], 2)
+
+    # --- I1: "ICP engager(s)" is a count of people in the report too ---
+
+    def test_icp_qualified_engagers_in_the_report_count_people_not_events(self):
+        self._event("pkt_a", "engager", "@dev", when="2026-07-30T12:00:00Z", icp=True)
+        self._event("pkt_a", "engager", "@dev", when="2026-07-30T13:00:00Z", icp=True)
+        self._event("pkt_a", "engager", "@other", when="2026-07-30T14:00:00Z", icp=True)
+
+        rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
+        row = next(r for r in rep["artifacts"] if r["packet_id"] == "pkt_a")
+        self.assertEqual(row["icp_qualified_engagers"], 2)
+
+    # --- I2: the unattributed residual is reported, not computed then discarded ---
+
+    def test_unattributed_ref_clicks_and_engagers_are_reported_not_discarded(self):
+        self._event(ingest.UNATTRIBUTED, "ref_click", None, when="2026-07-30T12:00:00Z")
+        self._event(ingest.UNATTRIBUTED, "ref_click", None, when="2026-07-30T12:01:00Z")
+        self._event(ingest.UNATTRIBUTED, "engager", "@ghost", when="2026-07-30T12:02:00Z", icp=True)
+
+        rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
+        self.assertEqual(rep["unattributed_ref_click_throughs"], 2)
+        self.assertEqual(rep["unattributed_icp_qualified_engagers"], 1)
+
+        text = report.render_text(rep).lower()
+        self.assertIn("unattributed ref clicks", text)
+        self.assertIn("unattributed icp engagers", text)
+
+    def test_unattributed_residual_keys_exist_on_an_empty_window(self):
+        rep = report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
+        self.assertEqual(rep["unattributed_ref_click_throughs"], 0)
+        self.assertEqual(rep["unattributed_icp_qualified_engagers"], 0)
+
+    # --- I7: report parses timestamps through the one shared helper ---
+
+    def test_non_string_observed_at_raises_valueerror_through_the_shared_parser(self):
+        with self.ledger.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps({"event_id": "e_bad", "packet_id": "pkt_a",
+                                 "stage": "signup", "observed_at": 20260730}) + "\n")
+        with self.assertRaises(ValueError):
+            report.weekly_report(self.ledger, "2026-07-29T00:00:00Z", "2026-07-31T00:00:00Z")
 
 
 if __name__ == "__main__":

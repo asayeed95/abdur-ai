@@ -157,6 +157,30 @@ class IngestTests(unittest.TestCase):
         self.assertEqual(vec.engagers, ["@dev"])
         self.assertEqual(vec.icp_qualified_engagers, 1)
 
+    # --- C2: two genuinely distinct anonymous clicks in the same second ---
+
+    def test_two_same_second_ref_clicks_with_distinct_nonces_both_record(self):
+        base = {"kind": "ref_click", "observed_at": "2026-07-30T12:00:00Z", "ref": "r_a"}
+        first = ingest.ingest({**base, "nonce": "req-1"}, self.ledger, CANDIDATES, IcpClient(), RULES)
+        second = ingest.ingest({**base, "nonce": "req-2"}, self.ledger, CANDIDATES, IcpClient(), RULES)
+
+        self.assertNotEqual(first.event_id, second.event_id)
+        self.assertEqual(funnel.fold_funnel(self.ledger, "pkt_a").ref_click_throughs, 2)
+
+    def test_replaying_one_ref_click_nonce_is_still_a_noop(self):
+        payload = {"kind": "ref_click", "observed_at": "2026-07-30T12:00:00Z",
+                   "ref": "r_a", "nonce": "req-1"}
+        ingest.ingest(payload, self.ledger, CANDIDATES, IcpClient(), RULES)
+        ingest.ingest(dict(payload), self.ledger, CANDIDATES, IcpClient(), RULES)
+        self.assertEqual(funnel.fold_funnel(self.ledger, "pkt_a").ref_click_throughs, 1)
+
+    def test_a_nonce_never_defeats_idempotency_on_an_identified_kind(self):
+        payload = {"kind": "signup", "observed_at": "2026-07-30T12:00:00Z",
+                   "email": "dev@example.com", "ref": "r_a"}
+        ingest.ingest({**payload, "nonce": "req-1"}, self.ledger, CANDIDATES, IcpClient(), RULES)
+        ingest.ingest({**payload, "nonce": "req-2"}, self.ledger, CANDIDATES, IcpClient(), RULES)
+        self.assertEqual(funnel.fold_funnel(self.ledger, "pkt_a").signups, 1)
+
     def test_validate_rejects_engager_without_handle(self):
         ok, errors = ingest.validate_payload(
             {"kind": "engager", "observed_at": "2026-07-30T12:00:00Z"}

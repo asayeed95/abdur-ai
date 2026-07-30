@@ -35,6 +35,29 @@ class EmptyClient:
         return None
 
 
+class ExplodingPingClient:
+    """The vendor is unreachable — ping() itself blows up."""
+
+    def ping(self):
+        raise ConnectionError("connection reset by peer")
+
+    def enrich_prospect(self, email=None, handle=None):
+        return None
+
+
+class NonDictPingClient:
+    """The vendor answered with something that is not a health object."""
+
+    def __init__(self, body):
+        self.body = body
+
+    def ping(self):
+        return self.body
+
+    def enrich_prospect(self, email=None, handle=None):
+        return None
+
+
 class EnrichTests(unittest.TestCase):
     def test_probe_reports_healthy_client(self):
         res = enrich.probe(OkClient())
@@ -72,6 +95,22 @@ class EnrichTests(unittest.TestCase):
     def test_blank_identifier_raises(self):
         with self.assertRaises(ValueError):
             enrich.enrich_email("   ", OkClient())
+
+    # --- C3: probe() must not raise on exactly the vendor state it exists to detect ---
+
+    def test_probe_reports_unhealthy_when_ping_itself_raises(self):
+        res = enrich.probe(ExplodingPingClient())
+        self.assertFalse(res["ok"])
+        self.assertIn("ConnectionError", res["detail"])
+        self.assertIsNone(res["quota_remaining"])
+
+    def test_probe_reports_unhealthy_when_ping_returns_a_non_dict(self):
+        for body in (None, ["503"], "<html><body>502 Bad Gateway</body></html>"):
+            with self.subTest(body=type(body).__name__):
+                res = enrich.probe(NonDictPingClient(body))
+                self.assertFalse(res["ok"])
+                self.assertIsNone(res["quota_remaining"])
+                self.assertTrue(res["detail"])
 
 
 if __name__ == "__main__":

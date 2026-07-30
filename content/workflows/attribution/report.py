@@ -6,30 +6,29 @@ assigns every signup to a source is forging its own scoreboard.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from pathlib import Path
 
-from funnel import read_rows
+from funnel import parse_ts, read_rows
 from ingest import UNATTRIBUTED
 
 
-def _parse(ts: str) -> datetime:
-    parsed = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed
-
-
 def _events_in_window(ledger_path: Path, since: str, until: str) -> list[dict]:
-    """Window-filter the ledger. Row reading and the corrupt-row guard live in funnel.read_rows."""
-    lo, hi = _parse(since), _parse(until)
-    return [row for row in read_rows(ledger_path) if lo <= _parse(row["observed_at"]) <= hi]
+    """Window-filter the ledger.
+
+    Row reading, the corrupt-row guard and timestamp parsing all live in funnel — a
+    second parser here would mean two error behaviours for one malformed field.
+    """
+    lo, hi = parse_ts(since), parse_ts(until)
+    return [row for row in read_rows(ledger_path) if lo <= parse_ts(row["observed_at"]) <= hi]
 
 
 def weekly_report(ledger_path: Path, since: str, until: str) -> dict:
     rows = _events_in_window(ledger_path, since, until)
 
     per_artifact: dict[str, dict] = {}
+    # icp_qualified_engagers is rendered as "ICP engager(s)" — a count of people. One
+    # person engaging twice is one engager, exactly as in funnel.fold_funnel.
+    icp_engagers_seen: dict[str, set[str]] = {}
     attributed = 0
     unattributed = 0
 
@@ -52,10 +51,21 @@ def weekly_report(ledger_path: Path, since: str, until: str) -> dict:
         elif stage == "ref_click":
             bucket["ref_click_throughs"] += 1
         elif stage == "engager" and icp:
-            bucket["icp_qualified_engagers"] += 1
+            identity = row.get("identity")
+            if identity:
+                seen = icp_engagers_seen.setdefault(pid, set())
+                if identity not in seen:
+                    seen.add(identity)
+                    bucket["icp_qualified_engagers"] += 1
 
     total = attributed + unattributed
     artifacts = [b for pid, b in sorted(per_artifact.items()) if pid != UNATTRIBUTED]
+
+    # The unattributed bucket is dropped from the artifact table, so its non-signup
+    # residual has to surface at the top level or it is counted and then thrown away.
+    # A ref click or an ICP engager we could not trace back to an artifact is a real
+    # number about how much of the funnel this engine cannot yet see.
+    residual = per_artifact.get(UNATTRIBUTED, {})
 
     return {
         "window": {"since": since, "until": until},
@@ -63,6 +73,8 @@ def weekly_report(ledger_path: Path, since: str, until: str) -> dict:
         "attributed_signups": attributed,
         "unattributed_signups": unattributed,
         "unattributed_share": (unattributed / total) if total else 0.0,
+        "unattributed_ref_click_throughs": residual.get("ref_click_throughs", 0),
+        "unattributed_icp_qualified_engagers": residual.get("icp_qualified_engagers", 0),
     }
 
 
@@ -72,6 +84,8 @@ def render_text(report: dict) -> str:
         f"  attributed signups:   {report['attributed_signups']}",
         f"  unattributed signups: {report['unattributed_signups']} "
         f"({report['unattributed_share']:.0%} of total)",
+        f"  unattributed ref clicks:   {report['unattributed_ref_click_throughs']}",
+        f"  unattributed ICP engagers: {report['unattributed_icp_qualified_engagers']}",
         "",
     ]
     for row in report["artifacts"]:

@@ -21,6 +21,11 @@ UNATTRIBUTED = "__unattributed__"
 KINDS = ("signup", "engager", "ref_click")
 REQUIRED_FIELDS = ("kind", "observed_at")
 
+# Kinds that carry no identifier. Their event id has nothing to distinguish two real
+# events in the same second, so the caller supplies a `nonce` (a request id is the
+# natural source). Without one, the second click collapses into the first as a replay.
+IDENTITY_LESS_KINDS = ("ref_click",)
+
 _STAGE_FOR_KIND = {"signup": "signup", "engager": "engager", "ref_click": "ref_click"}
 
 
@@ -71,8 +76,14 @@ def ingest(
         if profile is not None:
             icp_qualified = icp.score_profile(profile, rules).qualified
 
+    # An identified kind is already distinguished by its identity, and replaying the
+    # same payload must stay a no-op, so a nonce is only consulted where it is the
+    # only thing that can tell a second event from a retry.
+    nonce = payload.get("nonce") if kind in IDENTITY_LESS_KINDS else None
+
     event = funnel.StageEvent(
-        event_id=funnel.make_event_id(packet_id, _STAGE_FOR_KIND[kind], identity, payload["observed_at"]),
+        event_id=funnel.make_event_id(
+            packet_id, _STAGE_FOR_KIND[kind], identity, payload["observed_at"], nonce=nonce),
         packet_id=packet_id,
         stage=_STAGE_FOR_KIND[kind],
         observed_at=payload["observed_at"],

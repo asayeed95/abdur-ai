@@ -10,6 +10,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import icp
 
+SHIPPED_RULES = Path(__file__).resolve().parent.parent / "config" / "icp-rules.json"
+
 RULES = {
     "threshold": 60,
     "signals": [
@@ -75,6 +77,27 @@ class IcpTests(unittest.TestCase):
     def test_none_profile_raises_rather_than_scoring_zero(self):
         with self.assertRaises(ValueError):
             icp.score_profile(None, RULES)
+
+    # --- I5: the shipped rules file is exercised, not merely shipped ---
+
+    def test_shipped_rules_qualify_a_plainly_icp_profile(self):
+        rules = icp.load_rules(SHIPPED_RULES)
+        res = icp.score_profile(
+            {"title": "Staff Engineer", "company_stage": "seed", "stack": ["Retell", "postgres"]},
+            rules,
+        )
+        self.assertTrue(res.qualified)
+        self.assertIn("voice_stack", res.reasons)
+        self.assertIn("senior_title", res.reasons)
+
+    def test_shipped_rules_reject_a_plainly_non_icp_profile(self):
+        rules = icp.load_rules(SHIPPED_RULES)
+        res = icp.score_profile(
+            {"title": "Head of Marketing", "company_stage": None, "stack": []},
+            rules,
+        )
+        self.assertFalse(res.qualified)
+        self.assertEqual(res.score, 0)
 
 
 if __name__ == "__main__":
