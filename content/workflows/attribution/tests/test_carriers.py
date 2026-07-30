@@ -1,0 +1,87 @@
+"""Offline tests for attribution carrier resolution.
+
+Run: python3 content/workflows/attribution/tests/test_carriers.py
+"""
+
+import sys
+import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import carriers
+
+
+def cand(pid, published, ref=None, utm=None, token=None):
+    return {"packet_id": pid, "published_at": published,
+            "ref": ref, "utm_campaign": utm, "declared_token": token}
+
+
+def signup(when, declared=None, ref=None, utm=None):
+    return {"observed_at": when, "declared_source": declared,
+            "ref": ref, "utm_campaign": utm}
+
+
+class CarrierTests(unittest.TestCase):
+    def test_declared_beats_every_other_carrier(self):
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z", declared="abdur thread on caller memory", ref="r_b"),
+            [cand("pkt_a", "2026-07-30T09:00:00Z", token="abdur thread on caller memory"),
+             cand("pkt_b", "2026-07-30T10:00:00Z", ref="r_b")],
+        )
+        self.assertEqual(res.packet_id, "pkt_a")
+        self.assertEqual(res.confidence, "declared")
+
+    def test_ref_beats_utm(self):
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z", ref="r_b", utm="camp_c"),
+            [cand("pkt_b", "2026-07-30T10:00:00Z", ref="r_b"),
+             cand("pkt_c", "2026-07-30T11:00:00Z", utm="camp_c")],
+        )
+        self.assertEqual(res.packet_id, "pkt_b")
+        self.assertEqual(res.confidence, "ref")
+
+    def test_lone_candidate_in_window_gets_time_window_credit(self):
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z"),
+            [cand("pkt_a", "2026-07-30T09:00:00Z")],
+        )
+        self.assertEqual(res.packet_id, "pkt_a")
+        self.assertEqual(res.confidence, "time_window")
+
+    def test_two_candidates_in_window_go_unattributed_never_split(self):
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z"),
+            [cand("pkt_a", "2026-07-30T09:00:00Z"),
+             cand("pkt_b", "2026-07-30T10:00:00Z")],
+        )
+        self.assertIsNone(res.packet_id)
+        self.assertEqual(res.confidence, "none")
+
+    def test_cohort_guard_rejects_artifact_published_after_signup(self):
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z", ref="r_a"),
+            [cand("pkt_a", "2026-07-30T18:00:00Z", ref="r_a")],
+        )
+        self.assertIsNone(res.packet_id)
+        self.assertEqual(res.confidence, "none")
+
+    def test_candidate_outside_window_is_not_time_window_attributed(self):
+        res = carriers.resolve_attribution(
+            signup("2026-07-30T12:00:00Z"),
+            [cand("pkt_a", "2026-07-25T09:00:00Z")],
+            window_hours=24,
+        )
+        self.assertIsNone(res.packet_id)
+
+    def test_no_candidates_is_unattributed_not_an_error(self):
+        res = carriers.resolve_attribution(signup("2026-07-30T12:00:00Z"), [])
+        self.assertIsNone(res.packet_id)
+        self.assertEqual(res.confidence, "none")
+
+    def test_unparseable_timestamp_raises(self):
+        with self.assertRaises(ValueError):
+            carriers.resolve_attribution(signup("not-a-date"), [cand("pkt_a", "2026-07-30T09:00:00Z")])
+
+
+if __name__ == "__main__":
+    unittest.main()
