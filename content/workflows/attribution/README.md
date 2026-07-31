@@ -87,7 +87,12 @@ real addresses is small enough to enumerate — so an unpeppered digest would be
 obfuscation, not pseudonymisation. A library-supplied default would be a published
 constant and therefore no pepper at all; forcing it at each call site makes it an
 explicit choice. `hash_identity` raises `ValueError` on a blank identity rather than
-merge every unidentified subject into one synthetic person.
+merge every unidentified subject into one synthetic person, and raises `ValueError`
+on a blank pepper (empty or whitespace-only) for the identical reason — a *present
+but empty* pepper is not a missing argument, it is an unpeppered digest wearing the
+same `idh_` shape as a correctly peppered one. `ingest.ingest()` enforces the same
+rule at the ingress boundary, before either enrichment or the ledger write, so a
+blank `identity_pepper` never gets far enough to produce a weakly-hashed row.
 
 `engagers` and the ICP-engager dedupe operate on hashes. Both only ever count *distinct
 people*, and a hash is stable per person, so the counts are unchanged.
@@ -96,9 +101,15 @@ people*, and a hash is stable per person, so the counts are unchanged.
 
 - **The ledger stores only pseudonymous `identity_hash` values — never a raw email or
   handle.** The raw identity reaches the enricher and nothing else.
-- **The pepper must be supplied by the caller.** `hash_identity` and `ingest.ingest()`
-  both require it and neither has a default; an unpeppered digest is not
-  pseudonymisation.
+- **The pepper must be supplied by the caller, and must not be blank.** `hash_identity`
+  and `ingest.ingest()` both require it and neither has a default; an unpeppered
+  digest is not pseudonymisation, and both raise `ValueError` if the value passed is
+  empty, whitespace-only, or not a string.
+- **`carriers.load_window_hours()` requires a strict, positive, non-boolean JSON
+  integer** for `time_window_hours`. It rejects (raising `ValueError` and naming the
+  config path and offending value) a boolean, a float, zero, a negative number, a
+  numeric string, and a missing key — `int()` coercion would otherwise silently
+  accept all six and change attribution behaviour with no error.
 - Unattributed signups are stored against `funnel.UNATTRIBUTED` (`__unattributed__`)
   and reported. Never dropped. The constant lives in the domain layer, not in the
   ingress module.

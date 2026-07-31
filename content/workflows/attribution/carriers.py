@@ -26,7 +26,25 @@ class AttributionResult:
 
 
 def load_window_hours(config_path: Path) -> int:
-    return int(json.loads(config_path.read_text(encoding="utf-8"))["time_window_hours"])
+    """Load `time_window_hours` from an attribution config file.
+
+    Requires a strict, positive, non-boolean JSON integer. A bare `int()` coercion
+    would silently accept a bool (`bool` is an `int` subclass in Python, so `True`
+    becomes `1`), truncate a float (`1.9` becomes `1`), and accept a zero or negative
+    value that disables or inverts time-window attribution outright. Every one of
+    those changes attribution behaviour with no error, so the raw JSON value's type
+    and range are validated here rather than trusted to whatever `int()` lets through.
+    """
+    raw = json.loads(config_path.read_text(encoding="utf-8"))
+    value = raw.get("time_window_hours") if isinstance(raw, dict) else None
+    # bool is a subclass of int, so this check must precede isinstance(value, int) —
+    # otherwise True/False would silently pass the int check as 1/0.
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ValueError(
+            f"{config_path}: 'time_window_hours' must be a positive integer, "
+            f"got {value!r}"
+        )
+    return value
 
 
 def resolve_attribution(

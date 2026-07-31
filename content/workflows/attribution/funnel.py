@@ -86,9 +86,21 @@ def hash_identity(identity: str, pepper: str) -> str:
 
     Raises ValueError on a blank identity: an empty digest would silently merge
     every unidentified subject into one synthetic person.
+
+    Raises ValueError on a blank pepper too, for the same reason the docstring above
+    spends six lines on: a present-but-empty pepper produces `sha256("" + "|" +
+    normalized)`, which is exactly the unpeppered, rainbow-table-reversible digest
+    this function exists to prevent, and it is indistinguishable in shape from a
+    correctly peppered one. Guard the pepper the same way the identity is guarded —
+    a required argument that is silently allowed to be blank is not required.
     """
     if not isinstance(identity, str) or not identity.strip():
         raise ValueError(f"cannot hash blank identity {identity!r}")
+    if not isinstance(pepper, str) or not pepper.strip():
+        raise ValueError(
+            f"cannot hash with a blank pepper {pepper!r}: an unpeppered digest is "
+            "obfuscation, not pseudonymisation"
+        )
     normalized = identity.strip().lower()
     return "idh_" + hashlib.sha256((pepper + "|" + normalized).encode("utf-8")).hexdigest()
 

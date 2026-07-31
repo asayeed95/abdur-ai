@@ -3,7 +3,9 @@
 Run: python3 content/workflows/attribution/tests/test_carriers.py
 """
 
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -144,6 +146,59 @@ class CarrierTests(unittest.TestCase):
         )
         self.assertEqual(res.packet_id, "pkt_a")
         self.assertEqual(res.confidence, "time_window")
+
+    # --- CodeRabbit re-review: load_window_hours must reject invalid values instead
+    # of coercing them with int(). A zero/negative window silently disables
+    # time-window attribution; a truncated float or a bool silently changes it; all
+    # four altered attribution behaviour with no error before this fix.
+
+    def _write_window_config(self, tmpdir, value):
+        p = Path(tmpdir) / "attribution.json"
+        p.write_text(json.dumps({"time_window_hours": value}), encoding="utf-8")
+        return p
+
+    def test_load_window_hours_rejects_a_boolean(self):
+        # bool is an int subclass in Python: True coerces to 1 under a bare int().
+        with tempfile.TemporaryDirectory() as td:
+            p = self._write_window_config(td, True)
+            with self.assertRaises(ValueError):
+                carriers.load_window_hours(p)
+
+    def test_load_window_hours_rejects_a_truncating_float(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = self._write_window_config(td, 1.9)
+            with self.assertRaises(ValueError):
+                carriers.load_window_hours(p)
+
+    def test_load_window_hours_rejects_zero(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = self._write_window_config(td, 0)
+            with self.assertRaises(ValueError):
+                carriers.load_window_hours(p)
+
+    def test_load_window_hours_rejects_a_negative_value(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = self._write_window_config(td, -5)
+            with self.assertRaises(ValueError):
+                carriers.load_window_hours(p)
+
+    def test_load_window_hours_rejects_a_numeric_string(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = self._write_window_config(td, "24")
+            with self.assertRaises(ValueError):
+                carriers.load_window_hours(p)
+
+    def test_load_window_hours_rejects_a_missing_key(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "attribution.json"
+            p.write_text(json.dumps({}), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                carriers.load_window_hours(p)
+
+    def test_load_window_hours_accepts_a_valid_positive_integer(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = self._write_window_config(td, 24)
+            self.assertEqual(carriers.load_window_hours(p), 24)
 
 
 if __name__ == "__main__":

@@ -210,6 +210,23 @@ class FunnelTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     funnel.hash_identity(blank, "pep")
 
+    # --- CodeRabbit re-review: hash_identity must guard the pepper the same way it
+    # guards the identity — a blank pepper is an unpeppered (reversible) digest, not
+    # pseudonymisation, and the docstring's whole argument for a required pepper is
+    # defeated if the value is merely present but empty.
+
+    def test_hash_identity_rejects_a_blank_pepper(self):
+        for blank in ("", "   ", None):
+            with self.subTest(pepper=blank):
+                with self.assertRaises(ValueError):
+                    funnel.hash_identity("dev@example.com", blank)
+
+    def test_hash_identity_with_a_valid_pepper_still_returns_a_stable_digest(self):
+        first = funnel.hash_identity("dev@example.com", "a-real-pepper")
+        second = funnel.hash_identity("dev@example.com", "a-real-pepper")
+        self.assertEqual(first, second)
+        self.assertTrue(first.startswith("idh_"))
+
     # --- R3: an exact replay is a no-op; the same id with different contents is corruption ---
 
     def test_conflicting_content_under_the_same_event_id_raises_on_append(self):

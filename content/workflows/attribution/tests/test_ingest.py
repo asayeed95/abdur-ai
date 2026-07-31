@@ -241,6 +241,22 @@ class IngestTests(unittest.TestCase):
                 self.ledger, CANDIDATES, IcpClient(), RULES,
             )
 
+    # --- CodeRabbit re-review: a *present but blank* pepper must be rejected at the
+    # ingress boundary, not only inside hash_identity — a blank string satisfies
+    # "required keyword argument" while still producing an unpeppered digest.
+
+    def test_ingest_rejects_a_blank_identity_pepper(self):
+        for blank in ("", "   ", None):
+            with self.subTest(pepper=blank):
+                with self.assertRaises(ValueError):
+                    ingest.ingest(
+                        {"kind": "signup", "observed_at": "2026-07-30T12:00:00Z",
+                         "email": "dev@example.com", "ref": "r_a"},
+                        self.ledger, CANDIDATES, IcpClient(), RULES, identity_pepper=blank,
+                    )
+        # none of the rejected attempts left a weakly-hashed row behind
+        self.assertEqual(funnel.fold_funnel(self.ledger, "pkt_a").signups, 0)
+
     def test_event_id_is_derived_from_the_hash_not_the_raw_identity(self):
         ev = ingest.ingest(
             {"kind": "signup", "observed_at": "2026-07-30T12:00:00Z",

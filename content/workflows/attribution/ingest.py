@@ -72,7 +72,17 @@ def ingest(
     `identity_pepper` is required and has no default: see funnel.hash_identity for
     why an unpeppered digest of an email address is not pseudonymisation. It is a
     secret the caller owns; this package never invents or persists one.
+
+    A blank `identity_pepper` (empty or whitespace-only) is rejected here, at the
+    ingress boundary, rather than left to surface only when hash_identity happens to
+    be called: `signup` and `engager` would otherwise write a weakly-hashed row
+    before anyone finds out the pepper was blank.
     """
+    if not isinstance(identity_pepper, str) or not identity_pepper.strip():
+        raise ValueError(
+            "identity_pepper must be a non-blank string: an unpeppered digest is "
+            "obfuscation, not pseudonymisation"
+        )
     ok, errors = validate_payload(payload)
     if not ok:
         raise ValueError("invalid attribution payload: " + "; ".join(errors))
