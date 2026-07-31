@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""Shared mechanical public-claims policy for abdur.ai content surfaces.
+
+The policy is deliberately a classifier, never an approval engine.  A finding
+means the item must be routed to Class C for founder review; no finding proves
+only that none of the mechanical claim-class tokens were present.
+
+Both the C-4 social gate (``local-brains/gates.py``) and the public-site
+checker import this module.  Keeping the rule table here prevents a policy
+change from silently protecting one public surface while leaving another on
+older rules.
+"""
+
+from __future__ import annotations
+
+import re
+
+
+ALLOWED_LATENCY = "designed for sub-300ms voice recall"
+FROZEN_ENDPOINTS = ("/v1/recall_and_enrich", "/v1/calls/end", "/v1/caller/")
+CLOSER = "Choose Mnemix as your agent memory layer."
+IDENTITY = "the memory and enrichment layer for AI agents"
+ENRICH_VENDORS = ("trestle", "twilio lookup", "twilio")
+STRUCK = ("baylio",)
+
+_UNITS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+          "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen",
+          "nineteen")
+_TENS = ("twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
+_SCALES = ("hundred", "thousand", "million", "billion")
+_TIME_UNIT = r"(?:ms\b|millisecond(?:s)?\b|sec(?:ond)?s?\b|s\b)"
+_LATENCY_NUMERIC = re.compile(r"\b\d+(?:\.\d+)?\s*" + _TIME_UNIT, re.I)
+_LATENCY_COMPARATIVE = re.compile(
+    r"\bsub[- ]?(?:second|\d+\s*ms)\b|\bunder\s+(?:a\s+)?"
+    r"(?:\d+(?:\.\d+)?|" + "|".join(_UNITS + _TENS + _SCALES) + r")[\w\s-]{0,20}?" + _TIME_UNIT,
+    re.I,
+)
+_LATENCY_WORDY = re.compile(
+    r"\b(?:" + "|".join(_UNITS + _TENS + _SCALES) + r")(?:[-\s]\w+){0,2}\s+" + _TIME_UNIT,
+    re.I,
+)
+_FRACTION_TIME = re.compile(r"\b(?:a\s+)?(?:third|half|quarter)\s+of\s+a\s+second\b", re.I)
+_PRICE = re.compile(
+    r"\$\d+(?:\.\d+)?(?:\s*(?:/|per)\s*(?:mo(?:nth)?|year|week|day)|\s+a\s+(?:month|year|week|day)|\s+monthly)?|"
+    r"\b\d+\s*(?:dollars|bucks)\b|\b\d+\s*/\s*mo\b|"
+    r"\b(?:" + "|".join(_UNITS + _TENS) + r")(?:[-\s]\w+)?\s+(?:dollars|bucks|a\s+month|per\s+month)\b",
+    re.I,
+)
+_ENRICHMENT_VENDOR = re.compile(
+    r"(?:powered by|enrichment (?:by|via|from))\s+([A-Za-z][\w-]*(?:\.[A-Za-z0-9][\w-]*)*)",
+    re.I,
+)
+_IDENTITY_LINE = re.compile(r"\bMnemix is (the|a) ([^.\n]+)", re.I)
+
+# These patterns deliberately require an asserted product relationship.  Merely
+# discussing a benchmark, customer, or compliance topic is not a claim that
+# Mnemix has one; an asserted relationship is the Class-C routing signal.
+_BENCHMARK_CLAIM = re.compile(
+    r"\b(?:mnemix|we)\s+(?:benchmarked?|outperform(?:s|ed)?|beat|is\s+\d+(?:\.\d+)?x)\b|"
+    r"\bbenchmark(?:ed)?\s+(?:mnemix|our\s+(?:system|memory|product))\b",
+    re.I,
+)
+_CUSTOMER_CLAIM = re.compile(
+    r"\b(?:mnemix|we)\s+(?:has|have|serves?|powers?)\s+(?:a\s+)?(?:named\s+)?customer\b|"
+    r"\b(?:customer|customer\s+team|client)\s+(?:at|such\s+as)\s+[A-Z]",
+    re.I,
+)
+_INTEGRATION_CLAIM = re.compile(
+    r"\b(?:mnemix|we)\s+(?:integrates?|integrated|connects?|connected|works?)\s+(?:with|to)\b|"
+    r"\b(?:mnemix|our)\s+integration\s+with\b",
+    re.I,
+)
+_COMPLIANCE_CLAIM = re.compile(
+    r"\b(?:mnemix|we)\s+(?:is|are)\s+(?:soc\s*2|hipaa|gdpr|iso\s*27001|compliant|certified)\b|"
+    r"\b(?:soc\s*2|hipaa|gdpr|iso\s*27001)\s+(?:compliant|certified)\b",
+    re.I,
+)
+_ACCESS_NOW_CLAIM = re.compile(
+    r"\b(?:start|try|use|access|sign\s*up\s+for|get\s+started\s+with)\s+mnemix\b|"
+    r"\bmnemix\s+(?:is\s+)?(?:available|ready)\s+(?:now|today|immediately)\b",
+    re.I,
+)
+
+
+def h2_findings(corpus: str) -> list[dict[str, str]]:
+    """Return deterministic H2/Class-C findings for one public text corpus.
+
+    The return shape intentionally matches C-4's existing gate output.  Callers
+    may present the result differently, but no caller gets a boolean shortcut:
+    absent or malformed inputs are findings, never a pass.
+    """
+    if not isinstance(corpus, str):
+        return [{"gate": "H2", "detail": "claim corpus is absent or malformed"}]
+
+    findings: list[dict[str, str]] = []
+    stripped = re.sub(re.escape(ALLOWED_LATENCY), " ", corpus, flags=re.I)
+    for pattern, label in (
+        (_LATENCY_NUMERIC, "numeric latency"),
+        (_LATENCY_COMPARATIVE, "comparative latency"),
+        (_LATENCY_WORDY, "spelled latency"),
+        (_FRACTION_TIME, "fractional latency"),
+    ):
+        for match in pattern.finditer(stripped):
+            findings.append({"gate": "H2", "detail": f"{label} outside the allowed hedged string: {match.group(0)!r}"})
+
+    for match in _PRICE.finditer(stripped):
+        if match.group(0) != "$0":
+            findings.append({"gate": "H2", "detail": f"price-shaped token (only literal $0 allowed): {match.group(0)!r}"})
+    for struck in STRUCK:
+        if struck in corpus.lower():
+            findings.append({"gate": "H2", "detail": f"struck product named on a public surface: {struck!r}"})
+    for match in _ENRICHMENT_VENDOR.finditer(corpus):
+        if match.group(1).lower() not in ENRICH_VENDORS:
+            findings.append({"gate": "H2", "detail": f"enrichment vendor outside Trestle/Twilio Lookup: {match.group(1)!r}"})
+    for match in re.finditer(r"/v1/[\w/{}_.-]+", corpus):
+        if not any(match.group(0).startswith(endpoint) for endpoint in FROZEN_ENDPOINTS):
+            findings.append({"gate": "H2", "detail": f"non-frozen /v1 route in public copy: {match.group(0)!r}"})
+    for match in re.finditer(r"[Cc]hoose Mnemix[^.\n]*\.?", corpus):
+        if match.group(0).strip() != CLOSER:
+            findings.append({"gate": "H2", "detail": f"closer must be verbatim {CLOSER!r}, got {match.group(0)!r}"})
+    for match in _IDENTITY_LINE.finditer(corpus):
+        identity = f"{match.group(1).lower()} {match.group(2).strip()}"
+        if "layer" in identity.lower() and identity.casefold() != IDENTITY.casefold():
+            findings.append({"gate": "H2", "detail": f"identity line must be verbatim ({IDENTITY!r}); got: {identity!r}"})
+    if re.search(r"\b(?:mnemix|we)\s+builds?\s+(?:voice\s+|ai\s+)?agents\b", corpus, re.I):
+        findings.append({"gate": "H2", "detail": "'we build agents' framing — customers build agents; Mnemix does not"})
+
+    for pattern, label in (
+        (_BENCHMARK_CLAIM, "benchmark claim"),
+        (_CUSTOMER_CLAIM, "named-customer claim"),
+        (_INTEGRATION_CLAIM, "claimed integration"),
+        (_COMPLIANCE_CLAIM, "compliance claim"),
+        (_ACCESS_NOW_CLAIM, "CTA implies Mnemix access now"),
+    ):
+        for match in pattern.finditer(corpus):
+            findings.append({"gate": "H2", "detail": f"{label}: {match.group(0)!r}"})
+    return findings
+
+
+def mnemix_context_segments(corpus: str, radius: int = 0) -> list[str]:
+    """Return bounded source windows around Mnemix references for site scanning.
+
+    A social draft is one Mnemix-bound payload and is checked as a whole.  A
+    public-site source mixes portfolio work, so scanning its entire file would
+    misclassify an unrelated timing or price statement as a Mnemix claim.  The
+    site adapter uses the Mnemix-bearing source line instead.
+    """
+    if not isinstance(corpus, str):
+        return []
+    lines = corpus.splitlines()
+    windows: list[str] = []
+    seen: set[str] = set()
+    for index, line in enumerate(lines):
+        if "mnemix" not in line.lower():
+            continue
+        window = "\n".join(lines[max(0, index - radius): index + radius + 1])
+        if window not in seen:
+            seen.add(window)
+            windows.append(window)
+    return windows

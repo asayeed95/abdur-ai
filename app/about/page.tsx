@@ -37,8 +37,8 @@ export default function AboutPage() {
 
           <h2 className="font-display text-3xl text-text pt-6">What I build</h2>
           <p>
-            Everything I make sits under <strong className="text-text">Mnemix</strong> — a
-            contextual intelligence orchestration platform. Memory, RAG, and{" "}
+            Everything I make sits under <strong className="text-text">Mnemix</strong> —
+            the memory and enrichment layer for AI agents. Memory, RAG, and{" "}
             <strong className="text-text">BEAD</strong>: bi-temporal,
             evidence-anchored decisions, so a system can answer not just
             &ldquo;what&apos;s true&rdquo; but &ldquo;what did we know, and

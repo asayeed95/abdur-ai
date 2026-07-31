@@ -20,7 +20,7 @@ Site: ${SITE.url}
 ${SITE.description}
 
 ## Flagship work
-- Mnemix (https://mnemix.ai): the memory layer that makes any AI agent self-driving.
+- Mnemix (https://mnemix.ai): the memory and enrichment layer for AI agents.
   Memory, RAG, and BEAD — bi-temporal, evidence-anchored decisions.
   Six primitives: recall, enrich, observe, gate, evidence, beacon.
 - MOLL: Mnemix Ops Learning Layer. Swarm-memory system with role-scoped pattern

@@ -24,7 +24,7 @@ export const SITE = {
   flagship: {
     name: "Mnemix",
     url: "https://mnemix.ai",
-    tagline: "The memory layer that makes any AI agent self-driving.",
+    tagline: "The memory and enrichment layer for AI agents.",
   },
 } as const;
 
