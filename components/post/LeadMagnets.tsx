@@ -27,17 +27,17 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
         /// {heading}
       </p>
       <p className="text-text-soft text-lg leading-relaxed mb-3">
-        MOLL is one layer of <strong className="text-text">Mnemix</strong> — the
-        contextual intelligence platform that absorbs incidents like this one
-        and turns them into doctrine other agents can use. Bi-temporal,
-        evidence-anchored decisions. Memory that grades itself.
+        MOLL is one layer of <strong className="text-text">Mnemix</strong> — the memory and enrichment layer for AI agents
+        that absorbs incidents like this one and turns them into doctrine
+        other agents can use. Bi-temporal, evidence-anchored decisions.
+        Memory that grades itself.
       </p>
       <p className="text-muted leading-relaxed mb-5">
         If you build with agents and have ever shipped a doctrine that failed
         in the same way this one did — you&apos;re the person Mnemix is for.
       </p>
       <a
-        href="https://mnemix.ai"
+        href="https://mnemix.ai/#waitlist"
         onClick={() => track("cta:mnemix:from-post")}
         className="inline-block font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
       >

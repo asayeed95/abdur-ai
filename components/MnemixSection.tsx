@@ -35,7 +35,7 @@ export function MnemixSection() {
             maxWidth: "14ch",
           }}
         >
-          Mnemix is the memory layer that makes any AI agent self-driving.
+          Mnemix is the memory and enrichment layer for AI agents.
         </h2>
 
         <div className="grid md:grid-cols-2 gap-10 md:gap-16 mb-16">
@@ -82,15 +82,15 @@ export function MnemixSection() {
         </div>
 
         <blockquote className="font-display italic text-3xl md:text-4xl text-clay text-center max-w-3xl mx-auto my-16">
-          &ldquo;Choose Mnemix if you&apos;re building voice.&rdquo;
+          &ldquo;Choose Mnemix as your agent memory layer.&rdquo;
         </blockquote>
 
         <div className="text-center mb-20">
           <Link
-            href="https://mnemix.ai"
+            href="https://mnemix.ai/#waitlist"
             className="inline-block font-mono text-xs tracking-widest uppercase text-text border border-border hover:text-clay hover:border-clay px-5 py-3 rounded-sm transition-colors"
           >
-            Read the full thesis →
+            Join the Mnemix waitlist →
           </Link>
         </div>
 

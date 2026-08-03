@@ -27,7 +27,7 @@ export default function NowPage() {
             </p>
             <p className="mt-4"><strong className="text-text">Also in flight:</strong></p>
             <ul className="list-disc list-outside ml-6 space-y-2 mt-2">
-              <li>Tightening the Mnemix warm path — caller memory is under 300ms on the edge; chasing the cold-path number next.</li>
+              <li>Tightening the Mnemix warm path — caller memory designed for sub-300ms voice recall; chasing the cold-path number next.</li>
               <li>heycli: reducing idle cost on the orchestrator after I found it burning ~$14/day doing nothing.</li>
             </ul>
           </section>
@@ -44,7 +44,7 @@ export default function NowPage() {
             <h2 className="font-display text-3xl text-text mb-4">Recently shipped</h2>
             <ul className="list-disc list-outside ml-6 space-y-2">
               <li>The flagship postmortem: <em>The night the doctrine failed.</em> Four patterns committed to MOLL.</li>
-              <li>Sub-300ms caller memory on the Mnemix warm path (Cloudflare edge → Upstash Redis).</li>
+              <li>Caller memory on the Mnemix warm path, designed for sub-300ms voice recall (Cloudflare edge → Upstash Redis).</li>
               <li>heycli pushing prompts to Claude Code, Codex, and Aider from one source-of-truth.</li>
             </ul>
           </section>
