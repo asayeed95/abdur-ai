@@ -9,6 +9,7 @@ relies on them.  It never schedules, posts, sends, or reads credentials.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -53,14 +54,42 @@ def check_static() -> list[str]:
         "app/llms.txt/route.ts": claims_policy.IDENTITY,
         "app/hire/page.tsx": claims_policy.IDENTITY,
         "components/post/LeadMagnets.tsx": claims_policy.IDENTITY,
-        "components/MnemixSection.tsx#cta": WAITLIST_URL,
-        "components/post/LeadMagnets.tsx#cta": WAITLIST_URL,
     }
     for key, expected in required.items():
         relative = key.split("#", 1)[0]
         content = (ROOT / relative).read_text(encoding="utf-8")
         if expected.lower() not in content.lower():
             failures.append(f"{relative}: missing required public-truth value {expected!r}")
+
+    # The Mnemix CTA destination may be the literal waitlist URL *or* the
+    # mnemixUrl() helper, which appends attribution params. Accepting an
+    # indirection is only safe because the helper itself is verified below —
+    # without that, "any call to a function named mnemixUrl" would be a blank
+    # cheque that a later edit could quietly point anywhere.
+    for relative in ("components/MnemixSection.tsx", "components/post/LeadMagnets.tsx"):
+        content = (ROOT / relative).read_text(encoding="utf-8").lower()
+        if WAITLIST_URL.lower() not in content and "mnemixurl(" not in content:
+            failures.append(
+                f"{relative}: Mnemix CTA must link to {WAITLIST_URL!r} or use mnemixUrl()"
+            )
+
+    # Close the indirection the rule above opened.
+    analytics = (ROOT / "lib/analytics.ts").read_text(encoding="utf-8")
+    if 'hash = "waitlist"' not in analytics:
+        failures.append("lib/analytics.ts: mnemixUrl() default destination must be the waitlist")
+    if "https://mnemix.ai/" not in analytics:
+        failures.append("lib/analytics.ts: mnemixUrl() must build a mnemix.ai URL")
+    # Query string must precede the fragment. Reversed, the params land inside
+    # the fragment, never reach location.search, and the attribution carrier is
+    # silently inert while looking exactly like a working one.
+    built = re.search(r"return\s+`(https://mnemix\.ai/[^`]*)`", analytics)
+    if not built:
+        failures.append("lib/analytics.ts: could not verify the mnemixUrl() template")
+    elif "?" not in built.group(1) or built.group(1).index("#") < built.group(1).index("?"):
+        failures.append(
+            "lib/analytics.ts: mnemixUrl() must put the query string before the fragment "
+            "(params after '#' never reach location.search)"
+        )
 
     for relative in ("components/MnemixSection.tsx", "components/post/LeadMagnets.tsx"):
         content = (ROOT / relative).read_text(encoding="utf-8").lower()

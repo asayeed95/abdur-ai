@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Reveal } from "./Reveal";
+import { track } from "@/lib/analytics";
 
 export function Subscribe() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,7 @@ export function Subscribe() {
     }
     setStatus("loading");
     setMsg("");
+    track("newsletter:submit");
     try {
       const res = await fetch("/api/subscribe", {
         method: "POST",
@@ -28,9 +30,13 @@ export function Subscribe() {
       setStatus("ok");
       setMsg("You're on the list. I'll only email when something ships or breaks.");
       setEmail("");
+      track("newsletter:success");
     } catch (err) {
       setStatus("err");
       setMsg(err instanceof Error ? err.message : "Something broke. Try again.");
+      // Tracked separately from success: an attempt/success gap is the signal
+      // that the subscribe endpoint is failing, which nothing would surface today.
+      track("newsletter:error");
     }
   }
 
