@@ -27,10 +27,10 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
         /// {heading}
       </p>
       <p className="text-text-soft text-lg leading-relaxed mb-3">
-        MOLL is one layer of <strong className="text-text">Mnemix</strong> — the
-        contextual intelligence platform that absorbs incidents like this one
-        and turns them into doctrine other agents can use. Bi-temporal,
-        evidence-anchored decisions. Memory that grades itself.
+        MOLL is one layer of <strong className="text-text">Mnemix</strong> — the memory and enrichment layer for AI agents
+        that absorbs incidents like this one and turns them into doctrine
+        other agents can use. Bi-temporal, evidence-anchored decisions.
+        Memory that grades itself.
       </p>
       <p className="text-muted leading-relaxed mb-5">
         If you build with agents and have ever shipped a doctrine that failed

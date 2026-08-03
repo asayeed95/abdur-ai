@@ -22,6 +22,16 @@ CLOSER = "Choose Mnemix as your agent memory layer."
 IDENTITY = "the memory and enrichment layer for AI agents"
 ENRICH_VENDORS = ("trestle", "twilio lookup", "twilio")
 STRUCK = ("baylio",)
+# Retired branding: phrases that used to describe Mnemix's identity and were
+# ratified out. A deny-list catches these however they are phrased — no
+# grammar assumption required — unlike a grammar-shaped regex, which only
+# catches the wording it was written for. See _IDENTITY_LINE below for the
+# (secondary) grammar-shaped check this deny-list is meant to not depend on.
+RETIRED_PHRASES = (
+    "contextual intelligence orchestration",
+    "contextual intelligence platform",
+    "memory layer that makes any ai agent self-driving",
+)
 
 _UNITS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
           "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen",
@@ -50,7 +60,15 @@ _ENRICHMENT_VENDOR = re.compile(
     r"(?:powered by|enrichment (?:by|via|from))\s+([A-Za-z][\w-]*(?:\.[A-Za-z0-9][\w-]*)*)",
     re.I,
 )
-_IDENTITY_LINE = re.compile(r"\bMnemix is (the|a) ([^.\n]+)", re.I)
+# Two constructions assert Mnemix's identity in the wild: "Mnemix is the/a X"
+# and the em-dash form "Mnemix — X" (optionally through a JSX closing tag, and
+# optionally preceded by "... layer of"). Both are matched so a non-verbatim
+# identity claim is flagged regardless of which grammar the copy uses.
+_IDENTITY_LINE = re.compile(
+    r"\bMnemix\b(?:</?\w+[^>]*>)?\s+is\s+(?P<article>the|a)\s+(?P<claim>[^.\n]+)"
+    r"|\bMnemix\b(?:</?\w+[^>]*>)?\s*[—–]\s*(?:(?P<article2>the)\s+)?(?P<claim2>[^.\n]+)",
+    re.I,
+)
 
 # These patterns deliberately require an asserted product relationship.  Merely
 # discussing a benchmark, customer, or compliance topic is not a claim that
@@ -109,6 +127,9 @@ def h2_findings(corpus: str) -> list[dict[str, str]]:
     for struck in STRUCK:
         if struck in corpus.lower():
             findings.append({"gate": "H2", "detail": f"struck product named on a public surface: {struck!r}"})
+    for retired in RETIRED_PHRASES:
+        if retired in corpus.lower():
+            findings.append({"gate": "H2", "detail": f"retired branding phrase on a public surface: {retired!r}"})
     for match in _ENRICHMENT_VENDOR.finditer(corpus):
         if match.group(1).lower() not in ENRICH_VENDORS:
             findings.append({"gate": "H2", "detail": f"enrichment vendor outside Trestle/Twilio Lookup: {match.group(1)!r}"})
@@ -119,7 +140,9 @@ def h2_findings(corpus: str) -> list[dict[str, str]]:
         if match.group(0).strip() != CLOSER:
             findings.append({"gate": "H2", "detail": f"closer must be verbatim {CLOSER!r}, got {match.group(0)!r}"})
     for match in _IDENTITY_LINE.finditer(corpus):
-        identity = f"{match.group(1).lower()} {match.group(2).strip()}"
+        claim = match.group("claim") or match.group("claim2") or ""
+        article = (match.group("article") or match.group("article2") or "the").lower()
+        identity = f"{article} {claim.strip()}"
         if "layer" in identity.lower() and identity.casefold() != IDENTITY.casefold():
             findings.append({"gate": "H2", "detail": f"identity line must be verbatim ({IDENTITY!r}); got: {identity!r}"})
     if re.search(r"\b(?:mnemix|we)\s+builds?\s+(?:voice\s+|ai\s+)?agents\b", corpus, re.I):

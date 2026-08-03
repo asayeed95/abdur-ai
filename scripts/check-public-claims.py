@@ -26,6 +26,7 @@ PUBLIC_SOURCES = (
     "components/post/LeadMagnets.tsx",
     "app/now/page.tsx",
     "app/hire/page.tsx",
+    "app/about/page.tsx",
     "app/llms.txt/route.ts",
 )
 WAITLIST_URL = "https://mnemix.ai/#waitlist"
@@ -50,6 +51,8 @@ def check_static() -> list[str]:
         "lib/site.ts": claims_policy.IDENTITY,
         "components/MnemixSection.tsx": claims_policy.IDENTITY,
         "app/llms.txt/route.ts": claims_policy.IDENTITY,
+        "app/hire/page.tsx": claims_policy.IDENTITY,
+        "components/post/LeadMagnets.tsx": claims_policy.IDENTITY,
         "components/MnemixSection.tsx#cta": WAITLIST_URL,
         "components/post/LeadMagnets.tsx#cta": WAITLIST_URL,
     }
