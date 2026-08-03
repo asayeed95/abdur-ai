@@ -66,7 +66,7 @@ _ENRICHMENT_VENDOR = re.compile(
 # identity claim is flagged regardless of which grammar the copy uses.
 _IDENTITY_LINE = re.compile(
     r"\bMnemix\b(?:</?\w+[^>]*>)?\s+is\s+(?P<article>the|a)\s+(?P<claim>[^.\n]+)"
-    r"|\bMnemix\b(?:</?\w+[^>]*>)?\s*[—–]\s*(?:(?P<article2>the)\s+)?(?P<claim2>[^.\n]+)",
+    r"|\bMnemix\b(?:</?\w+[^>]*>)?\s*[\u2014\u2013]\s*(?:(?P<article2>the)\s+)?(?P<claim2>[^.\n]+)",
     re.I,
 )
 
@@ -141,8 +141,11 @@ def h2_findings(corpus: str) -> list[dict[str, str]]:
             findings.append({"gate": "H2", "detail": f"closer must be verbatim {CLOSER!r}, got {match.group(0)!r}"})
     for match in _IDENTITY_LINE.finditer(corpus):
         claim = match.group("claim") or match.group("claim2") or ""
-        article = (match.group("article") or match.group("article2") or "the").lower()
-        identity = f"{article} {claim.strip()}"
+        # No default here: the em-dash form's article is optional in the regex
+        # specifically so a missing "the" is visible as a missing "the", not
+        # silently backfilled into a false verbatim match.
+        article = (match.group("article") or match.group("article2") or "").lower()
+        identity = f"{article} {claim.strip()}".strip()
         if "layer" in identity.lower() and identity.casefold() != IDENTITY.casefold():
             findings.append({"gate": "H2", "detail": f"identity line must be verbatim ({IDENTITY!r}); got: {identity!r}"})
     if re.search(r"\b(?:mnemix|we)\s+builds?\s+(?:voice\s+|ai\s+)?agents\b", corpus, re.I):
