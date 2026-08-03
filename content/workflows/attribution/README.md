@@ -106,10 +106,11 @@ people*, and a hash is stable per person, so the counts are unchanged.
   digest is not pseudonymisation, and both raise `ValueError` if the value passed is
   empty, whitespace-only, or not a string.
 - **`carriers.load_window_hours()` requires a strict, positive, non-boolean JSON
-  integer** for `time_window_hours`. It rejects (raising `ValueError` and naming the
-  config path and offending value) a boolean, a float, zero, a negative number, a
-  numeric string, and a missing key — `int()` coercion would otherwise silently
-  accept all six and change attribution behaviour with no error.
+  integer** for `time_window_hours`. It rejects, raising `ValueError` and naming the
+  config path and offending value: a boolean, a float, zero, a negative number, and
+  a numeric string would all have been silently coerced by bare `int()`; a missing
+  key would have raised an unhelpful `KeyError` — this validation turns that into
+  the same clear, contextual `ValueError` as every other rejection.
 - Unattributed signups are stored against `funnel.UNATTRIBUTED` (`__unattributed__`)
   and reported. Never dropped. The constant lives in the domain layer, not in the
   ingress module.
