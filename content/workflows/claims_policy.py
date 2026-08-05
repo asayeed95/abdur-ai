@@ -100,6 +100,41 @@ _ACCESS_NOW_CLAIM = re.compile(
 )
 
 
+_FENCED_CODE = re.compile(r"```.*?```", re.S)
+_INLINE_CODE = re.compile(r"`[^`\n]+`")
+# Frontmatter `source:` is a provenance pointer to an internal repo-events file.
+# It is metadata, never published prose — but its filenames encode commit subjects,
+# so they carry SHAs and error codes. Everything else in frontmatter (title,
+# description, dek, tldr) IS published and stays fully checked.
+_SOURCE_FIELD = re.compile(r"^source:.*$", re.M)
+
+
+def _mask_code(text: str) -> str:
+    """Blank out code blocks and inline code spans, preserving length/offsets.
+
+    Applies to the NUMERIC marketing checks only (latency, price). Those ask
+    "is this copy asserting a number at the reader?" — and a quoted commit
+    message, an error string, or a code sample is not an assertion.
+
+    Scar (2026-08-05): a postmortem quoting its own commit subject,
+    `fix(web): dashboard tenants select('*') 42501s unconditionally post-031`,
+    was blocked as a latency claim. 42501 is the Postgres SQLSTATE for
+    permission-denied, used there as a verb; `_TIME_UNIT` accepts a bare "s",
+    so it read as "42501 seconds". Left unfixed this is not a one-off: every
+    technical post carrying real SHAs, error codes, and payloads trips it, so
+    the guard would systematically block exactly the evidence-dense writing the
+    content strategy most needs.
+
+    This does NOT weaken the structural checks. Route names, enrichment
+    vendors, struck products, the identity line, and the closer are all matched
+    against the FULL corpus, including code — a forbidden route smuggled into a
+    code span is still caught.
+    """
+    masked = _FENCED_CODE.sub(lambda m: " " * len(m.group(0)), text)
+    masked = _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), masked)
+    return _SOURCE_FIELD.sub(lambda m: " " * len(m.group(0)), masked)
+
+
 def h2_findings(corpus: str) -> list[dict[str, str]]:
     """Return deterministic H2/Class-C findings for one public text corpus.
 
@@ -111,7 +146,7 @@ def h2_findings(corpus: str) -> list[dict[str, str]]:
         return [{"gate": "H2", "detail": "claim corpus is absent or malformed"}]
 
     findings: list[dict[str, str]] = []
-    stripped = re.sub(re.escape(ALLOWED_LATENCY), " ", corpus, flags=re.I)
+    stripped = _mask_code(re.sub(re.escape(ALLOWED_LATENCY), " ", corpus, flags=re.I))
     for pattern, label in (
         (_LATENCY_NUMERIC, "numeric latency"),
         (_LATENCY_COMPARATIVE, "comparative latency"),
