@@ -37,6 +37,8 @@ reviews:
     drafts: false
     ignore_title_keywords: ["[wip]", "[skip-ci]"]
   path_filters:
+    - ".coderabbit.yaml"
+    - ".github/workflows/**"
     - "package-lock.json"
     - "!node_modules/**"
     - "!.next/**"
