@@ -10,6 +10,7 @@ knowledge_base:
   issues: { scope: local }
   pull_requests: { scope: local }
   linear:
+    # Explicit portfolio authorization (2026-08-06): use AGE context on this public repo.
     usage: enabled
     team_keys: ["AGE"]
   mcp: { usage: enabled }
@@ -35,7 +36,6 @@ reviews:
     enabled: true
     auto_incremental_review: true
     drafts: false
-    ignore_title_keywords: ["[wip]", "[skip-ci]"]
   path_filters:
     # Exclusion-only: positive patterns would silently allowlist just those paths.
     - "!package-lock.json"
@@ -84,4 +84,5 @@ chat:
   allow_non_org_members: false
   auto_reply: true
   integrations:
+    # Explicit portfolio authorization (2026-08-06): allow Linear-assisted review chat.
     linear: { usage: enabled }

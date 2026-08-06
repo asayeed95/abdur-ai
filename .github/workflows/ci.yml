@@ -25,4 +25,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - name: Validate public claims
+        run: python3 scripts/check-public-claims.py
       - run: npm run build
