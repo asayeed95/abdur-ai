@@ -36,8 +36,11 @@ reviews:
     auto_incremental_review: false
     drafts: false
     ignore_title_keywords: ["[wip]", "[skip-ci]"]
-  # Dependency lockfiles intentionally remain reviewable.
-  path_filters: ["!node_modules/**", "!.next/**", "!coverage/**"]
+  path_filters:
+    - "package-lock.json"
+    - "!node_modules/**"
+    - "!.next/**"
+    - "!coverage/**"
   path_instructions:
     - path: "app/**"
       instructions: >-
