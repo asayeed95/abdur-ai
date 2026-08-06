@@ -6,18 +6,24 @@ tone_instructions: >-
   privacy issues, and user-visible regressions over style feedback. State the
   evidence required to support a correction.
 knowledge_base:
-  learnings: { scope: auto }
-  issues: { scope: auto }
-  pull_requests: { scope: auto }
+  learnings: { scope: local }
+  issues: { scope: local }
+  pull_requests: { scope: local }
   linear:
-    usage: enabled
+    usage: disabled
     team_keys: ["AGE"]
+  mcp: { usage: disabled }
+  linked_repositories:
+    - repository: "asayeed95/mnemix"
+      instructions: >-
+        Use Mnemix only to verify canonical identity, capability, availability,
+        and public-claim boundaries referenced by abdur.ai content.
   code_guidelines:
     enabled: true
     filePatterns: ["CLAUDE.md", "README.md", "content/workflows/claims_policy.py", "scripts/check-public-claims.py"]
 reviews:
   profile: "assertive"
-  request_changes_workflow: true
+  request_changes_workflow: false
   enable_prompt_for_ai_agents: true
   high_level_summary: true
   poem: false
@@ -27,10 +33,11 @@ reviews:
   review_status: true
   auto_review:
     enabled: true
-    auto_incremental_review: true
+    auto_incremental_review: false
     drafts: false
-    ignore_title_keywords: ["[wip]", "[skip-ci]", "research", "experiment"]
-  path_filters: ["!node_modules/**", "!.next/**", "!coverage/**", "!**/*.lock"]
+    ignore_title_keywords: ["[wip]", "[skip-ci]"]
+  # Dependency lockfiles intentionally remain reviewable.
+  path_filters: ["!node_modules/**", "!.next/**", "!coverage/**"]
   path_instructions:
     - path: "app/**"
       instructions: >-
@@ -70,6 +77,7 @@ reviews:
     markdownlint: { enabled: true }
     yamllint: { enabled: true }
 chat:
+  allow_non_org_members: false
   auto_reply: true
   integrations:
-    linear: { usage: enabled }
+    linear: { usage: disabled }
