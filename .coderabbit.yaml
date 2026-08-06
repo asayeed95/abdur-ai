@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+# Contextual review for abdur.ai public surfaces; CI validates decidable claims.
+language: "en-US"
+tone_instructions: >-
+  Be precise and source-aware. Prioritize public-claim drift, unavailable CTAs,
+  privacy issues, and user-visible regressions over style feedback. State the
+  evidence required to support a correction.
+knowledge_base:
+  learnings: { scope: auto }
+  issues: { scope: auto }
+  pull_requests: { scope: auto }
+  linear:
+    usage: enabled
+    team_keys: ["AGE"]
+  code_guidelines:
+    enabled: true
+    filePatterns: ["CLAUDE.md", "README.md", "content/workflows/claims_policy.py", "scripts/check-public-claims.py"]
+reviews:
+  profile: "assertive"
+  request_changes_workflow: true
+  enable_prompt_for_ai_agents: true
+  high_level_summary: true
+  poem: false
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  collapse_walkthrough: true
+  review_status: true
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    ignore_title_keywords: ["[wip]", "[skip-ci]", "research", "experiment"]
+  path_filters: ["!node_modules/**", "!.next/**", "!coverage/**", "!**/*.lock"]
+  path_instructions:
+    - path: "app/**"
+      instructions: >-
+        Block client-secret exposure, unavailable calls to action, and Mnemix
+        availability claims without a verified access path.
+    - path: "content/{posts,manus,voice}/**"
+      instructions: >-
+        Block invented customers, benchmarks, latency, pricing, integrations,
+        compliance, or historical attribution. Mnemix is the memory and
+        enrichment layer for AI agents; customers build agents, not Mnemix.
+    - path: "content/workflows/**"
+      instructions: >-
+        Outward-facing automation needs source attribution, consent, caps, quiet
+        hours, and a kill switch. Flag any path that can publish or message
+        without those controls.
+    - path: "scripts/check-public-claims.py"
+      instructions: >-
+        Flag a rule change that weakens canonical identity, availability truth,
+        or turns a failing claim finding into a silent pass.
+  pre_merge_checks:
+    override_requested_reviewers_only: true
+    title:
+      mode: "warning"
+      requirements: "Use a concise descriptive title tied to the changed public or operational surface."
+    description: { mode: "warning" }
+    issue_assessment: { mode: "warning" }
+  finishing_touches:
+    unit_tests: { enabled: true }
+    docstrings: { enabled: false }
+    simplify: { enabled: false }
+    autofix: { enabled: false }
+  tools:
+    gitleaks: { enabled: true }
+    actionlint: { enabled: true }
+    semgrep: { enabled: true }
+    eslint: { enabled: true }
+    markdownlint: { enabled: true }
+    yamllint: { enabled: true }
+chat:
+  auto_reply: true
+  integrations:
+    linear: { usage: enabled }
