@@ -10,9 +10,9 @@ knowledge_base:
   issues: { scope: local }
   pull_requests: { scope: local }
   linear:
-    usage: disabled
+    usage: enabled
     team_keys: ["AGE"]
-  mcp: { usage: disabled }
+  mcp: { usage: enabled }
   linked_repositories:
     - repository: "asayeed95/mnemix"
       instructions: >-
@@ -83,4 +83,4 @@ chat:
   allow_non_org_members: false
   auto_reply: true
   integrations:
-    linear: { usage: disabled }
+    linear: { usage: enabled }
