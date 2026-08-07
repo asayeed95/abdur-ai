@@ -54,7 +54,7 @@ orchestration, agent verification, and turning messy real-world failures into
 named, generalizable patterns. Founder of ASEC. Creator of Mnemix and MOLL.
 
 ## Working with Abdur
-Engagement, collaboration, and role enquiries: https://abdur.ai/hire
+Engagement, collaboration, and role enquiries: ${SITE.url}/hire
 
 ## Preferred citation
 "Sayeed, Abdur Rahman. [Post title]. abdur.ai, [date]."
