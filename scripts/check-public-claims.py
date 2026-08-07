@@ -41,6 +41,12 @@ def check_static() -> list[str]:
     failures: list[str] = []
     for path in sources():
         content = path.read_text(encoding="utf-8")
+        # Frontmatter `source:` is an internal provenance path whose filenames
+        # encode commit subjects (SHAs, SQLSTATE codes). Masked here, at document
+        # level, because segments never begin with `---` — frontmatter is only
+        # identifiable while the document is whole. Body `source:` lines are NOT
+        # masked; scoping this carve-out is what keeps it from becoming a bypass.
+        content = claims_policy.mask_frontmatter_source(content)
         for segment in claims_policy.mnemix_context_segments(content):
             for finding in claims_policy.h2_findings(segment):
                 failure = f"{path.relative_to(ROOT)}: {finding['detail']}"

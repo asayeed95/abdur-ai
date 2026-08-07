@@ -106,6 +106,14 @@ _INLINE_CODE = re.compile(r"`[^`\n]+`")
 # It is metadata, never published prose — but its filenames encode commit subjects,
 # so they carry SHAs and error codes. Everything else in frontmatter (title,
 # description, dek, tldr) IS published and stays fully checked.
+#
+# Scoped to the OPENING frontmatter block only. An unanchored `^source:.*$` masked
+# every such line anywhere in the document, so a body line reading
+# `source: Pro is $49/month.` would have been excluded from the numeric checks —
+# an evasion hole in a claims guard, opened by a fix meant to reduce false
+# positives. Narrowing a matcher is not automatically safe; the scope has to be
+# the thing you actually meant.
+_FRONTMATTER_BLOCK = re.compile(r"\A---\r?\n.*?^---\r?$", re.S | re.M)
 _SOURCE_FIELD = re.compile(r"^source:.*$", re.M)
 
 
@@ -131,8 +139,30 @@ def _mask_code(text: str) -> str:
     code span is still caught.
     """
     masked = _FENCED_CODE.sub(lambda m: " " * len(m.group(0)), text)
-    masked = _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), masked)
-    return _SOURCE_FIELD.sub(lambda m: " " * len(m.group(0)), masked)
+    return _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), masked)
+
+
+def mask_frontmatter_source(document: str) -> str:
+    """Blank the `source:` provenance line inside the OPENING frontmatter block.
+
+    Document-level by necessity. Callers segment a document before claim-checking,
+    and a segment never begins with `---`, so frontmatter cannot be recognised from
+    inside `h2_findings`. "Which block is the frontmatter" is only answerable while
+    the document is whole — so it is answered here, once, before segmentation.
+
+    Scoped deliberately. An unanchored `^source:.*$` masked every such line anywhere
+    in the document, so body prose reading `source: Pro is $49/month.` would have
+    been excluded from the numeric checks — an evasion hole in a claims guard,
+    opened by a fix meant to reduce false positives. Length is preserved so every
+    downstream offset stays truthful.
+    """
+    if not isinstance(document, str):
+        return document
+    fm = _FRONTMATTER_BLOCK.match(document)
+    if not fm:
+        return document
+    head = _SOURCE_FIELD.sub(lambda m: " " * len(m.group(0)), fm.group(0))
+    return head + document[fm.end():]
 
 
 def h2_findings(corpus: str) -> list[dict[str, str]]:

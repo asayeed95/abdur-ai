@@ -63,9 +63,34 @@ class CodeMaskingTests(unittest.TestCase):
         self.assertFalse(cp.h2_findings("the commit `select('*') 42501s unconditionally`"))
         self.assertFalse(cp.h2_findings("```\nERROR 42501s after 300ms\n```"))
 
-    def test_source_provenance_path_ignored(self):
-        self.assertFalse(cp.h2_findings(
-            "source: content/sources/repo-events/mnemix-aee3f57-select-42501s-unconditionally-post.md"))
+    def test_source_provenance_path_ignored_in_frontmatter(self):
+        doc = (
+            "---\n"
+            "title: A post\n"
+            "source: content/sources/repo-events/mnemix-aee3f57-select-42501s-unconditionally-post.md\n"
+            "---\n"
+            "Body text.\n"
+        )
+        self.assertFalse(cp.h2_findings(cp.mask_frontmatter_source(doc)))
+
+    def test_body_source_line_is_NOT_masked(self):
+        """The frontmatter carve-out must not become an evasion hole.
+
+        An unanchored ^source: masked every such line anywhere in the document,
+        so body prose could smuggle a numeric claim past the guard by prefixing
+        it with "source:". Scope the carve-out or it is a bypass.
+        """
+        doc = (
+            "---\n"
+            "title: A post\n"
+            "---\n"
+            "source: Pro is $49/month.\n"
+        )
+        self.assertTrue(cp.h2_findings(cp.mask_frontmatter_source(doc)))
+
+    def test_body_source_latency_claim_is_NOT_masked(self):
+        doc = "---\ntitle: A post\n---\nsource: we measured 120ms end to end.\n"
+        self.assertTrue(cp.h2_findings(cp.mask_frontmatter_source(doc)))
 
     def test_published_frontmatter_still_checked(self):
         # description/tldr ARE published prose — masking source: must not leak to them.
