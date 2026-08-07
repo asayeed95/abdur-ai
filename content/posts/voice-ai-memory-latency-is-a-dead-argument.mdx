@@ -34,13 +34,13 @@ So the real question isn't "can memory be instant." It's **"can memory return in
 
 ## The warm path
 
-Here's the warm path Mnemix is designed for sub-300ms voice recall on:
+Here's the warm path, which Mnemix is designed for sub-300ms voice recall on:
 
 1. The inbound phone number hits the Cloudflare edge — no cross-country round trip to an origin server.
 2. Memory for that caller lives in Upstash Redis, returned from the edge.
 3. What comes back: job title, full call history, and the context the agent needs before the first word is generated.
 
-That is the design target, end to end, on the warm path — and it fits inside the 200–500ms of VAD silence the agent was going to wait through regardless. The caller never perceives a pause, because there is no added pause — the lookup happens during silence that already existed.
+That is the design target, end to end, on the warm path. When the lookup lands inside the 200–500ms of VAD silence the agent was going to wait through regardless, it adds no pause the caller can perceive — it happens during silence that already existed. That is the whole architectural claim: not that memory is fast in the abstract, but that there is an existing window to hide it in.
 
 ## Where the argument actually lives
 
