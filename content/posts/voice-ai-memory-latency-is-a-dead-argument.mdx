@@ -2,7 +2,7 @@
 slug: voice-ai-memory-latency-is-a-dead-argument
 title: "The latency objection for voice-AI memory is a dead argument"
 subtitle: "The warm path fits inside silence you're already paying for"
-description: "Everyone says memory is too slow for voice agents. It isn't — if you architect the path. Here's the warm path that returns caller memory in under 300ms, and why it fits inside silence you're already paying for."
+description: "Everyone says memory is too slow for voice agents. It isn't — if you architect the path. Here's the warm path, designed for sub-300ms voice recall, and why it fits inside silence you're already paying for."
 dek: "Voice agents already wait 200–500ms for voice activity detection on every turn. Memory that returns inside that window adds zero perceived latency. The objection isn't a physics problem — it's an architecture problem."
 date: 2026-07-02T09:00:00-04:00
 author: Abdur Rahman Sayeed
@@ -34,13 +34,13 @@ So the real question isn't "can memory be instant." It's **"can memory return in
 
 ## The warm path
 
-Here's how Mnemix returns caller memory in under 300ms on the warm path:
+Here's the warm path, which Mnemix is designed for sub-300ms voice recall on:
 
 1. The inbound phone number hits the Cloudflare edge — no cross-country round trip to an origin server.
 2. Memory for that caller lives in Upstash Redis, returned from the edge.
 3. What comes back: job title, full call history, and the context the agent needs before the first word is generated.
 
-Under 300ms, end to end, on the warm path. That fits inside the 200–500ms of VAD silence the agent was going to wait through regardless. The caller never perceives a pause, because there is no added pause — the lookup happens during silence that already existed.
+That is the design target, end to end, on the warm path. When the lookup lands inside the 200–500ms of VAD silence the agent was going to wait through regardless, it adds no pause the caller can perceive — it happens during silence that already existed. That is the whole architectural claim: not that memory is fast in the abstract, but that there is an existing window to hide it in.
 
 ## Where the argument actually lives
 
