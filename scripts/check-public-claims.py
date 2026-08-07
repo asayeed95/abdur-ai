@@ -62,15 +62,32 @@ def check_static() -> list[str]:
             failures.append(f"{relative}: missing required public-truth value {expected!r}")
 
     # The Mnemix CTA destination may be the literal waitlist URL *or* the
-    # mnemixUrl() helper, which appends attribution params. Accepting an
-    # indirection is only safe because the helper itself is verified below —
-    # without that, "any call to a function named mnemixUrl" would be a blank
-    # cheque that a later edit could quietly point anywhere.
+    # mnemixUrl() helper, which appends attribution params.
+    #
+    # Match the actual `href` EXPRESSION, not a bare mention of the helper. An
+    # earlier version accepted any `mnemixUrl(` occurrence anywhere in the file,
+    # so a component could carry an unused helper call while its CTA href pointed
+    # somewhere else entirely — the check would pass on a decoy. Accepting an
+    # indirection is only safe when the indirection is the thing being pointed at,
+    # AND the helper's own destination is verified (immediately below).
+    #
+    # A second argument to mnemixUrl() overrides the default `waitlist` fragment,
+    # so helper-based CTAs must call it with the surface only.
+    href_literal = re.compile(
+        r"""href\s*=\s*["']""" + re.escape(WAITLIST_URL) + r"""["']""", re.I
+    )
+    href_helper = re.compile(r"href\s*=\s*\{\s*mnemixUrl\(\s*[^,)]+\s*\)\s*\}")
+    href_helper_with_hash = re.compile(r"href\s*=\s*\{\s*mnemixUrl\([^)]*,[^)]*\)\s*\}")
     for relative in ("components/MnemixSection.tsx", "components/post/LeadMagnets.tsx"):
-        content = (ROOT / relative).read_text(encoding="utf-8").lower()
-        if WAITLIST_URL.lower() not in content and "mnemixurl(" not in content:
+        content = (ROOT / relative).read_text(encoding="utf-8")
+        if href_helper_with_hash.search(content):
             failures.append(
-                f"{relative}: Mnemix CTA must link to {WAITLIST_URL!r} or use mnemixUrl()"
+                f"{relative}: Mnemix CTA href passes a second mnemixUrl() argument, "
+                "overriding the waitlist fragment"
+            )
+        elif not href_literal.search(content) and not href_helper.search(content):
+            failures.append(
+                f"{relative}: Mnemix CTA href must be {WAITLIST_URL!r} or mnemixUrl(<surface>)"
             )
 
     # Close the indirection the rule above opened.
