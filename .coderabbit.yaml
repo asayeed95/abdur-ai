@@ -46,7 +46,7 @@ reviews:
       instructions: >-
         Block client-secret exposure, unavailable calls to action, and Mnemix
         availability claims without a verified access path.
-    - path: "content/{posts,manus,voice}/**"
+    - path: "content/**"
       instructions: >-
         Block invented customers, benchmarks, latency, pricing, integrations,
         compliance, or historical attribution. Mnemix is the memory and
@@ -68,7 +68,7 @@ reviews:
     description: { mode: "warning" }
     issue_assessment: { mode: "warning" }
   finishing_touches:
-    unit_tests: { enabled: true }
+    unit_tests: { enabled: false }
     docstrings: { enabled: false }
     simplify: { enabled: false }
     autofix: { enabled: false }
