@@ -35,6 +35,7 @@ reviews:
   auto_review:
     enabled: true
     auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 1
     drafts: false
   path_filters:
     # Exclusion-only: positive patterns would silently allowlist just those paths.
