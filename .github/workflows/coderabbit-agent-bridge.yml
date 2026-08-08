@@ -200,8 +200,20 @@ jobs:
             truthful public TLDR and Mnemix lead surface. Leave the tree unchanged
             when no repair is warranted. The workflow owns tests, commit, and push.
 
-      - name: Detect Claude repairs
+      - name: Verify Claude actually executed
         if: steps.claude.outcome == 'success'
+        id: claude_execution
+        continue-on-error: true
+        env:
+          CLAUDE_CONCLUSION: ${{ steps.claude.outputs.conclusion }}
+          CLAUDE_EXECUTION_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: >-
+          test "$CLAUDE_CONCLUSION" = "success" &&
+          test -n "$CLAUDE_EXECUTION_FILE" &&
+          test -s "$CLAUDE_EXECUTION_FILE"
+
+      - name: Detect Claude repairs
+        if: steps.claude_execution.outcome == 'success'
         id: changes
         run: |
           if test -n "$(git status --porcelain)"; then
@@ -255,6 +267,7 @@ jobs:
           IDENTITY_OUTCOME: ${{ steps.identity.outcome }}
           CREDENTIAL_OUTCOME: ${{ steps.credential.outcome }}
           CLAUDE_OUTCOME: ${{ steps.claude.outcome }}
+          CLAUDE_EXECUTION_OUTCOME: ${{ steps.claude_execution.outcome }}
           CHANGES_DETECTED: ${{ steps.changes.outputs.changed }}
           VERIFICATION_OUTCOME: ${{ steps.verification.outcome }}
           PUSH_OUTCOME: ${{ steps.push.outcome }}
@@ -268,10 +281,11 @@ jobs:
             const outputHead = pr.head.sha;
             const preflight = [process.env.CHECKOUT_OUTCOME, process.env.IDENTITY_OUTCOME, process.env.CREDENTIAL_OUTCOME];
             const actionOutcome = process.env.CLAUDE_OUTCOME || 'not-run';
+            const executionOutcome = process.env.CLAUDE_EXECUTION_OUTCOME || 'not-run';
             const changed = process.env.CHANGES_DETECTED || 'unknown';
             let result;
             if (preflight.some(v => v !== 'success')) result = 'preflight_failed';
-            else if (actionOutcome !== 'success') result = 'failed';
+            else if (actionOutcome !== 'success' || executionOutcome !== 'success') result = 'failed';
             else if (changed === 'false') result = 'clean';
             else if (changed !== 'true' || process.env.VERIFICATION_OUTCOME !== 'success' ||
                      process.env.PUSH_OUTCOME !== 'success' || outputHead === inputHead) result = 'failed';
