@@ -1,0 +1,289 @@
+name: CodeRabbit + Codex → Claude Bridge
+
+# Exact-head sequence for same-repository PRs:
+# CodeRabbit final receipt → Codex final marker → Claude review/repair.
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to evaluate
+        required: true
+        type: number
+      force_retry:
+        description: Retry Claude when this head already has an attempt
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: review-bridge-${{ github.event.issue.number || inputs.pr_number }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  claude-final-review:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.pull_request != null &&
+       contains(github.event.comment.body, '<!-- review-bridge:codex-final ') &&
+       contains(
+         format(',{0},', vars.CODEX_FINAL_ACTORS || 'asayeed95,chatgpt-codex-connector'),
+         format(',{0},', github.event.comment.user.login)
+       ))
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      statuses: read
+      actions: read
+      id-token: write
+    env:
+      CODEX_FINAL_ACTORS: ${{ vars.CODEX_FINAL_ACTORS || 'asayeed95,chatgpt-codex-connector' }}
+      REVIEW_BRIDGE_TRUSTED_PR_AUTHORS: ${{ vars.REVIEW_BRIDGE_TRUSTED_PR_AUTHORS || 'asayeed95' }}
+
+    steps:
+      - name: Verify exact-head CodeRabbit and Codex receipts
+        id: gate
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          DISPATCH_PR: ${{ inputs.pr_number }}
+          FORCE_RETRY: ${{ inputs.force_retry }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.eventName === 'workflow_dispatch'
+              ? Number(process.env.DISPATCH_PR)
+              : Number(context.issue.number);
+            const forceRetry = process.env.FORCE_RETRY === 'true';
+            const trustedCodexActors = new Set(
+              process.env.CODEX_FINAL_ACTORS.split(',').map(v => v.trim()).filter(Boolean)
+            );
+            const trustedPrAuthors = new Set(
+              process.env.REVIEW_BRIDGE_TRUSTED_PR_AUTHORS.split(',').map(v => v.trim()).filter(Boolean)
+            );
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            const head = pr.head.sha;
+            const base = pr.base.sha;
+            const result = { prNumber, head, base, branch: pr.head.ref, proceed: false };
+
+            if (pr.state !== 'open' || pr.draft) {
+              result.reason = 'PR is not open and review-ready';
+            } else if (pr.head.repo?.full_name !== `${owner}/${repo}`) {
+              result.reason = 'PR head is not in this repository';
+            } else if (!trustedPrAuthors.has(pr.user?.login)) {
+              result.reason = 'PR author is not authorized for the repair runner';
+            } else {
+              const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                owner, repo, pull_number: prNumber, per_page: 100,
+              });
+              const codeRabbitReview = reviews
+                .filter(r => ['coderabbitai', 'coderabbitai[bot]'].includes(r.user?.login))
+                .filter(r => r.commit_id === head && Boolean(r.submitted_at))
+                .sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at))[0];
+              const { data: combinedStatus } = await github.rest.repos.getCombinedStatusForRef({
+                owner, repo, ref: head,
+              });
+              const codeRabbitStatus = combinedStatus.statuses
+                .filter(s => s.context === 'CodeRabbit')
+                .filter(s => s.state === 'success' && s.description === 'Review completed')
+                .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))[0];
+              const codeRabbitReceipt = codeRabbitReview?.html_url ||
+                (codeRabbitStatus ? `CodeRabbit Review completed status on ${head}` : '');
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number: prNumber, per_page: 100,
+              });
+              const codexNeedle = `<!-- review-bridge:codex-final head=${head} base=${base} `;
+              const codex = comments
+                .filter(c => trustedCodexActors.has(c.user?.login) && c.body?.includes(codexNeedle))
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+              const attemptNeedle = `<!-- review-bridge:claude-attempt head=${head} base=${base} `;
+              const priorAttempt = comments.some(c => c.body?.includes(attemptNeedle));
+
+              if (!codeRabbitReceipt) {
+                result.reason = 'No completed CodeRabbit receipt is bound to the current head';
+              } else if (!codex) {
+                result.reason = 'No trusted Codex marker is bound to the current head and base';
+              } else if (priorAttempt && !forceRetry) {
+                result.reason = 'Claude already has an attempt recorded for this head';
+              } else {
+                result.proceed = true;
+                result.codeRabbitReview = codeRabbitReceipt;
+                result.codexComment = codex.html_url;
+              }
+            }
+            for (const [key, value] of Object.entries({
+              pr_number: String(prNumber), head, base, branch: pr.head.ref,
+              proceed: String(result.proceed), reason: result.reason || 'eligible',
+              coderabbit_review: result.codeRabbitReview || '',
+              codex_comment: result.codexComment || '',
+            })) core.setOutput(key, value);
+            core.info(JSON.stringify(result));
+
+      - name: Stop when the exact-head contract is incomplete
+        if: steps.gate.outputs.proceed != 'true'
+        env:
+          GATE_REASON: ${{ steps.gate.outputs.reason }}
+        run: echo "Bridge did not run — $GATE_REASON"
+
+      - name: Checkout the exact PR head
+        if: steps.gate.outputs.proceed == 'true'
+        id: checkout
+        continue-on-error: true
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ steps.gate.outputs.branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Re-prove checkout identity
+        if: steps.gate.outputs.proceed == 'true' && steps.checkout.outcome == 'success'
+        id: identity
+        continue-on-error: true
+        env:
+          EXPECTED_HEAD: ${{ steps.gate.outputs.head }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+
+      - name: Verify Claude credential is installed
+        if: steps.identity.outcome == 'success'
+        id: credential
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: test -n "$ANTHROPIC_API_KEY"
+
+      - name: Record the Claude attempt
+        if: steps.credential.outcome == 'success'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
+          INPUT_HEAD: ${{ steps.gate.outputs.head }}
+          INPUT_BASE: ${{ steps.gate.outputs.base }}
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: Number(process.env.PR_NUMBER),
+              body: `<!-- review-bridge:claude-attempt head=${process.env.INPUT_HEAD} base=${process.env.INPUT_BASE} run=${context.runId} -->\n` +
+                `Claude final review started for \`${process.env.INPUT_HEAD}\` after exact-head CodeRabbit and Codex receipts.`,
+            });
+
+      - name: Claude final review and repair
+        if: steps.credential.outcome == 'success'
+        id: claude
+        continue-on-error: true
+        uses: anthropics/claude-code-action@bd4488507006939d8b3b7f098a2231b36e22f8c1 # v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: >-
+            --allowedTools "Read,Edit,Write,Grep,Glob"
+            --model ${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-5' }}
+          additional_permissions: |
+            actions: read
+          prompt: |
+            Own the final review and repair of PR #${{ steps.gate.outputs.pr_number }}
+            in ${{ github.repository }} at exact input head ${{ steps.gate.outputs.head }}
+            and base ${{ steps.gate.outputs.base }}.
+
+            CodeRabbit review: ${{ steps.gate.outputs.coderabbit_review }}
+            Codex final review: ${{ steps.gate.outputs.codex_comment }}
+
+            Read repository authority, the full diff, review discussions, and CI.
+            Verify findings against the current tree, hunt adjacent unknowns, and
+            repair every valid issue in the working tree. Preserve abdur.ai as a
+            truthful public TLDR and Mnemix lead surface. Leave the tree unchanged
+            when no repair is warranted. The workflow owns tests, commit, and push.
+
+      - name: Detect Claude repairs
+        if: steps.claude.outcome == 'success'
+        id: changes
+        run: |
+          if test -n "$(git status --porcelain)"; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node for deterministic verification
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify Claude repairs without repository credentials
+        if: steps.changes.outputs.changed == 'true'
+        id: verification
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run typecheck
+          python3 scripts/check-public-claims.py
+          npm run build
+
+      - name: Commit and push verified Claude repairs
+        if: steps.changes.outputs.changed == 'true' && steps.verification.outcome == 'success'
+        id: push
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BRANCH: ${{ steps.gate.outputs.branch }}
+        run: |
+          set -euo pipefail
+          git config user.name "claude[bot]"
+          git config user.email "41898282+claude[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: address final AI review"
+          gh auth setup-git
+          git push origin "HEAD:$PR_BRANCH"
+
+      - name: Publish run-bound Claude outcome
+        if: always() && steps.gate.outputs.proceed == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
+          INPUT_HEAD: ${{ steps.gate.outputs.head }}
+          INPUT_BASE: ${{ steps.gate.outputs.base }}
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          IDENTITY_OUTCOME: ${{ steps.identity.outcome }}
+          CREDENTIAL_OUTCOME: ${{ steps.credential.outcome }}
+          CLAUDE_OUTCOME: ${{ steps.claude.outcome }}
+          CHANGES_DETECTED: ${{ steps.changes.outputs.changed }}
+          VERIFICATION_OUTCOME: ${{ steps.verification.outcome }}
+          PUSH_OUTCOME: ${{ steps.push.outcome }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = Number(process.env.PR_NUMBER);
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            const inputHead = process.env.INPUT_HEAD;
+            const outputHead = pr.head.sha;
+            const preflight = [process.env.CHECKOUT_OUTCOME, process.env.IDENTITY_OUTCOME, process.env.CREDENTIAL_OUTCOME];
+            const actionOutcome = process.env.CLAUDE_OUTCOME || 'not-run';
+            const changed = process.env.CHANGES_DETECTED || 'unknown';
+            let result;
+            if (preflight.some(v => v !== 'success')) result = 'preflight_failed';
+            else if (actionOutcome !== 'success') result = 'failed';
+            else if (changed === 'false') result = 'clean';
+            else if (changed !== 'true' || process.env.VERIFICATION_OUTCOME !== 'success' ||
+                     process.env.PUSH_OUTCOME !== 'success' || outputHead === inputHead) result = 'failed';
+            else result = 'changed';
+            const body =
+              `<!-- review-bridge:claude-final input_head=${inputHead} output_head=${outputHead} base=${process.env.INPUT_BASE} result=${result} run=${context.runId} -->\n` +
+              `## Claude final bridge outcome\n\n- Input head: \`${inputHead}\`\n- Output head: \`${outputHead}\`\n` +
+              `- Result: **${result}**\n- Run: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}\n\n` +
+              (result === 'changed'
+                ? 'Claude pushed repairs. CodeRabbit and Codex must review the new head before Claude runs again.'
+                : result === 'clean'
+                  ? 'Claude found no repair requiring a new commit on this head.'
+                  : 'Infrastructure or preflight failed. This is UNKNOWN/RETRY, not a code verdict.');
+            await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
+            if (['failed', 'preflight_failed'].includes(result)) core.setFailed(`Bridge result ${result}`);
