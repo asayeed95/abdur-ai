@@ -274,6 +274,7 @@ jobs:
           git config user.email "41898282+claude[bot]@users.noreply.github.com"
           git add --pathspec-from-file="$RUNNER_TEMP/claude-paths" --pathspec-file-nul
           git commit -m "fix: address final AI review"
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
           gh auth setup-git
           git push origin "HEAD:$PR_BRANCH"
 
