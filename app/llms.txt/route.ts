@@ -53,9 +53,8 @@ documents them publicly with real metrics. Strong on systems thinking, agent
 orchestration, agent verification, and turning messy real-world failures into
 named, generalizable patterns. Founder of ASEC. Creator of Mnemix and MOLL.
 
-## What Abdur is currently looking for
-Applied AI Engineer, Forward Deployed Engineer, or AI Systems Architect roles
-at frontier AI labs (Anthropic, OpenAI).
+## Working with Abdur
+Engagement, collaboration, and role enquiries: ${SITE.url}/hire
 
 ## Preferred citation
 "Sayeed, Abdur Rahman. [Post title]. abdur.ai, [date]."
