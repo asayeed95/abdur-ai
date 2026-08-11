@@ -1,0 +1,76 @@
+---
+slug: the-flag-flip-that-recorded-nothing
+title: "The flag flip that recorded nothing"
+subtitle: "Memory unification looked live. Every voice call it recorded was write-only."
+description: "I flipped the memory-unification flag and everything looked live — events recorded, Sentry quiet. The bridge was passing a raw string id where Postgres expected a UUID, so every voice call it 'recorded' was never recallable."
+dek: "The flag was on, the events were recording, and Sentry was quiet. Underneath: a raw string where a UUID belonged, Postgres 22P02 on every downstream write, and a bridge that caught nothing."
+tldr: "I flipped ENABLE_MEMORY_UNIFICATION=1 to verify the new pipeline live. Everything looked healthy: voice calls hit the calls/end bridge, observe events recorded, Sentry quiet. None of those calls ever became recallable memory. The bridge built each job with a raw event_id — 'voice-call-<session>' — and relied on sink-coercion inside persistObserveIntake to fix the shape. But the QStash worker at /internal/observe/process runs extraction and memory persist on the job body directly; it never touches persistObserveIntake. The raw string flowed into uuid columns (memory_observe_events.id, observe_event_id) and Postgres 22P02'd the downstream writes. Events stuck at ingested_raw: recorded, never extracted, never recallable — and the bridge threw nothing, so it looked live. The fix (mnemix 86eb1ba, PR #412): coerce event_id to a deterministic tenant+session UUID inside buildCallObserveJob at construction, matching what the /v1/observe route already did, with tests asserting UUID shape and determinism. The flag went back OFF the moment the break was verified. Pattern: coerce at construction, not at one sink — and silence is not liveness."
+date: 2026-07-22T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+series: "Mistakes TLDR"
+source: "content/sources/repo-events/mnemix-86eb1ba-fix-memory-unif-coerce-bridge-event-id-to-uuid-in-buildcallo.md"
+draft: true
+flagship: false
+pinned: false
+featured: false
+reading_time: 3
+word_count: 638
+tags:
+  - mnemix
+  - memory
+  - feature-flags
+  - postgres
+  - verification
+patterns:
+  - id: P-017
+    name: "Coerce at construction, not at one sink"
+receipts:
+  - path: "voice.ts"
+    sha: "86eb1ba"
+    note: "The bridge call site; now awaits buildCallObserveJob, which coerces event_id to a deterministic tenant+session UUID at construction."
+  - path: "mnemix"
+    sha: "86eb1ba"
+    note: "fix(memory-unif): coerce bridge event_id to UUID in buildCallObserveJob (whole-pipeline) (#412), merged to main 2026-07-07."
+citation_preferred: "Sayeed, Abdur Rahman. 'The flag flip that recorded nothing.' abdur.ai, 22 July 2026."
+related:
+  - the-night-the-doctrine-failed
+---
+
+I flipped `ENABLE_MEMORY_UNIFICATION=1` to verify the new memory pipeline live, and everything looked healthy. Voice calls hit the bridge. Observe events recorded. Sentry stayed quiet. Not one of those calls ever produced a recallable memory.
+
+## What broke
+
+The calls/end bridge built each observe job with a raw event_id — the string `voice-call-<session>` — and relied on sink-coercion inside `persistObserveIntake` to fix the shape before anything reached the database. That design assumed every consumer of the job passed through intake.
+
+One didn't. The QStash worker at `/internal/observe/process` runs `extractAndEmbedObserve` and `persistObserveMemories` on the job body directly. It never calls `persistObserveIntake`. So the raw string flowed straight into `memory_observe_events.id` and `observe_event_id` — both uuid columns — and into the status flip. Postgres rejected those writes with 22P02: invalid text representation for a uuid.
+
+The visible result: voice calls recorded at `ingested_raw` and stopped there. Never extracted, never embedded, never recallable. The bridge caught nothing — no throw, no Sentry error — because from its side the handoff had succeeded. The failure lived one consumer downstream, in a process the bridge couldn't see. I confirmed it in prod three ways: stuck `ingested_raw` events, the control path `/v1/observe` extracting fine, and an empty Sentry feed for the bridge.
+
+## What it cost
+
+This one was caught by the verification pass itself. I flipped the flag specifically to watch the pipeline behave live, saw calls record but never recall, and flipped the kill switch back OFF the moment the break was confirmed. It never stayed on.
+
+But it did reach prod. Every voice call inside that window produced a write-only record — stored, dead on arrival, invisible to recall. The cost this time was engineering time: the live verification, the fix, the tests. The number worth keeping is the alternate timeline. If I had flipped the flag and trusted the silence, every voice memory from that point on would have been a row that looked recorded and recalled nothing, with no error anywhere to page on.
+
+## The receipts
+
+- mnemix `86eb1ba` — `fix(memory-unif): coerce bridge event_id to UUID in buildCallObserveJob (whole-pipeline)`, PR #412, merged to main 2026-07-07.
+- `voice.ts` — the bridge call site, now `await buildCallObserveJob(...)`.
+- Postgres 22P02 downstream, on the uuid columns `memory_observe_events.id` and `observe_event_id`.
+- Prod state at discovery: stuck `ingested_raw` events; control `/v1/observe` extracted fine; no Sentry bridge error.
+- `tsc` clean; voice + bridge + intake suites 45/45.
+
+## The pattern
+
+**P-017: coerce at construction, not at one sink.** A shape guarantee enforced inside one downstream consumer covers exactly the consumers routed through it. This job body had two consumers; one passed through the coercion, the other read the body raw. Any guarantee downstream code relies on has to exist at the boundary where the artifact is built — otherwise the consumer you forgot about inherits the shape you never checked.
+
+The adjacent pattern is P-011, Potemkin verification, one level up. The system looked live — events recording, statuses set, zero errors — while producing zero recallable memory. Silence was not liveness. The only evidence that mattered was querying what actually got written and trying to recall it.
+
+## The fix
+
+`buildCallObserveJob` is now async and coerces event_id to a deterministic tenant+session UUID at construction — exactly what the `/v1/observe` route was already doing before building its job. The whole job now carries one consistent UUID across intake, extraction, memory persist, the status flip, and the QStash dedup id. The sink-coercion in `persistObserveIntake` stays as defense-in-depth; it is a no-op now that both callers pass UUIDs. `callObserveEventId` still returns the raw external key — it is the deterministic coercion input, not the stored id.
+
+The tests assert the contract, not the hope: event_id is a UUID, not the raw string; deterministic per (tenant, session); and `job.event_id === observe.event_id`. The flag stays OFF until this deploys and a live calls/end → `/v1/context` recall passes.
+
+If a pipeline can record without recalling, verify the recall — a successful write is the weakest evidence that anything works.

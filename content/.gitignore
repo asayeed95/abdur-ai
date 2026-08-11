@@ -1,0 +1,16 @@
+# Content OS — raw source material that should NOT be committed to a deployed repo.
+# Keep the directory structure (.gitkeep) + READMEs, ignore the heavy/sensitive contents.
+
+# Transcripts can contain secrets/PII — never commit raw. Scrub, then force-add if truly needed.
+sources/transcripts/*
+!sources/transcripts/.gitkeep
+!sources/transcripts/README.md
+
+# Screenshots bloat the deploy + may capture tokens/keys. Keep proof assets in R2/Blotato CDN.
+sources/screenshots/*
+!sources/screenshots/.gitkeep
+!sources/screenshots/README.md
+
+# Local scratch
+*.tmp
+.DS_Store

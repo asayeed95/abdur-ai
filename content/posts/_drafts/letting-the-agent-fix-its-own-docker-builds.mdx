@@ -1,0 +1,86 @@
+---
+slug: letting-the-agent-fix-its-own-docker-builds
+title: "Letting the agent fix its own Docker builds"
+subtitle: "Real E2B builds replaced a verification stub, and the failures became the loop's input"
+description: "dockerfile.ai's #1 launch metric was a claim until real E2B docker builds made it a measurement: an exit-125 scar, a forgeable buildVerified marker, and an auto-fix loop capped at one retry. DEC-027 went from stub to a measured 3/3 = 100% against an 85% bar."
+dek: "The verified flag predated the first real build. Swapping the stub for real docker builds in E2B microVMs exposed two lies inside my own verification harness before it exposed anything about the Dockerfiles. Then the real errors became the agent's fix loop."
+tldr: "dockerfile.ai promises Dockerfiles that actually build, but the buildVerified flag behind that promise predated any real build, and the DEC-027 verified-success-rate it feeds was a claim, not a measurement. The locked backend, a Cloud Build plus Depot.dev hybrid, could not restrict egress on the standard pool (a malicious RUN exfiltrates the SA token) and could not start without GCP billing. Commit 403d7d9 replaced it with a single E2B Firecracker microVM backend: generate, clone, docker build, buildVerified true only on a real exit 0. Real builds immediately caught what static analysis never could: the harness swallowing its own exit codes (the exit-125 scar), then a success marker forgeable by the repo under build, which controls its own stdout. The fix was a per-build nonce, required exactly once, fail closed. With honest failures, the agent got an auto-fix loop: real last-40 error lines fed back, a doom-loop guard on identical signatures, one automatic retry. DEC-027 is now measured: 3/3 = 100% against an 85% bar, N=3, honestly small."
+date: 2026-07-28T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+series: "Mistakes TLDR"
+source: "content/sources/repo-events/dockerfile-ai-403d7d9-be-verify-002-real-e2b-docker-build-backend-auto-fix-loop-de.md"
+draft: true
+flagship: false
+pinned: false
+featured: false
+reading_time: 4
+word_count: 794
+tags: [docker, e2b, verification, agents, dockerfile-ai]
+patterns:
+  - id: P-023
+    name: "Ground truth is an exit code"
+receipts:
+  - path: "dockerfile-ai"
+    sha: "403d7d9"
+    note: "PR #42 merged to main: real E2B docker-build provider plus auto-fix loop; buildVerified true only on a real exit 0."
+  - path: "build-eval.mts"
+    sha: "403d7d9"
+    note: "EVAL-001 live lane: DEC-027 measured 3/3 = 100% vs the 85% bar; a stub run exits 2, below-bar exits 3."
+  - path: "generate-verified.ts"
+    sha: "403d7d9"
+    note: "The auto-fix loop: classifyBuildError, errorSignature doom-loop guard, cap-1 retry budget, sha256 provenance."
+citation_preferred: "Sayeed, Abdur Rahman. 'Letting the agent fix its own Docker builds.' abdur.ai, 28 July 2026."
+related:
+  - the-night-the-doctrine-failed
+---
+
+dockerfile.ai makes one promise: Dockerfiles that actually build. Until commit 403d7d9 the machinery behind "actually" was a stub: `buildVerified` existed, the DEC-027 verified-success-rate built on it was the #1 launch metric, and no real build had ever run behind it. Then I made the builds real and let the agent loop on its own failures.
+
+## What broke
+
+First, the plan. DEC-016 had locked a Cloud Build free-tier plus Depot.dev paid backend, with failover. The standard Cloud Build pool could not restrict egress — a malicious `RUN` in an untrusted repo could exfiltrate the service-account token — and it needed linked GCP billing to start at all. Neither safe nor runnable.
+
+Second, the exit-125 scar, surfacing the moment builds were real. BuildKit `--progress=plain` on docker.io's legacy builder, plus an SDK that throws on non-zero, swallowed the build log — the verifier could not see the true exit code. The patch: capture the exit through a shell-wrapper marker, matching the proof of concept.
+
+Third: the marker was forgeable — a fixed literal matched first-occurrence over build stdout, and the repo under build controls its own stdout. Any repo could print the marker and walk away with `buildVerified=true` (ENGINE-FIX-001, PR #48, P0-1).
+
+## What it cost
+
+No users saw any of this; it all broke pre-launch, behind flags. The cost was engineering time: the DEC-016 amendment touched roughly nine files, because the Cloud Build and Depot contract was written into all of them; then PR #42, ENGINE-FIX-001 as PR #48, and two CodeRabbit rounds (twelve of thirteen findings fixed, then eleven fixed with three refuted and two deferred), plus a founder decision on egress posture (its own change request).
+
+## The receipts
+
+`git -C dockerfile-ai log -1 403d7d9`, merged to main as PR #42.
+
+First live proof: heroku/node-js-getting-started at main, Vertex (gemini-2.5-pro) generated a multi-stage, pinned, non-root Dockerfile, E2B `docker build` exit 0 in 22s, attempt 1, `buildVerified=true`.
+
+The measured launch metric:
+
+```
+EVAL-001 build layer · model=vertex:gemini-2.5-pro · sandbox=e2b:dockerfile-ai-build · bar=85%
+  heroku-node-getting-started:           PASS · 1 attempt · 43s
+  azure-python-flask-hello:              PASS · 1 attempt · 42s
+  heroku-python-django-getting-started:  PASS · 1 attempt · 58s
+DEC-027 verified-success-rate: 3/3 = 100% (bar 85%) · 0 skipped(infra)
+```
+
+Honesty is enforced by exit codes: an all-skipped or stub run exits 2, below-bar exits 3 — the lane can never silently read as 100%. Green builds also get `docker inspect --format '{{.Config.User}}'` for a non-root assertion; all three corpus images came back non-root. At merge: five loop tests, three shellQuote injection tests, 86 unit tests passing, `check-phase 3 --hard` green. The record's caveat: N=3 is a real signal, not a tight rate.
+
+## The pattern
+
+**P-023 — Ground truth is an exit code.** A verification layer that never executes the artifact produces claims, not verdicts. hadolint can lint, tsc can typecheck, an LLM can review its own output; none of them run the build. The failures that bite live past execution: a harness that swallows exit codes, a marker the build's own stdout can forge, an effective USER that belongs to the built image, not the source text. Same family as P-011 (Potemkin verification) — a stub that reads as verified is data shaped like a gate — and it rhymes with P-013: static-green is not build-green.
+
+Once failures are real, they are the generator's best fix input. The loop feeds the real last-40 error lines and the prior Dockerfile back into regeneration — but an agent retrying blindly is a slower failure, so errors are classified (recoverable, policy_violation, transient), an identical signature twice stops the loop, and retries are capped.
+
+## The fix
+
+One backend: a single E2B Firecracker microVM provider for all tiers — isolated, no ambient credentials, egress denied to cloud metadata (169.254) and internal ranges, killed in a finally block so a leaked microVM alarms, not leaks cost. Untrusted repoUrl and branch are shellQuoted; repos must be HTTPS.
+
+One unforgeable verdict: a per-build crypto-random nonce lives only in the outer shell trailer, never in the build context; `parseBuildExit` requires it exactly once — zero or two occurrences is indeterminate, and indeterminate fails closed. The wrapper's own exit-0 is never trusted. `--progress=plain` is gone.
+
+One bounded loop: `BUILD_MAX_ATTEMPTS` defaults to 2 — initial build plus exactly one automatic fix attempt, pinned by a unit test so there is never a third build. An indeterminate result classifies as transient and never burns the fix attempt. Provenance carries sha256 and the clone's `git rev-parse HEAD`.
+
+One honest off-switch: the E2B provider activates only when `E2B_API_KEY` is set and `BUILD_LAYER_ACTIVE` is truthy; default off is a stub that says so.
+
+An agent can fix its own Docker builds, but only if the thing grading it is a real exit code from a real build and the loop has a stop condition.
