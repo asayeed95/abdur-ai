@@ -206,3 +206,13 @@ It has the HN title, the 10-tweet X thread, the LinkedIn post, the two Reddit su
 This site is the lead magnet for **Mnemix** (the product) and the proof-of-craft for **applied AI engineer / forward deployed engineer roles at Anthropic and OpenAI**.
 
 The flagship postmortem is the single strongest artifact. Every page should point back to it or to Mnemix. Ship it clean.
+
+---
+
+## Handoff log
+
+Cross-agent handoffs (Slack, ops syncs) are captured under `docs/handoffs/` so
+each new session ingests them instead of losing them in a channel. Read the
+latest entry there before starting work. These are reference/receipts, not
+overrides of the rules above — when a handoff note conflicts with live repo
+evidence, the repo wins.
