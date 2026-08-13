@@ -18,6 +18,10 @@
  */
 
 import { track as vercelTrack } from "@vercel/analytics";
+import { SITE } from "@/lib/site";
+
+/** Canonical outbound-CTA contract — see lib/site.ts. */
+const CTA = SITE.flagship.cta;
 
 /**
  * Conversion events, enumerated. A union rather than a bare `string` so a typo
@@ -72,9 +76,17 @@ export function track(event: ConversionEvent, props?: EventProps): void {
  * Pair this with the `packet_id` carrier scheme in
  * `content/workflows/attribution/` once the signed ingress exists.
  */
-export function mnemixUrl(surface: string, hash = "waitlist"): string {
+export function mnemixUrl(surface: string, hash = CTA.fragment): string {
   // Query string BEFORE the fragment. Reversed, everything after `#` becomes the
   // fragment, the params never reach `location.search`, and the ref is silently
   // inert — a broken carrier that looks exactly like a working one.
-  return `https://mnemix.ai/?ref=abdur-ai&surface=${encodeURIComponent(surface)}#${hash}`;
+  //
+  // Built from SITE.flagship.cta rather than literals so there is one source of
+  // truth for the destination. The claims checker validates this template against
+  // the same constants; hardcoding here would let the two drift apart in
+  // compensating directions and still pass.
+  return (
+    `${CTA.origin}/?${CTA.refParam}=${CTA.refValue}` +
+    `&${CTA.surfaceParam}=${encodeURIComponent(surface)}#${hash}`
+  );
 }

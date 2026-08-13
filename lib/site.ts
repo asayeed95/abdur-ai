@@ -25,6 +25,22 @@ export const SITE = {
     name: "Mnemix",
     url: "https://mnemix.ai",
     tagline: "The memory and enrichment layer for AI agents.",
+    /**
+     * Canonical outbound-CTA contract. Single source of truth: `mnemixUrl()` in
+     * lib/analytics.ts builds from these, and scripts/check-public-claims.py
+     * validates the built template against these same values — so a drift in the
+     * helper and a drift in the checker cannot cancel each other out.
+     *
+     * `fragment` is compared CASE-SENSITIVELY. `#WAITLIST` is a different anchor
+     * than `#waitlist` and lands the visitor nowhere.
+     */
+    cta: {
+      origin: "https://mnemix.ai",
+      fragment: "waitlist",
+      refParam: "ref",
+      refValue: "abdur-ai",
+      surfaceParam: "surface",
+    },
   },
 } as const;
 

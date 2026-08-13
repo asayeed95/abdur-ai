@@ -91,22 +91,90 @@ def check_static() -> list[str]:
             )
 
     # Close the indirection the rule above opened.
-    analytics = (ROOT / "lib/analytics.ts").read_text(encoding="utf-8")
-    if 'hash = "waitlist"' not in analytics:
-        failures.append("lib/analytics.ts: mnemixUrl() default destination must be the waitlist")
-    if "https://mnemix.ai/" not in analytics:
-        failures.append("lib/analytics.ts: mnemixUrl() must build a mnemix.ai URL")
-    # Query string must precede the fragment. Reversed, the params land inside
-    # the fragment, never reach location.search, and the attribution carrier is
-    # silently inert while looking exactly like a working one.
-    built = re.search(r"return\s+`(https://mnemix\.ai/[^`]*)`", analytics)
-    if not built:
-        failures.append("lib/analytics.ts: could not verify the mnemixUrl() template")
-    elif "?" not in built.group(1) or built.group(1).index("#") < built.group(1).index("?"):
+    #
+    # Read the canonical CTA contract from lib/site.ts and validate the ACTUAL
+    # mnemixUrl() return template against it. Earlier versions scanned the file for
+    # loose substrings — "https://mnemix.ai/" appearing anywhere satisfied the check,
+    # so a comment or a decoy string could pass it while the real template was broken.
+    site = (ROOT / "lib/site.ts").read_text(encoding="utf-8")
+    canon = {}
+    for key in ("origin", "fragment", "refParam", "refValue", "surfaceParam"):
+        m = re.search(key + r'\s*:\s*"([^"]+)"', site)
+        if m:
+            canon[key] = m.group(1)
+
+    missing = [k for k in ("origin", "fragment", "refParam", "refValue", "surfaceParam")
+               if k not in canon]
+    if missing:
+        # An unreadable source of truth is a FAILURE, never a skip. Absence of the
+        # contract cannot be treated as agreement with it.
         failures.append(
-            "lib/analytics.ts: mnemixUrl() must put the query string before the fragment "
-            "(params after '#' never reach location.search)"
+            "lib/site.ts: SITE.flagship.cta is missing " + str(missing)
+            + " — the CTA contract cannot be validated"
         )
+    else:
+        analytics = (ROOT / "lib/analytics.ts").read_text(encoding="utf-8")
+        # Capture the RETURN STATEMENT only, then join every template literal in it.
+        #
+        # Two traps, both hit while writing this:
+        #   1. The template is a multi-part concatenation. A regex grabbing only the
+        #      first backtick segment reads half a URL and reports the other half
+        #      missing — judging a whole from a part.
+        #   2. Scoping to the whole function body captures backticks inside COMMENTS
+        #      (`location.search` and friends), which then join ahead of the real
+        #      template and corrupt the assembled URL. Prose that quotes code is not
+        #      code.
+        # Scoping to `return ... ;` avoids both.
+        body = re.search(r"export function mnemixUrl\([^)]*\)[^{]*\{(.*?)\n\}",
+                         analytics, re.S)
+        ret = re.search(r"\breturn\b(.*?);", body.group(1), re.S) if body else None
+        segments = re.findall(r"`([^`]*)`", ret.group(1)) if ret else []
+        if not segments:
+            failures.append("lib/analytics.ts: could not locate the mnemixUrl() return template")
+        else:
+            # Resolve ${CTA.x} against site.ts so the ASSEMBLED url is checked, not
+            # the source text of the template.
+            resolved = re.sub(r"\$\{CTA\.(\w+)\}",
+                              lambda mm: canon.get(mm.group(1), mm.group(0)),
+                              "".join(segments))
+            resolved = re.sub(r"\$\{[^}]*surface[^}]*\}", "SURFACE", resolved)
+            resolved = resolved.replace("${hash}", canon["fragment"])
+
+            q = resolved.find("?")
+            h = resolved.find("#")
+            if q == -1:
+                failures.append("lib/analytics.ts: mnemixUrl() emits no query string")
+            elif h == -1:
+                # Guarded. `index("#")` on a template without a fragment raised
+                # ValueError and killed the checker with a traceback instead of
+                # reporting a finding — a crash is not a verdict.
+                failures.append(
+                    "lib/analytics.ts: mnemixUrl() emits no '#" + canon["fragment"] + "' fragment"
+                )
+            elif h < q:
+                failures.append(
+                    "lib/analytics.ts: mnemixUrl() must put the query string before the fragment "
+                    "(params after '#' never reach location.search)"
+                )
+
+            # Fragment compared EXACTLY. The previous check was case-insensitive, so
+            # '#WAITLIST' passed — a different anchor that lands the visitor nowhere.
+            if not resolved.endswith("#" + canon["fragment"]):
+                failures.append(
+                    "lib/analytics.ts: mnemixUrl() must end with the exact fragment '#"
+                    + canon["fragment"] + "' (case-sensitive)"
+                )
+            if not resolved.startswith(canon["origin"]):
+                failures.append(
+                    "lib/analytics.ts: mnemixUrl() must build from " + repr(canon["origin"])
+                )
+            for needle in (canon["refParam"] + "=" + canon["refValue"],
+                           canon["surfaceParam"] + "="):
+                if needle not in resolved:
+                    failures.append(
+                        "lib/analytics.ts: mnemixUrl() must carry " + repr(needle)
+                        + " — without it the attribution carrier is inert"
+                    )
 
     for relative in ("components/MnemixSection.tsx", "components/post/LeadMagnets.tsx"):
         content = (ROOT / relative).read_text(encoding="utf-8").lower()
