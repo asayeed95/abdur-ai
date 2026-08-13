@@ -137,6 +137,20 @@ For each, copy the body into a new MDX file at `content/posts/<slug>.mdx` with a
 
 These slugs are already referenced in the flagship post's `related:` frontmatter — keep them.
 
+> **STATUS: COMPLETED 2026-07-02. Historical build record, not an active constraint.**
+> All three posts above shipped and are live. This section documents how the site was
+> first assembled; it is **not** an allowlist for `content/posts/*.mdx`, and new posts do
+> not need a slug from this list.
+>
+> Recorded because an automated reviewer read this finished build step as a standing rule
+> and blocked three unrelated posts for "not using a required slug" — twice. A completed
+> instruction left in the imperative mood keeps issuing orders. If a step is done, say so
+> where the reader (human or machine) will see it.
+>
+> The rule that *does* govern new content is in `AGENTS.md`: generated content goes to
+> `content/posts/_drafts/` first, and reaches `content/posts/` only with explicit founder
+> approval.
+
 ### 7. Deploy to Vercel (15 min)
 
 ```bash

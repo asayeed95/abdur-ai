@@ -100,6 +100,71 @@ _ACCESS_NOW_CLAIM = re.compile(
 )
 
 
+_FENCED_CODE = re.compile(r"```.*?```", re.S)
+_INLINE_CODE = re.compile(r"`[^`\n]+`")
+# Frontmatter `source:` is a provenance pointer to an internal repo-events file.
+# It is metadata, never published prose — but its filenames encode commit subjects,
+# so they carry SHAs and error codes. Everything else in frontmatter (title,
+# description, dek, tldr) IS published and stays fully checked.
+#
+# Scoped to the OPENING frontmatter block only. An unanchored `^source:.*$` masked
+# every such line anywhere in the document, so a body line reading
+# `source: Pro is $49/month.` would have been excluded from the numeric checks —
+# an evasion hole in a claims guard, opened by a fix meant to reduce false
+# positives. Narrowing a matcher is not automatically safe; the scope has to be
+# the thing you actually meant.
+_FRONTMATTER_BLOCK = re.compile(r"\A---\r?\n.*?^---\r?$", re.S | re.M)
+_SOURCE_FIELD = re.compile(r"^source:.*$", re.M)
+
+
+def _mask_code(text: str) -> str:
+    """Blank out code blocks and inline code spans, preserving length/offsets.
+
+    Applies to the NUMERIC marketing checks only (latency, price). Those ask
+    "is this copy asserting a number at the reader?" — and a quoted commit
+    message, an error string, or a code sample is not an assertion.
+
+    Scar (2026-08-05): a postmortem quoting its own commit subject,
+    `fix(web): dashboard tenants select('*') 42501s unconditionally post-031`,
+    was blocked as a latency claim. 42501 is the Postgres SQLSTATE for
+    permission-denied, used there as a verb; `_TIME_UNIT` accepts a bare "s",
+    so it read as "42501 seconds". Left unfixed this is not a one-off: every
+    technical post carrying real SHAs, error codes, and payloads trips it, so
+    the guard would systematically block exactly the evidence-dense writing the
+    content strategy most needs.
+
+    This does NOT weaken the structural checks. Route names, enrichment
+    vendors, struck products, the identity line, and the closer are all matched
+    against the FULL corpus, including code — a forbidden route smuggled into a
+    code span is still caught.
+    """
+    masked = _FENCED_CODE.sub(lambda m: " " * len(m.group(0)), text)
+    return _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), masked)
+
+
+def mask_frontmatter_source(document: str) -> str:
+    """Blank the `source:` provenance line inside the OPENING frontmatter block.
+
+    Document-level by necessity. Callers segment a document before claim-checking,
+    and a segment never begins with `---`, so frontmatter cannot be recognised from
+    inside `h2_findings`. "Which block is the frontmatter" is only answerable while
+    the document is whole — so it is answered here, once, before segmentation.
+
+    Scoped deliberately. An unanchored `^source:.*$` masked every such line anywhere
+    in the document, so body prose reading `source: Pro is $49/month.` would have
+    been excluded from the numeric checks — an evasion hole in a claims guard,
+    opened by a fix meant to reduce false positives. Length is preserved so every
+    downstream offset stays truthful.
+    """
+    if not isinstance(document, str):
+        return document
+    fm = _FRONTMATTER_BLOCK.match(document)
+    if not fm:
+        return document
+    head = _SOURCE_FIELD.sub(lambda m: " " * len(m.group(0)), fm.group(0))
+    return head + document[fm.end():]
+
+
 def h2_findings(corpus: str) -> list[dict[str, str]]:
     """Return deterministic H2/Class-C findings for one public text corpus.
 
@@ -111,7 +176,7 @@ def h2_findings(corpus: str) -> list[dict[str, str]]:
         return [{"gate": "H2", "detail": "claim corpus is absent or malformed"}]
 
     findings: list[dict[str, str]] = []
-    stripped = re.sub(re.escape(ALLOWED_LATENCY), " ", corpus, flags=re.I)
+    stripped = _mask_code(re.sub(re.escape(ALLOWED_LATENCY), " ", corpus, flags=re.I))
     for pattern, label in (
         (_LATENCY_NUMERIC, "numeric latency"),
         (_LATENCY_COMPARATIVE, "comparative latency"),
