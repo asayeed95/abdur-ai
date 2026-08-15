@@ -78,8 +78,7 @@ if (fs.existsSync(claims)) {
   }
 }
 
-fs.copyFileSync(src, dest);
+fs.renameSync(src, dest);
 console.log(`Published file: content/posts/${slug}.mdx`);
 console.log("Live URL after deploy: https://abdur.ai/aitldr/" + slug);
 console.log("Next (you): git add content/posts/" + slug + ".mdx && commit && push.");
-console.log("Draft left in _drafts/ — delete after the deploy looks right.");

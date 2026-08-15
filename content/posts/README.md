@@ -25,4 +25,4 @@ Vercel deploys `main`. The post is then `https://abdur.ai/aitldr/<slug>`.
 
 Required frontmatter: `title`, `date`, `description` (or `dek`). Everything else is optional. Receipts, patterns, and flagship are for the pieces that have them.
 
-`tldr:publish` copies the draft into this folder. It does not push, deploy, or tweet.
+`tldr:publish` moves the draft into this folder. It does not push, deploy, or tweet.
