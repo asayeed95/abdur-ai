@@ -141,9 +141,7 @@ export default async function PostPage({
             </p>
           )}
           <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-muted-3">
-            <span>{new Date(post.date).toLocaleDateString("en-US", {
-              year: "numeric", month: "long", day: "numeric",
-            })}</span>
+            <span>{post.dateDisplay}</span>
             <span>·</span>
             <span>{post.readingTime} min read</span>
             <span>·</span>

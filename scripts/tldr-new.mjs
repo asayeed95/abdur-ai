@@ -43,7 +43,13 @@ const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate(
 
 const template = fs.readFileSync(path.join(root, "content", "tldr-template.mdx"), "utf8");
 const body = template
-  .replaceAll("TITLE", title.replaceAll('"', '\\"'))
+  .replaceAll(
+    "TITLE",
+    title
+      .replaceAll("\\", "\\\\")
+      .replaceAll('"', '\\"')
+      .replaceAll(/\r?\n/g, " "),
+  )
   .replaceAll("SLUG", slug)
   .replaceAll("DATE", date);
 

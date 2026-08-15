@@ -34,7 +34,7 @@ export function LatestFeed() {
             >
               <div className="grid md:grid-cols-[100px_1fr] gap-2 md:gap-8 items-start">
                 <span className="font-mono text-xs tracking-widest text-clay uppercase pt-1">
-                  {p.date}
+                  {p.dateDisplay}
                 </span>
                 <div className="min-w-0">
                   <h3 className="font-display text-2xl md:text-3xl tracking-tight text-text group-hover:text-clay transition-colors">

@@ -33,6 +33,7 @@ function listMdxFiles(): string[] {
   return fs.readdirSync(POSTS_DIR).filter(
     (f) =>
       (f.endsWith(".mdx") || f.endsWith(".md")) &&
+      f.toLowerCase() !== "readme.md" &&
       !f.startsWith("_") &&
       !f.startsWith("."),
   );
@@ -48,9 +49,13 @@ export function resolveOgPath(post: PostMeta): string {
 
 function shortDate(iso: string): string {
   const d = new Date(iso);
-  const m = d.toLocaleString("en-US", { month: "short" }).toUpperCase();
-  const day = String(d.getUTCDate()).padStart(2, "0");
-  return `${m} ${day}`;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "2-digit",
+    timeZone: "UTC",
+  })
+    .format(d)
+    .toUpperCase();
 }
 
 /**
