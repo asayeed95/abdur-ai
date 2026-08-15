@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "validate:apply": "node scripts/validate-applications.mjs"
+    "validate:apply": "node scripts/validate-applications.mjs",
+    "tldr:new": "node scripts/tldr-new.mjs",
+    "tldr:publish": "node scripts/tldr-publish.mjs"
   },
   "dependencies": {
     "next": "15.5.19",
