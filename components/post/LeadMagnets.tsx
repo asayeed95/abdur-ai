@@ -2,23 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { track, mnemixUrl } from "@/lib/analytics";
 
 /**
  * In-post CTAs. Each is a self-contained block that can be embedded
  * inside an MDX file with `<MnemixCTA />`, `<AsecWaitlistCTA />`, etc.
  *
- * Each CTA fires an analytics event on click — wire to Plausible/Vercel
- * Analytics in lib/analytics.ts.
+ * Each CTA fires a conversion event via lib/analytics.ts — the single sink.
+ * Do not reintroduce a local `track()` here: the previous one called
+ * `window.plausible?.()` / `window.va?.()` with neither script loaded, so every
+ * click silently resolved to undefined and no event was ever recorded.
  */
-
-function track(name: string) {
-  if (typeof window !== "undefined") {
-    // @ts-expect-error -- plausible global
-    window.plausible?.(name);
-    // @ts-expect-error -- vercel analytics
-    window.va?.("event", { name });
-  }
-}
 
 export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: string }) {
   return (
@@ -37,8 +31,8 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
         in the same way this one did — you&apos;re the person Mnemix is for.
       </p>
       <a
-        href="https://mnemix.ai/#waitlist"
-        onClick={() => track("cta:mnemix:from-post")}
+        href={mnemixUrl("post")}
+        onClick={() => track("post:cta:mnemix-waitlist")}
         className="inline-block font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
       >
         Mnemix is in private beta. Request access. →
@@ -59,7 +53,7 @@ export function AsecWaitlistCTA() {
       setErr("That doesn't look like an email.");
       return;
     }
-    track("cta:asec:from-post");
+    track("post:cta:asec-copy");
     try {
       await fetch("/api/subscribe", {
         method: "POST",
@@ -130,7 +124,7 @@ export function NewsletterCTA() {
       </p>
       <Link
         href="#subscribe"
-        onClick={() => track("cta:newsletter:from-post")}
+        onClick={() => track("post:cta:newsletter")}
         className="inline-block font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
       >
         Subscribe →

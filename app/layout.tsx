@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -157,6 +158,10 @@ export default function RootLayout({
           }}
         />
         {children}
+        {/* Conversion telemetry sink. Without this, lib/analytics.ts has nothing
+            to write to and every CTA click resolves to undefined — which is what
+            the site did from launch until 2026-08-03. */}
+        <Analytics />
       </body>
     </html>
   );

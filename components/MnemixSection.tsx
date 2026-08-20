@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Reveal } from "./Reveal";
+import { mnemixUrl } from "@/lib/analytics";
 
 type Primitive = {
   name: string;
@@ -86,8 +87,11 @@ export function MnemixSection() {
         </blockquote>
 
         <div className="text-center mb-20">
+          {/* Server component — no onClick available without a client boundary.
+              The ref param is the load-bearing half anyway: it survives with JS
+              disabled and is what makes the handoff attributable cross-domain. */}
           <Link
-            href="https://mnemix.ai/#waitlist"
+            href={mnemixUrl("home")}
             className="inline-block font-mono text-xs tracking-widest uppercase text-text border border-border hover:text-clay hover:border-clay px-5 py-3 rounded-sm transition-colors"
           >
             Join the Mnemix waitlist →
