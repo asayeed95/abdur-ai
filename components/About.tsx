@@ -46,7 +46,7 @@ export function About() {
             <p className="text-text-soft text-lg leading-relaxed">
               Open to Applied AI and forward-deployed engineering roles — the
               kind where memory, evaluation, and agent reliability decide
-              whether the thing actually works. Building Mnemix in the open in
+              whether the thing actually works. Building Northsun in the open in
               the meantime; if that&apos;s your team&apos;s problem space,
               let&apos;s talk.
             </p>

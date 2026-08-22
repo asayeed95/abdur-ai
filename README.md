@@ -1,6 +1,6 @@
 # abdur.ai
 
-Solo AI founder's logbook + portfolio + lead magnet for Mnemix.
+Solo AI founder's logbook + portfolio + lead magnet for Northsun.
 
 ## Quick start
 

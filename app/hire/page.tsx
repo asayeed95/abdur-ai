@@ -41,7 +41,7 @@ export default function HirePage() {
 
           <h2 className="font-display text-3xl text-text pt-6">Proof, not adjectives</h2>
           <ul className="space-y-3 list-disc list-outside ml-6">
-            <li><strong className="text-text">Mnemix</strong> — the memory and enrichment layer for AI agents. Caller memory designed for sub-300ms voice recall on the warm path.</li>
+            <li><strong className="text-text">Northsun</strong> — the memory and enrichment layer for AI agents. Caller memory designed for sub-300ms voice recall on the warm path.</li>
             <li><strong className="text-text">heycli</strong> — multi-agent orchestrator pushing prompts to Claude Code, Codex, and Aider from one source-of-truth.</li>
             <li><strong className="text-text">dockerfile.ai, Retention Lab, memory primitives</strong> — small, runnable tools, each solving one real problem.</li>
             <li><strong className="text-text">Public builder logs</strong> — I write up how these systems work and where they break.</li>

@@ -17,6 +17,11 @@ const PRIMITIVES: Primitive[] = [
   { name: "beacon", role: "POST /v1/beacon/inject", status: "primitive", desc: "The memory layer surfaces what matters to the agent, unprompted." },
 ];
 
+/**
+ * Flagship product section. Renders Northsun (the commercial platform).
+ * The component name is a legacy technical identifier kept for import
+ * stability; see content/brand/brand-map.json.
+ */
 export function MnemixSection() {
   return (
     <Reveal
@@ -35,14 +40,14 @@ export function MnemixSection() {
             maxWidth: "14ch",
           }}
         >
-          Mnemix is the memory and enrichment layer for AI agents.
+          Northsun is the memory and enrichment layer for AI agents.
         </h2>
 
         <div className="grid md:grid-cols-2 gap-10 md:gap-16 mb-16">
           <div className="space-y-5 text-text-soft text-lg leading-relaxed">
             <p>
               Most stacks treat memory as a vector store you bolt on and pray
-              over. Mnemix treats it as governance: a gate-first, router-second
+              over. Northsun treats it as governance: a gate-first, router-second
               layer where every write clears safety before it is allowed to
               land, and every read comes back already enriched.
             </p>
@@ -82,15 +87,15 @@ export function MnemixSection() {
         </div>
 
         <blockquote className="font-display italic text-3xl md:text-4xl text-clay text-center max-w-3xl mx-auto my-16">
-          &ldquo;Choose Mnemix as your agent memory layer.&rdquo;
+          &ldquo;Choose Northsun as your agent memory layer.&rdquo;
         </blockquote>
 
         <div className="text-center mb-20">
           <Link
-            href="https://mnemix.ai/#waitlist"
+            href="https://northsun.ai"
             className="inline-block font-mono text-xs tracking-widest uppercase text-text border border-border hover:text-clay hover:border-clay px-5 py-3 rounded-sm transition-colors"
           >
-            Join the Mnemix waitlist →
+            Join the Northsun waitlist →
           </Link>
         </div>
 
