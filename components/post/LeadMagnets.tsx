@@ -20,6 +20,11 @@ function track(name: string) {
   }
 }
 
+/**
+ * Product CTA. Renders Northsun (the commercial platform). The export name
+ * is a frozen MDX contract — published posts embed `<MnemixCTA />` — so it
+ * stays; see content/brand/brand-map.json.
+ */
 export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: string }) {
   return (
     <aside className="not-prose my-12 bg-surface border-l-4 border-clay rounded-r-lg p-6 md:p-8">
@@ -27,21 +32,21 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
         /// {heading}
       </p>
       <p className="text-text-soft text-lg leading-relaxed mb-3">
-        MOLL is one layer of <strong className="text-text">Mnemix</strong> — the memory and enrichment layer for AI agents
-        that absorbs incidents like this one and turns them into doctrine
+        MOLL is one layer of <strong className="text-text">Northsun</strong> — the memory and enrichment layer for AI agents.
+        It absorbs incidents like this one and turns them into doctrine
         other agents can use. Bi-temporal, evidence-anchored decisions.
         Memory that grades itself.
       </p>
       <p className="text-muted leading-relaxed mb-5">
         If you build with agents and have ever shipped a doctrine that failed
-        in the same way this one did — you&apos;re the person Mnemix is for.
+        in the same way this one did — you&apos;re the person Northsun is for.
       </p>
       <a
-        href="https://mnemix.ai/#waitlist"
+        href="https://northsun.ai"
         onClick={() => track("cta:mnemix:from-post")}
         className="inline-block font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
       >
-        Mnemix is in private beta. Request access. →
+        Northsun is in private beta. Request access. →
       </a>
     </aside>
   );

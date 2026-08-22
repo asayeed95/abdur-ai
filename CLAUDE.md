@@ -1,6 +1,6 @@
 # CLAUDE.md — abdur.ai handoff
 
-Abdur's TLDR/portfolio site (Next.js 15 + Tailwind + MDX), public content site, no auth/live payments. Lead magnet for Mnemix + AI-eng proof-of-craft. Portfolio priority: Northsun/Mnemix → **abdur.ai** → HeyCLI → Dockerfile.ai (CORE §1).
+Abdur's TLDR/portfolio site (Next.js 15 + Tailwind + MDX), public content site, no auth/live payments. Lead magnet for Northsun + AI-eng proof-of-craft. Portfolio priority: Northsun/Mnemix → **abdur.ai** → HeyCLI → Dockerfile.ai (CORE §1).
 
 Checkout on this machine: `/Users/mental/Projects/abdur-ai`. Older docs may say `/Users/agencyflow/...` (a macmini path) — verify before reusing an absolute path from history.
 

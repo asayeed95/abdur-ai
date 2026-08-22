@@ -80,7 +80,7 @@ export function ToolsGrid() {
         The stand
       </h2>
       <p className="text-muted text-lg max-w-[640px] mb-12">
-        Where the portfolio stands today — Mnemix is the spine, these are the
+        Where the portfolio stands today — Northsun is the spine, these are the
         products on top.
       </p>
 

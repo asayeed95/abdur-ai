@@ -7,7 +7,7 @@ export const SITE = {
   author: "Abdur Rahman Sayeed",
   tagline: "I ship AI things and write the TLDR.",
   description:
-    "Abdur Rahman Sayeed — solo AI founder running a portfolio of vertical AI products on one memory spine, Mnemix. One human on strategy, an agent team on execution. This is the logbook: what shipped, what broke, what I learned.",
+    "Abdur Rahman Sayeed — solo AI founder running a portfolio of vertical AI products on one memory spine, Northsun. One human on strategy, an agent team on execution. This is the logbook: what shipped, what broke, what I learned.",
   url: "https://abdur.ai",
   location: "West New York, NJ · NYC metro",
   email: "hello@abdur.ai",
@@ -22,9 +22,15 @@ export const SITE = {
     status: "coming soon",
   },
   flagship: {
-    name: "Mnemix",
-    url: "https://mnemix.ai",
+    name: "Northsun",
+    url: "https://northsun.ai",
     tagline: "The memory and enrichment layer for AI agents.",
+  },
+  /** Memory Lab / Forgetting Test. Mnemix is a free diagnostic from Northsun. */
+  memoryLab: {
+    name: "Mnemix", // Memory Lab (free diagnostic from Northsun)
+    url: "https://mnemix.ai", // Memory Lab home
+    tagline: "Memory Lab / Forgetting Test — a free diagnostic from Northsun.",
   },
 } as const;
 
@@ -32,7 +38,7 @@ export const NAV = [
   { href: "/#latest", label: "Latest" },
   { href: "/#log", label: "Ship log" },
   { href: "/#tools", label: "Tools" },
-  { href: "/#projects", label: "Mnemix" },
+  { href: "/#projects", label: "Northsun" },
   { href: "/#about", label: "About" },
   { href: "/aitldr", label: "TLDR" },
 ] as const;

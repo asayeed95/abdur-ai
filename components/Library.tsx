@@ -48,7 +48,7 @@ export function Library() {
         Things you can buy today.
       </h2>
       <p className="text-muted text-lg max-w-[640px] mb-12">
-        Self-serve products with real prices. Mnemix itself is invite-only —
+        Self-serve products with real prices. Northsun itself is invite-only —
         everything here you can start right now.
       </p>
 

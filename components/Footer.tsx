@@ -22,7 +22,7 @@ export function Footer() {
           <ul className="space-y-2">
             <li><Link href="/aitldr" className="text-muted hover:text-text">TLDR</Link></li>
             <li><Link href="/#tools" className="text-muted hover:text-text">Tools</Link></li>
-            <li><Link href="/#projects" className="text-muted hover:text-text">Mnemix</Link></li>
+            <li><Link href="/#projects" className="text-muted hover:text-text">Northsun</Link></li>
           </ul>
           <ul className="space-y-2">
             <li><Link href="/about" className="text-muted hover:text-text">About</Link></li>

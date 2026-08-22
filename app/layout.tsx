@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     "agent verification",
     "RAG",
     "memory",
-    "Mnemix",
+    "Northsun",
     "MOLL",
     "Abdur Rahman Sayeed",
     "AI builder",
