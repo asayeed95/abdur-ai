@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ImgHTMLAttributes } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import fs from "node:fs";
@@ -128,7 +129,7 @@ export default async function PostPage({
 
       <article className="max-w-content mx-auto px-6 md:px-10 pt-32 pb-20">
         {/* Header */}
-        <header className="max-w-prose mx-auto">
+        <header className="max-w-3xl mx-auto">
           <p className="eyebrow mb-6">
             {(post.tags || []).slice(0, 4).join(" · ")}
           </p>
@@ -140,20 +141,23 @@ export default async function PostPage({
               {post.subtitle}
             </p>
           )}
-          <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-muted-3">
-            <span>{new Date(post.date).toLocaleDateString("en-US", {
-              year: "numeric", month: "long", day: "numeric",
-            })}</span>
-            <span>·</span>
-            <span>{post.readingTime} min read</span>
-            <span>·</span>
-            <span>by {post.author}</span>
+          <div className="mt-10 mb-2">
+            <p className="font-body text-base text-text-soft">
+              {new Date(post.date).toLocaleDateString("en-US", {
+                year: "numeric", month: "long", day: "numeric",
+              })}
+            </p>
+            <p className="mt-3 flex flex-wrap items-center gap-3 font-mono text-xs text-muted-3">
+              <span>{post.readingTime} min read</span>
+              <span>·</span>
+              <span>by {post.author}</span>
+            </p>
           </div>
-          <div className="w-[60px] h-[2px] bg-clay mt-8" />
+          <div className="w-[60px] h-[2px] bg-clay mt-10" />
         </header>
 
         {/* Body */}
-        <div className="prose-clay max-w-prose mx-auto mt-12">
+        <div className="prose-clay max-w-3xl mx-auto mt-12">
           <MDXRemote
             source={source}
             options={{
@@ -163,6 +167,16 @@ export default async function PostPage({
               },
             }}
             components={{
+              // Keep in-post figures visibly narrower than the widened text column.
+              img: (props: ImgHTMLAttributes<HTMLImageElement>) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  {...props}
+                  alt={props.alt ?? ""}
+                  loading="lazy"
+                  className="block mx-auto my-8 w-full max-w-md h-auto rounded-lg"
+                />
+              ),
               MnemixCTA,
               AsecWaitlistCTA,
               NewsletterCTA,
@@ -173,7 +187,7 @@ export default async function PostPage({
         </div>
 
         {/* Prev / Next */}
-        <nav className="max-w-prose mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
+        <nav className="max-w-3xl mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
           {prev ? (
             <Link
               href={`/aitldr/${prev.slug}`}
