@@ -12,7 +12,7 @@ import { Footer } from "@/components/Footer";
 import { MnemixCTA, AsecWaitlistCTA, NewsletterCTA } from "@/components/post/LeadMagnets";
 import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
-import { getAllPosts, getPost } from "@/lib/posts";
+import { getAllPosts, getPost, resolveOgPath } from "@/lib/posts";
 import { SITE } from "@/lib/site";
 
 export const dynamic = "force-static";
@@ -31,7 +31,7 @@ export async function generateMetadata({
   const post = getPost(slug);
   if (!post) return {};
   const url = `${SITE.url}/aitldr/${post.slug}`;
-  const og = post.ogImage || `/blog/${post.slug}/cover.jpg`;
+  const og = resolveOgPath(post);
   return {
     title: post.title,
     description: post.description,
@@ -101,7 +101,7 @@ export default async function PostPage({
             "@id": `${SITE.url}/aitldr/${post.slug}#post`,
             headline: post.title,
             description: post.description,
-            image: post.ogImage || `${SITE.url}/blog/${post.slug}/cover.jpg`,
+            image: `${SITE.url}${resolveOgPath(post)}`,
             datePublished: post.date,
             dateModified: post.updated || post.date,
             wordCount: post.wordCount,
@@ -141,9 +141,7 @@ export default async function PostPage({
             </p>
           )}
           <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-muted-3">
-            <span>{new Date(post.date).toLocaleDateString("en-US", {
-              year: "numeric", month: "long", day: "numeric",
-            })}</span>
+            <span>{post.dateDisplay}</span>
             <span>·</span>
             <span>{post.readingTime} min read</span>
             <span>·</span>

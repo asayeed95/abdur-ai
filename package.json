@@ -7,9 +7,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "validate:apply": "node scripts/validate-applications.mjs"
+    "validate:apply": "node scripts/validate-applications.mjs",
+    "tldr:new": "node scripts/tldr-new.mjs",
+    "tldr:publish": "node scripts/tldr-publish.mjs"
   },
   "dependencies": {
     "next": "15.5.19",
@@ -27,6 +29,7 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "3.3.5",
     "@types/node": "22.9.0",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
