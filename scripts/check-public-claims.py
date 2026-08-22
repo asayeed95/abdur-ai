@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Check public abdur.ai copy against the shared Mnemix claims policy.
+"""Check public abdur.ai copy against the shared Northsun claims policy.
+
+Northsun is the commercial platform; Mnemix survives only as the Memory Lab /
+Forgetting Test diagnostic (see content/brand/brand-map.json).
 
 Static mode is safe for local/CI use. ``--verify-live`` adds only read-only
-HTTP checks that the beta waitlist and signup route exist before a public CTA
-relies on them.  It never schedules, posts, sends, or reads credentials.
+HTTP checks that the product landing the public CTA points at exists.  It
+never schedules, posts, sends, or reads credentials.
 """
 
 from __future__ import annotations
@@ -29,7 +32,7 @@ PUBLIC_SOURCES = (
     "app/about/page.tsx",
     "app/llms.txt/route.ts",
 )
-WAITLIST_URL = "https://mnemix.ai/#waitlist"
+PRODUCT_URL = "https://northsun.ai"
 
 
 def sources() -> list[Path]:
@@ -53,8 +56,9 @@ def check_static() -> list[str]:
         "app/llms.txt/route.ts": claims_policy.IDENTITY,
         "app/hire/page.tsx": claims_policy.IDENTITY,
         "components/post/LeadMagnets.tsx": claims_policy.IDENTITY,
-        "components/MnemixSection.tsx#cta": WAITLIST_URL,
-        "components/post/LeadMagnets.tsx#cta": WAITLIST_URL,
+        "components/MnemixSection.tsx#cta": PRODUCT_URL,
+        "components/post/LeadMagnets.tsx#cta": PRODUCT_URL,
+        "components/MnemixSection.tsx#closer": claims_policy.CLOSER,
     }
     for key, expected in required.items():
         relative = key.split("#", 1)[0]
@@ -65,7 +69,7 @@ def check_static() -> list[str]:
     for relative in ("components/MnemixSection.tsx", "components/post/LeadMagnets.tsx"):
         content = (ROOT / relative).read_text(encoding="utf-8").lower()
         if "waitlist" not in content and "beta" not in content:
-            failures.append(f"{relative}: Mnemix CTA must invite waitlist or beta access")
+            failures.append(f"{relative}: Northsun CTA must invite waitlist or beta access")
     return failures
 
 
@@ -77,17 +81,14 @@ def _read(url: str) -> tuple[int, str]:
 
 def check_live() -> list[str]:
     try:
-        landing_status, landing = _read("https://mnemix.ai")
-        signup_status, _ = _read("https://mnemix.ai/signup")
+        landing_status, landing = _read(PRODUCT_URL)
     except (OSError, urllib.error.URLError, urllib.error.HTTPError) as error:
         return [f"live beta verification failed: {error}"]
     failures: list[str] = []
     if landing_status != 200:
-        failures.append(f"https://mnemix.ai returned {landing_status}, not 200")
-    if signup_status != 200:
-        failures.append(f"https://mnemix.ai/signup returned {signup_status}, not 200")
-    if "private beta" not in landing.lower() or "waitlist" not in landing.lower():
-        failures.append("Mnemix landing page no longer presents a visible private-beta waitlist")
+        failures.append(f"{PRODUCT_URL} returned {landing_status}, not 200")
+    if "private beta" not in landing.lower() and "waitlist" not in landing.lower():
+        failures.append("Northsun landing page no longer presents a visible private-beta waitlist")
     return failures
 
 
@@ -104,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print("PASS: shared static public-claims policy")
     if args.verify_live:
-        print("PASS: live Mnemix private-beta waitlist and signup route")
+        print("PASS: live Northsun private-beta landing")
     return 0
 
 
