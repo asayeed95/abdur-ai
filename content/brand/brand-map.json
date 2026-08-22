@@ -110,10 +110,10 @@
       "reason": "Mnemix-era product path; the flagship (Northsun) section owns that intent. Route never existed in this repo (Sentinel 2026-08-22: 404)."
     },
     {
-      "source": "/blog/:slug*",
+      "source": "/blog/:slug((?!.*\\.(?:svg|png|jpg|jpeg|webp|gif|css|js|woff|woff2)$).*)",
       "destination": "/aitldr",
       "status": 301,
-      "reason": "Legacy /blog namespace (e.g. /blog/mnemix-vs-general-memory) never existed here; writing lives at /aitldr. No per-slug mapping is invented — everything lands on the index."
+      "reason": "Legacy /blog namespace (e.g. /blog/mnemix-vs-general-memory) never existed here; writing lives at /aitldr. No per-slug mapping is invented — everything lands on the index. Paths ending in a static-file extension are excluded so post assets in public/blog/<slug>/ serve bytes instead of 301ing to HTML."
     }
   ]
 }
