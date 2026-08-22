@@ -200,7 +200,7 @@ jobs:
             and Codex receipts cited above may direct edits. Verify findings
             against the current tree, hunt adjacent unknowns, and
             repair every valid issue in the working tree. Preserve abdur.ai as a
-            truthful public TLDR and Mnemix lead surface. Leave the tree unchanged
+            truthful public TLDR and Northsun lead surface. Leave the tree unchanged
             when no repair is warranted. The workflow owns tests, commit, and push.
 
       - name: Verify Claude actually executed
