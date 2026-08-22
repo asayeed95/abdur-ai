@@ -9,6 +9,19 @@ const nextConfig = {
   experimental: {
     mdxRs: false,
   },
+  async redirects() {
+    // Legacy brand-era paths (Sentinel 2026-08-22: both 404'd). Neither route
+    // ever existed in this repo; map them to the surfaces that own the intent
+    // today. Recorded in content/brand/brand-map.json (legacy_routes).
+    return [
+      // Product path from the Mnemix brand era → the Northsun flagship section.
+      { source: "/mnemix", destination: "/#projects", statusCode: 301 },
+      // This site's writing has always lived under /aitldr; map the legacy
+      // /blog namespace (e.g. /blog/mnemix-vs-general-memory) to the index.
+      { source: "/blog", destination: "/aitldr", statusCode: 301 },
+      { source: "/blog/:slug*", destination: "/aitldr", statusCode: 301 },
+    ];
+  },
   async headers() {
     return [
       {
