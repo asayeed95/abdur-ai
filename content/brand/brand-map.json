@@ -90,9 +90,30 @@
     { "file": "lib/site.ts", "contains": "name: \"Northsun\"" },
     { "file": "lib/site.ts", "contains": "https://northsun.ai" },
     { "file": "components/MnemixSection.tsx", "contains": "Choose Northsun as your agent memory layer." },
-    { "file": "components/MnemixSection.tsx", "contains": "https://northsun.ai" },
-    { "file": "components/post/LeadMagnets.tsx", "contains": "https://northsun.ai" },
+    { "file": "components/MnemixSection.tsx", "contains": "NorthsunWaitlistForm" },
+    { "file": "components/NorthsunWaitlistForm.tsx", "contains": "mnemix-beta" },
+    { "file": "components/post/LeadMagnets.tsx", "contains": "/#waitlist" },
     { "file": "app/llms.txt/route.ts", "contains": "https://northsun.ai" },
     { "file": "app/llms.txt/route.ts", "contains": "free diagnostic from Northsun" }
+  ],
+  "cta_policy": {
+    "note": "northsun.ai DNS is not live (verified 2026-08-22). Product CTAs must point at owned surfaces until the founder ratifies the domain: the /#waitlist form backed by /api/subscribe with the frozen mnemix-beta list. lib/site.ts flagship.url and llms.txt keep https://northsun.ai as the canonical product reference, not a CTA.",
+    "cta_href": "/#waitlist",
+    "backend_route": "/api/subscribe",
+    "list_id": "mnemix-beta"
+  },
+  "legacy_routes": [
+    {
+      "source": "/mnemix",
+      "destination": "/#projects",
+      "status": 301,
+      "reason": "Mnemix-era product path; the flagship (Northsun) section owns that intent. Route never existed in this repo (Sentinel 2026-08-22: 404)."
+    },
+    {
+      "source": "/blog/:slug*",
+      "destination": "/aitldr",
+      "status": 301,
+      "reason": "Legacy /blog namespace (e.g. /blog/mnemix-vs-general-memory) never existed here; writing lives at /aitldr. No per-slug mapping is invented — everything lands on the index."
+    }
   ]
 }

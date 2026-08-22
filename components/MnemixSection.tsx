@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Reveal } from "./Reveal";
+import { NorthsunWaitlistForm } from "./NorthsunWaitlistForm";
 
 type Primitive = {
   name: string;
@@ -90,13 +90,8 @@ export function MnemixSection() {
           &ldquo;Choose Northsun as your agent memory layer.&rdquo;
         </blockquote>
 
-        <div className="text-center mb-20">
-          <Link
-            href="https://northsun.ai"
-            className="inline-block font-mono text-xs tracking-widest uppercase text-text border border-border hover:text-clay hover:border-clay px-5 py-3 rounded-sm transition-colors"
-          >
-            Join the Northsun waitlist →
-          </Link>
+        <div className="mb-20">
+          <NorthsunWaitlistForm />
         </div>
 
         <p className="eyebrow mb-8">/// THE PRIMITIVES</p>

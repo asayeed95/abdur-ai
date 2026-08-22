@@ -26,13 +26,19 @@ import claims_policy  # noqa: E402
 PUBLIC_SOURCES = (
     "lib/site.ts",
     "components/MnemixSection.tsx",
+    "components/NorthsunWaitlistForm.tsx",
     "components/post/LeadMagnets.tsx",
     "app/now/page.tsx",
     "app/hire/page.tsx",
     "app/about/page.tsx",
     "app/llms.txt/route.ts",
 )
-PRODUCT_URL = "https://northsun.ai"
+# northsun.ai DNS is not live yet (verified 2026-08-22), so product CTAs must
+# point at owned surfaces: the on-site waitlist form backed by the real
+# /api/subscribe route and the frozen "mnemix-beta" audience list.
+SITE_URL = "https://abdur.ai"
+WAITLIST_ANCHOR = "/#waitlist"
+WAITLIST_LIST_ID = "mnemix-beta"
 
 
 def sources() -> list[Path]:
@@ -56,8 +62,9 @@ def check_static() -> list[str]:
         "app/llms.txt/route.ts": claims_policy.IDENTITY,
         "app/hire/page.tsx": claims_policy.IDENTITY,
         "components/post/LeadMagnets.tsx": claims_policy.IDENTITY,
-        "components/MnemixSection.tsx#cta": PRODUCT_URL,
-        "components/post/LeadMagnets.tsx#cta": PRODUCT_URL,
+        "components/MnemixSection.tsx#cta": "NorthsunWaitlistForm",
+        "components/NorthsunWaitlistForm.tsx#list": WAITLIST_LIST_ID,
+        "components/post/LeadMagnets.tsx#cta": WAITLIST_ANCHOR,
         "components/MnemixSection.tsx#closer": claims_policy.CLOSER,
     }
     for key, expected in required.items():
@@ -81,14 +88,14 @@ def _read(url: str) -> tuple[int, str]:
 
 def check_live() -> list[str]:
     try:
-        landing_status, landing = _read(PRODUCT_URL)
+        landing_status, landing = _read(SITE_URL)
     except (OSError, urllib.error.URLError, urllib.error.HTTPError) as error:
         return [f"live beta verification failed: {error}"]
     failures: list[str] = []
     if landing_status != 200:
-        failures.append(f"{PRODUCT_URL} returned {landing_status}, not 200")
-    if "private beta" not in landing.lower() and "waitlist" not in landing.lower():
-        failures.append("Northsun landing page no longer presents a visible private-beta waitlist")
+        failures.append(f"{SITE_URL} returned {landing_status}, not 200")
+    if "waitlist" not in landing.lower():
+        failures.append("home page no longer presents the Northsun waitlist the product CTAs point at")
     return failures
 
 
