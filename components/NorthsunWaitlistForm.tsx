@@ -32,7 +32,7 @@ export function NorthsunWaitlistForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Subscribe failed");
       setStatus("ok");
-      setMsg("✓ On the list. I'll email when access opens.");
+      setMsg("✓ On the list. Logbook now, Northsun when it opens.");
       setEmail("");
     } catch (err) {
       setStatus("err");
@@ -60,7 +60,7 @@ export function NorthsunWaitlistForm() {
             disabled={status === "loading"}
             className="font-mono text-xs tracking-widest uppercase text-text border border-border hover:text-clay hover:border-clay px-5 py-3 rounded-sm transition-colors disabled:opacity-40"
           >
-            {status === "loading" ? "Sending…" : "Join the Northsun waitlist →"}
+            {status === "loading" ? "Sending…" : "Join the Northsun waitlist"}
           </button>
         </form>
       )}

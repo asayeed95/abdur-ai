@@ -88,39 +88,41 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Could not subscribe right now" }, { status: 502 });
   }
 
-  if (isNewContact && list === "tldr") {
-    await sendWelcomeEmail({ email, apiKey });
+  if (isNewContact && (list === "tldr" || list === "mnemix-beta")) {
+    await sendWelcomeEmail({ email, list, apiKey });
   }
 
   return NextResponse.json({ ok: true });
 }
 
 /**
- * Sends one welcome email to a brand-new TLDR subscriber. Best-effort: a
- * send failure is logged but does not fail the subscribe — the contact is
- * already on the audience, which is the subscriber's primary expectation.
- * Uses an idempotency key derived from the email so a retry never double-sends.
+ * Sends one welcome email to a brand-new subscriber. Best-effort: a send
+ * failure is logged but does not fail the subscribe — the contact is already
+ * on the audience, which is the subscriber's primary expectation. Uses an
+ * idempotency key derived from list + email so a retry never double-sends.
+ *
+ * Two lists get a welcome, each honest about now vs later, no price:
+ *  - tldr:        the logbook voice — what ships now, no product tour.
+ *  - mnemix-beta: the Northsun waitlist — logbook now, Northsun when it opens.
  */
-async function sendWelcomeEmail({ email, apiKey }: { email: string; apiKey: string }) {
+async function sendWelcomeEmail({
+  email,
+  list,
+  apiKey,
+}: {
+  email: string;
+  list: "tldr" | "mnemix-beta";
+  apiKey: string;
+}) {
   const from = `${SITE.author} <${SITE.email}>`;
-  const subject = "The logbook, not the pitch.";
+  const { subject, eyebrow, bodyHtml, unsubSubject } = welcomeContent(list);
   const html = `<!doctype html>
 <html lang="en">
   <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;color:#1a1a1a;background:#ffffff;margin:0;padding:24px;">
     <div style="max-width:560px;margin:0 auto;">
-      <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#b15a3a;margin:0 0 16px;">/// The logbook, not the pitch.</p>
+      <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#b15a3a;margin:0 0 16px;">${eyebrow}</p>
       <h1 style="font-size:28px;line-height:1.1;margin:0 0 20px;">You&apos;re on the list.</h1>
-      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
-        When I learn it the hard way, you get the TLDR the same week. Pager
-        is not the customer. The number is not the person. More of that as I
-        write it &mdash; not a product tour, not a waitlist for a platform
-        that isn&apos;t done.
-      </p>
-      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
-        Next lesson hits your email when it ships. Past lessons are at
-        <a href="https://abdur.ai/aitldr" style="color:#b15a3a;">abdur.ai/aitldr</a>
-        if you want to catch up.
-      </p>
+      ${bodyHtml}
       <p style="font-size:16px;line-height:1.6;margin:0 0 32px;">
         &mdash; Abdur
       </p>
@@ -138,7 +140,7 @@ async function sendWelcomeEmail({ email, apiKey }: { email: string; apiKey: stri
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "Idempotency-Key": `welcome-tldr/${email}`,
+        "Idempotency-Key": `welcome-${list}/${email}`,
       },
       body: JSON.stringify({
         from,
@@ -146,14 +148,62 @@ async function sendWelcomeEmail({ email, apiKey }: { email: string; apiKey: stri
         subject,
         html,
         reply_to: SITE.email,
-        unsubscribe: `mailto:${SITE.email}?subject=Unsubscribe%20TLDR`,
+        unsubscribe: `mailto:${SITE.email}?subject=${unsubSubject}`,
       }),
     });
     if (!sendRes.ok) {
       const detail = await sendRes.text().catch(() => "");
-      console.error(`[subscribe] welcome email ${sendRes.status} for ${email}: ${detail}`);
+      console.error(`[subscribe] welcome email ${sendRes.status} for ${email} (${list}): ${detail}`);
     }
   } catch (err) {
-    console.error(`[subscribe] welcome email failed for ${email}: ${err instanceof Error ? err.message : String(err)}`);
+    console.error(`[subscribe] welcome email failed for ${email} (${list}): ${err instanceof Error ? err.message : String(err)}`);
   }
+}
+
+/**
+ * Per-list welcome content. Both are honest about now vs later and carry no
+ * price. The mnemix-beta copy never claims Northsun is available now — it
+ * says you get the logbook now and Northsun when it opens.
+ */
+function welcomeContent(list: "tldr" | "mnemix-beta"): {
+  subject: string;
+  eyebrow: string;
+  bodyHtml: string;
+  unsubSubject: string;
+} {
+  if (list === "mnemix-beta") {
+    return {
+      subject: "On the Northsun list — now vs later",
+      eyebrow: "/// NORTHSUN WAITLIST",
+      unsubSubject: "Unsubscribe%20Northsun%20waitlist",
+      bodyHtml: `      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
+        <strong>Now:</strong> the logbook. When I learn something the hard
+        way shipping Northsun, you get the TLDR the same week. No price, no
+        product tour &mdash; Northsun isn&apos;t done.
+      </p>
+      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
+        <strong>Later:</strong> Northsun, when it opens. You&apos;re first in
+        line, and I&apos;ll email the moment that&apos;s real &mdash; not
+        before. Past lessons are at
+        <a href="https://abdur.ai/aitldr" style="color:#b15a3a;">abdur.ai/aitldr</a>
+        if you want to catch up.
+      </p>`,
+    };
+  }
+  return {
+    subject: "The logbook, not the pitch.",
+    eyebrow: "/// The logbook, not the pitch.",
+    unsubSubject: "Unsubscribe%20TLDR",
+    bodyHtml: `      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
+        When I learn it the hard way, you get the TLDR the same week. Pager
+        is not the customer. The number is not the person. More of that as I
+        write it &mdash; not a product tour, not a waitlist for a platform
+        that isn&apos;t done.
+      </p>
+      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
+        Next lesson hits your email when it ships. Past lessons are at
+        <a href="https://abdur.ai/aitldr" style="color:#b15a3a;">abdur.ai/aitldr</a>
+        if you want to catch up.
+      </p>`,
+  };
 }

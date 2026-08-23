@@ -90,6 +90,11 @@ export function MnemixSection() {
           &ldquo;Choose Northsun as your agent memory layer.&rdquo;
         </blockquote>
 
+        <p className="text-muted text-lg leading-relaxed max-w-[640px] mx-auto text-center mb-10">
+          Now you get the logbook &mdash; when I learn it the hard way, the
+          TLDR the same week. Later, Northsun, when it opens. Not before.
+        </p>
+
         <div className="mb-20">
           <NorthsunWaitlistForm />
         </div>
