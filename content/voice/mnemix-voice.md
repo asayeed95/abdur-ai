@@ -1,7 +1,7 @@
 ---
 profile: mnemix
 speaker: Northsun (about its free diagnostic)
-surfaces: mnemix.ai (Memory Lab, Forgetting Test), mentions of the Lab elsewhere
+surfaces: "mnemix.ai (Memory Lab, Forgetting Test), @Mnemix_official, mentions of the Lab elsewhere"
 authority: content/brand/brand-map.json#brands.mnemix
 brand_map_blob: 4e8dbd5643bed2af47995add45032298dbac135a
 version_manifest: content/voice/VERSION.json
@@ -13,6 +13,15 @@ Mnemix is a free diagnostic from Northsun. Its whole surviving scope is the
 Memory Lab and the Forgetting Test on mnemix.ai (`brands.mnemix.scope`).
 Mnemix is not the commercial platform, the API, the SDKs, or the backend —
 all of that is Northsun (`brands.northsun`).
+
+## Channel
+
+- @Mnemix_official remains active for the free Memory Lab, Forgetting Test,
+  technical education, free utilities, and relevant conversations.
+- That account uses this Lab voice only. Never Abdur first-person. Never
+  Northsun sales copy, waitlist CTAs, or paid-product framing.
+- Commercial intent still hands off to the Northsun voice and
+  `cta_policy` — @Mnemix_official does not close a Northsun sale.
 
 ## What this voice may say
 

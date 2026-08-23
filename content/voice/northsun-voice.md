@@ -1,7 +1,7 @@
 ---
 profile: northsun
 speaker: Northsun (the company)
-surfaces: "@northsunai, product copy on abdur.ai, llms.txt, any Northsun-branded surface"
+surfaces: "@northsunai (company account), product copy on abdur.ai, llms.txt, any Northsun-branded surface"
 authority: content/brand/brand-map.json#brands.northsun
 brand_map_blob: 4e8dbd5643bed2af47995add45032298dbac135a
 version_manifest: content/voice/VERSION.json
@@ -23,10 +23,17 @@ Closer, verbatim and only verbatim:
 
 ## Channel
 
-- @northsunai is company voice only. Never Abdur first-person there — no "I",
-  no personal logbook material, no founder-diary framing. First-person Abdur
-  copy belongs to `abdur-voice.md` on abdur.ai.
+- @northsunai is Northsun's company account and is company voice only.
+  Every post, reply, and DM from it must use this voice. Never Abdur first-person
+  there — no "I", no personal logbook material, no founder-diary framing.
+  Never publish Abdur-first-person language from @northsunai. First-person Abdur copy belongs to
+  `abdur-voice.md` (website, newsletter, LinkedIn, Instagram, TikTok,
+  YouTube Shorts, Facebook) and is never rendered here.
+- LinkedIn is Abdur's primary founder-authority channel, not a Northsun
+  company account. Company facts may appear in an Abdur LinkedIn draft;
+  the speaker is still Abdur.
 - Company posts carry facts from the brand map or they do not ship.
+- Draft-first. Never treat credentials as standing publishing authorization.
 
 ## Allowed claims (authority pointers)
 

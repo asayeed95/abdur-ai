@@ -65,5 +65,12 @@ voice only.
 
 > Scheduling this thread to publish from @abdur_sayeed tomorrow.
 
-Rejected: @abdur_sayeed is compromised and paused; no publish paths exist
-for it.
+Rejected: @abdur_sayeed is compromised, PAUSED, and recovery-only; no
+publish paths exist for it. Website / LinkedIn / newsletter drafts are
+not a reason to revive that handle.
+
+> (posted from @Mnemix_official) Choose Northsun as your agent memory layer.
+
+Rejected: @Mnemix_official is the Lab account. The closer is Northsun
+company voice, not Lab voice. Lab posts teach the Forgetting Test; they
+do not close the commercial platform.

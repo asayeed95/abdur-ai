@@ -31,6 +31,14 @@ the hedge in `claims_policy.ALLOWED_LATENCY` ("designed for sub-300ms voice
 recall"); the only ratified pricing vocabulary is
 `brand-map.json#brands.northsun.public_pricing`.
 
+They originate as unsupported illustrative claims in
+`Adaptive Copywriting System Research.docx`. That file is research input, not brand law,
+not claims authority, not a positive-example corpus, and
+not publishing authorization. Its fixed X weights, link penalties,
+posting-time rules, reply timing, AEO formulas, and Bayesian thresholds
+are hypotheses requiring measurement — not permanent rules. The cleaned
+strategic research input is `abdur-authority-growth-10k-2026-09-30.md`.
+
 ## Brand-level banned phrasing (pointers into the brand map)
 
 The authoritative regexes live in `content/brand/brand-map.json` under
@@ -53,10 +61,16 @@ documents:
 
 ## Channel bans
 
-- Publish paths for @abdur_sayeed (compromised, paused): no scheduled posts,
-  no queues, no drafts staged for that handle.
+- Publish paths for @abdur_sayeed (compromised, PAUSED, recovery-only): no
+  posting, replies, DMs, login attempts, OAuth, scheduling, automation,
+  queues, or drafts staged for that handle.
 - Abdur first-person copy on @northsunai (company voice only).
+- Abdur first-person copy, or Northsun sales/waitlist copy, on
+  @Mnemix_official (Lab voice only: Memory Lab, Forgetting Test, technical
+  education, free utilities).
 - northsun.ai written as a live CTA, signup link, or onboarding step (DNS is
   not live; it is a canonical reference only).
 - Any claim of product access now ("available today", "GA") — the public
   offer is the waitlist at `cta_policy.cta_href`.
+- Treating credentials, a browser login, or an available token as standing
+  publishing authorization.
