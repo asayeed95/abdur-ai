@@ -1,0 +1,99 @@
+---
+title: "The number is not the person"
+date: "2026-08-23"
+excerpt: "If the next call injects whatever the last number stored, a shared line will greet the wrong human. Key by a principal, not by ANI."
+description: "Voice agents that persist contact memory on the phone number will replay the last caller on a shared line. Public Retell and ElevenLabs docs describe the pattern. This is a failure class, not a customer story. No wipe, no price, no Northsun usage claim."
+tags:
+  - voice
+  - identity
+  - memory
+  - agents
+slug: the-number-is-not-the-person
+draft: false
+canonical_path: /aitldr/the-number-is-not-the-person
+---
+
+A phone number is a channel. It is not a person. If your agent stores the last conversation on that number and injects it on the next inbound, a shared line will greet whoever called last — spouse, roommate, front desk, on-call rotation — as if they were the same principal.
+
+That is the lesson. The rest of this post is how the public docs already describe that pattern, what it looks like when it goes wrong, and a workflow you can run this week without pretending we have a named customer or a production wipe.
+
+## What do the public docs actually say?
+
+They say the next phone call reuses whatever is stored on the number.
+
+Retell’s contact-memory guide is explicit: after each call or chat, post-call analysis writes into contact fields; “On the next phone call with the same contact, all contact fields, including the accumulated memory, are automatically injected into the agent's prompt as dynamic variables.” Chats write fields but do not get them back as variables. The guide is here: [Build contact memory](https://docs.retellai.com/integrations/build-contact-memory). I read it on 2026-08-23. I am not dating a last-modified stamp I do not have.
+
+The contacts page makes the keying rule equally plain. “Each contact is keyed by phone number.” On inbound, Retell looks up the caller’s number; on outbound, the number you dialed. Web calls have no phone number, so they do not create contacts. When a phone call starts, matched fields become `{{first_name}}`, `{{last_name}}`, `{{do_not_call}}`, and one variable per custom field. “Nothing is passed when no contact matches, so write the prompt to read correctly without them.” Sources: [Contacts](https://docs.retellai.com/features/contacts) and [Dynamic variables](https://docs.retellai.com/build/dynamic-variables), same read date.
+
+ElevenLabs states the other half of the same design. In the ElevenAgents images-and-documents post they write that each conversation is independent by default, and “Continuity is yours to own.” The pattern they describe: post-call webhook out, store against “a durable customer identifier such as a phone number, user ID, or account key,” inject back through dynamic variables. Source: [Processing images and documents in ElevenAgents](https://elevenlabs.io/blog/processing-images-and-documents-in-elevenagents), read 2026-08-23.
+
+None of that makes Retell or ElevenLabs a Northsun customer. “Retell does X in its docs” is not “Retell uses Northsun.” Continuity-is-yours is an ownership sentence, not a wipe, not a benchmark, not a price.
+
+## What does phone-key persist look like on a shared line?
+
+It looks like a confident greeting to the wrong human.
+
+Walk it as a failure class, not a ticket:
+
+1. **Call A.** A person on a household or front-desk number finishes a conversation. Post-call analysis writes preferences, a last issue, maybe a first name, onto the contact keyed by that ANI.
+2. **Call B.** A different person uses the same number. The platform matches the number. The agent injects the stored fields. The opener is already about Call A’s issue.
+3. **The room hears competence.** The transcript looks personal. The principal is wrong.
+
+Shared line and wrong person are questions you ask, not logos you print. Ask: is this number exclusive to one human? Is the next caller the same legal subject as the last? If you cannot answer those, you do not have a principal. You have a channel.
+
+This is the same muscle as the pager lesson on [abdur.ai](https://abdur.ai/aitldr/your-pager-is-not-your-customer): a loud, well-keyed signal can still be about the wrong object. There the object was “customer impact.” Here the object is “this human.” I am not claiming the two incidents are the same outage. I am claiming the same evidence cut.
+
+## How do you tell a principal from ANI?
+
+You ask, you do not assume.
+
+A principal is the subject you are allowed to remember: a user id, an account key, a verified member, a workspace member — something that survives a handset change and does not leap to the roommate. ANI is the inbound caller ID. It is useful. It is not enough.
+
+Monday questions, in the paywall and in the repo:
+
+- **Principal.** What id do we write memory against? If the answer is “the phone number,” write that down as a risk, not as a feature.
+- **Channel.** Is this number personal, shared, or a hunt group?
+- **Retention.** What is supposed to come back on the next session — and what must not?
+- **One failure.** Have we ever greeted the wrong person because the number matched?
+- **Tenant type.** Household, clinic front desk, trades dispatch, call center DID — they all share lines.
+- **Existing stack.** Retell contact fields, ElevenLabs webhook + your store, something else. Name the store. Do not name a customer you do not have.
+- **When charging starts.** Irrelevant to this lesson. I am not putting a price here.
+
+If a named engineer replies with their version of that failure, that is inbound Prospector can score. A logo on a slide is not.
+
+## What should a team run on Monday?
+
+Print the key next to the inject.
+
+1. Open the prompt or variable map that runs on inbound connect. Circle every field that arrives because the number matched.
+2. Write one sentence in the same file: “These fields are keyed by ____.” If the blank is ANI, add: “Shared-line collision is unhandled.”
+3. Add a test that does not need production: two synthetic principals, one number. Call B must not receive Call A’s name, issue, or do-not-call unless you have an explicit bind.
+4. If your platform injects automatically on number match (Retell’s documented path), put a guard *before* the model speaks: a spoken check (“am I still speaking with …”) or a bind that is not the phone number.
+5. If your platform stays stateless and you own continuity (ElevenLabs’ documented path), do not pick “phone number” as the durable id for a shared line. Use the id you would use after a SIM swap.
+6. Log the bind you chose. The absence of a complaint is not proof the last caller was the next one.
+
+That is homework in your repo. It is not a waitlist. It is not Memory Lab going live. It is not a Northsun case study.
+
+## What will I not say from these pages?
+
+- Retell or ElevenLabs is a Northsun customer, design partner, or production user.
+- We wiped someone’s memory. I have no wipe receipt.
+- A p95, a price, or a conversion number.
+- Recovery. I have not run a second independent probe on anyone’s voice line.
+- That ANI match “started failing” on a date. These are docs, not a first-seen Sentry id.
+- That a shared line is rare. I do not have that census.
+- Choose Northsun. This post has no closer.
+
+## Why write this long?
+
+Because the two-line version (“don’t key memory on the phone number”) is true and useless. A team cannot run it. The useful version names the inject, the key, the shared-line collision, the Monday test, and the refuse list. Wide layout on abdur.ai is for that essay, not for a stamp.
+
+If you have a named engineer and a quoted version of “next call was the last contact,” send that. That is the inbound. Everything else stays a failure class.
+
+### Source ledger (read 2026-08-23)
+
+- https://docs.retellai.com/integrations/build-contact-memory
+- https://docs.retellai.com/features/contacts
+- https://docs.retellai.com/build/dynamic-variables
+- https://elevenlabs.io/blog/processing-images-and-documents-in-elevenagents
+- Live lesson (different packet): https://abdur.ai/aitldr/your-pager-is-not-your-customer
