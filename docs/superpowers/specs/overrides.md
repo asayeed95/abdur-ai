@@ -38,7 +38,10 @@ opens, no price, no access-now claim. `app/api/subscribe/route.ts`
 `components/NorthsunWaitlistForm.tsx` button drops the arrow and the
 success line becomes "Logbook now, Northsun when it opens.";
 `components/MnemixSection.tsx` adds one now-vs-later line above the form.
-Required public-truth values untouched (identity h2, verbatim closer
-blockquote, `NorthsunWaitlistForm`, `mnemix-beta` list id). No closer
-added on emails; no price; no northsun.ai link. `tailwind.config.ts` /
-`app/globals.css` / post copy untouched.
+Welcome-email copy is shipped verbatim per founder direction (subjects
+"You're on the logbook" / "You're on the list"; bodies as written; no
+eyebrow, no h1, no closer, no price, no archive link). Required
+public-truth values untouched (identity h2, verbatim closer blockquote,
+`NorthsunWaitlistForm`, `mnemix-beta` list id). No closer added on emails;
+no price; no northsun.ai link. `tailwind.config.ts` / `app/globals.css` /
+post copy untouched.

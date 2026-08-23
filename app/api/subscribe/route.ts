@@ -115,15 +115,13 @@ async function sendWelcomeEmail({
   apiKey: string;
 }) {
   const from = `${SITE.author} <${SITE.email}>`;
-  const { subject, eyebrow, bodyHtml, unsubSubject } = welcomeContent(list);
+  const { subject, bodyHtml, unsubSubject } = welcomeContent(list);
   const html = `<!doctype html>
 <html lang="en">
   <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;color:#1a1a1a;background:#ffffff;margin:0;padding:24px;">
     <div style="max-width:560px;margin:0 auto;">
-      <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#b15a3a;margin:0 0 16px;">${eyebrow}</p>
-      <h1 style="font-size:28px;line-height:1.1;margin:0 0 20px;">You&apos;re on the list.</h1>
       ${bodyHtml}
-      <p style="font-size:16px;line-height:1.6;margin:0 0 32px;">
+      <p style="font-size:16px;line-height:1.6;margin:24px 0 32px;">
         &mdash; Abdur
       </p>
       <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#888;margin:0;">
@@ -161,49 +159,34 @@ async function sendWelcomeEmail({
 }
 
 /**
- * Per-list welcome content. Both are honest about now vs later and carry no
- * price. The mnemix-beta copy never claims Northsun is available now — it
- * says you get the logbook now and Northsun when it opens.
+ * Per-list welcome content, shipped verbatim per founder direction. No
+ * closer, no price. The mnemix-beta copy never claims Northsun is available
+ * now — "when access actually opens" is future tense, not the gated
+ * "available/ready now/today" form.
  */
 function welcomeContent(list: "tldr" | "mnemix-beta"): {
   subject: string;
-  eyebrow: string;
   bodyHtml: string;
   unsubSubject: string;
 } {
   if (list === "mnemix-beta") {
     return {
-      subject: "On the Northsun list — now vs later",
-      eyebrow: "/// NORTHSUN WAITLIST",
+      subject: "You’re on the list",
       unsubSubject: "Unsubscribe%20Northsun%20waitlist",
       bodyHtml: `      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
-        <strong>Now:</strong> the logbook. When I learn something the hard
-        way shipping Northsun, you get the TLDR the same week. No price, no
-        product tour &mdash; Northsun isn&apos;t done.
-      </p>
-      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
-        <strong>Later:</strong> Northsun, when it opens. You&apos;re first in
-        line, and I&apos;ll email the moment that&apos;s real &mdash; not
-        before. Past lessons are at
-        <a href="https://abdur.ai/aitldr" style="color:#b15a3a;">abdur.ai/aitldr</a>
-        if you want to catch up.
+        You’re on the list for when access actually opens. Until then you
+        get the public TLDRs I’m already shipping. The product comes when
+        it’s real, not as a finished platform today.
       </p>`,
     };
   }
   return {
-    subject: "The logbook, not the pitch.",
-    eyebrow: "/// The logbook, not the pitch.",
+    subject: "You’re on the logbook",
     unsubSubject: "Unsubscribe%20TLDR",
     bodyHtml: `      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
-        When I learn it the hard way, you get the TLDR the same week. Pager
-        is not the customer. The number is not the person. More of that as I
-        write it &mdash; not a product tour, not a waitlist for a platform
-        that isn&apos;t done.
-      </p>
-      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
-        Next lesson hits your email when it ships. Past lessons are at
-        <a href="https://abdur.ai/aitldr" style="color:#b15a3a;">abdur.ai/aitldr</a>
-        if you want to catch up.
+        You’re in. Next time I ship a TLDR — pager, phone-number, whatever I
+        learn the hard way — it comes here. Not a product tour. The essays
+        as they go out.
       </p>`,
   };
 }
