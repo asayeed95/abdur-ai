@@ -26,7 +26,7 @@ export function Subscribe() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Subscribe failed");
       setStatus("ok");
-      setMsg("You're on the list. I'll only email when something ships or breaks.");
+      setMsg("You're on the list. Next lesson hits email when it ships.");
       setEmail("");
     } catch (err) {
       setStatus("err");
@@ -41,13 +41,12 @@ export function Subscribe() {
       className="border-t border-border bg-bg-2"
     >
       <div className="max-w-content mx-auto px-6 md:px-10 py-24 md:py-32">
-        <p className="eyebrow mb-4">/// SUBSCRIBE</p>
-        <h2 className="font-display text-4xl md:text-6xl tracking-tight text-text mb-5 max-w-3xl">
-          Get the TLDR in your inbox.
-        </h2>
+        <p className="eyebrow mb-4">/// The logbook, not the pitch.</p>
         <p className="text-muted text-lg leading-relaxed max-w-[640px] mb-10">
-          One email when I ship something or learn something the hard way. No
-          drip campaigns, no growth hacks — just the logbook.
+          When I learn it the hard way, you get the TLDR the same week. Pager
+          is not the customer. The number is not the person. More of that as
+          I write it. Not a product tour. Not a waitlist for a platform that
+          is not done.
         </p>
 
         {/* action/method make the form work as a native urlencoded POST when
@@ -73,7 +72,7 @@ export function Subscribe() {
             disabled={status === "loading" || status === "ok"}
             className="font-mono text-xs tracking-widest uppercase text-bg bg-clay px-5 py-3 rounded-sm hover:opacity-90 transition-opacity disabled:opacity-40"
           >
-            {status === "loading" ? "Sending…" : status === "ok" ? "Subscribed" : "Subscribe →"}
+            {status === "loading" ? "Sending…" : status === "ok" ? "Subscribed" : "Subscribe"}
           </button>
         </form>
 
