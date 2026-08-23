@@ -13,21 +13,48 @@ const AUDIENCE_ENV: Record<string, string | undefined> = {
 };
 
 /**
+ * Reads the request body as either JSON or a native form post
+ * (application/x-www-form-urlencoded). Returns null when the body can't be
+ * parsed or the content type is unsupported.
+ */
+async function parseBody(req: Request): Promise<unknown | null> {
+  const contentType = req.headers.get("content-type") ?? "";
+  try {
+    if (contentType.includes("application/json")) {
+      return await req.json();
+    }
+    if (contentType.includes("application/x-www-form-urlencoded")) {
+      const params = new URLSearchParams(await req.text());
+      const body: Record<string, string> = {};
+      for (const [key, value] of params) {
+        // Empty form fields (e.g. an unfilled optional input) should fall
+        // back to the schema defaults rather than fail the enum check.
+        if (value !== "") body[key] = value;
+      }
+      return body;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/**
  * POST /api/subscribe
  *
  * Adds the email to the Resend audience for the requested list.
+ * Accepts JSON (the client component) and urlencoded form posts
+ * (native <form> fallback when JS doesn't run).
  */
 export async function POST(req: Request) {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  const body = await parseBody(req);
+  if (body === null) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+    return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
   const { email, list } = parsed.data;
 
