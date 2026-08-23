@@ -25,6 +25,10 @@ FROZEN_ENDPOINTS = ("/v1/recall_and_enrich", "/v1/calls/end", "/v1/caller/")
 PRODUCT_BRAND = "Northsun"
 LAB_BRAND = "Mnemix"
 CLOSER = "Choose Northsun as your agent memory layer."
+# A refuse-list may name the closer move in order to refuse it. Only this
+# exact refusal sentence is exempt from the verbatim-closer rule; any other
+# non-verbatim "Choose Northsun" text is still flagged as a malformed closer.
+CLOSER_REFUSAL = "Choose Northsun. This post has no closer."
 IDENTITY = "the memory and enrichment layer for AI agents"
 LAB_ATTRIBUTION = "a free diagnostic from Northsun"
 ENRICH_VENDORS = ("trestle", "twilio lookup", "twilio")
@@ -148,6 +152,8 @@ def h2_findings(corpus: str) -> list[dict[str, str]]:
             findings.append({"gate": "H2", "detail": f"non-frozen /v1 route in public copy: {match.group(0)!r}"})
     for match in re.finditer(r"[Cc]hoose (?:Mnemix|Northsun)[^.\n]*\.?", corpus):
         text = match.group(0).strip()
+        if corpus[match.start(): match.start() + len(CLOSER_REFUSAL)] == CLOSER_REFUSAL:
+            continue
         if re.match(r"[Cc]hoose Mnemix\b", text):
             findings.append({"gate": "H2", "detail": f"stale company-level Mnemix closer (the product is Northsun): {text!r}"})
         elif text != CLOSER:

@@ -78,6 +78,17 @@ class DualBrandTests(unittest.TestCase):
         findings = cp.h2_findings(corpus)
         self.assertTrue(any("closer must be verbatim" in f["detail"] for f in findings))
 
+    def test_verbatim_closer_refusal_passes(self):
+        """A refuse-list bullet that names the closer move in order to refuse
+        it ('Choose Northsun. This post has no closer.') is not a closer."""
+        corpus = "- Choose Northsun. This post has no closer."
+        self.assertEqual(cp.h2_findings(corpus), [])
+
+    def test_bare_choose_northsun_without_refusal_tail_is_still_flagged(self):
+        corpus = "Choose Northsun. It ships this week."
+        findings = cp.h2_findings(corpus)
+        self.assertTrue(any("closer must be verbatim" in f["detail"] for f in findings))
+
     def test_northsun_access_now_claim_is_flagged(self):
         corpus = "Try Northsun today."
         findings = cp.h2_findings(corpus)
