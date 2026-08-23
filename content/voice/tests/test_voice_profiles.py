@@ -210,12 +210,55 @@ class ChannelTests(unittest.TestCase):
         text = read("abdur-voice.md")
         self.assertIn("@abdur_sayeed", text)
         self.assertIn("Do not write publish paths for @abdur_sayeed.", text)
+        self.assertIn("recovery-only", text.lower())
+        self.assertIn("PAUSED", text)
+
+    def test_abdur_content_creation_surfaces_are_listed(self):
+        """Amendment: website/newsletter/LinkedIn/IG/TikTok/Shorts/Facebook
+        drafting continues. That is not a publish path for @abdur_sayeed."""
+        text = read("abdur-voice.md")
+        for surface in (
+            "website",
+            "newsletter",
+            "LinkedIn",
+            "Instagram",
+            "TikTok",
+            "YouTube Shorts",
+            "Facebook",
+        ):
+            self.assertIn(surface, text, f"abdur-voice.md missing surface {surface!r}")
+        self.assertNotIn(
+            "ships only on abdur.ai surfaces",
+            text,
+            "stale lock: Abdur drafting is not website-only",
+        )
+
+    def test_linkedin_is_primary_founder_authority_channel(self):
+        text = read("abdur-voice.md")
+        self.assertIn("primary founder-authority", text.lower())
+        self.assertIn("LinkedIn", text)
+        northsun = read("northsun-voice.md")
+        self.assertNotIn(
+            "LinkedIn is Northsun",
+            northsun,
+            "LinkedIn is Abdur's founder channel, not a Northsun company account",
+        )
+
+    def test_mnemix_official_is_active_lab_account(self):
+        text = read("mnemix-voice.md")
+        self.assertIn("@Mnemix_official", text)
+        self.assertRegex(text, r"@Mnemix_official[^\n]*active", re.I)
 
     def test_northsunai_is_company_voice_only(self):
         text = read("northsun-voice.md")
         self.assertIn("@northsunai", text)
         self.assertIn("company voice only", text.lower())
         self.assertIn("never abdur first-person", text.lower())
+
+    def test_research_docx_is_not_brand_law(self):
+        text = read("banned-phrases.md")
+        self.assertIn("research input, not brand law", text.lower())
+        self.assertIn("Adaptive Copywriting System Research", text)
 
     def test_northsun_dns_is_not_presented_as_live_cta(self):
         cta = re.compile(
