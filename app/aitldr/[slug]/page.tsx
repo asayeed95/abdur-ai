@@ -15,7 +15,7 @@ import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
 import { getAllPosts, getPost } from "@/lib/posts";
 import { SITE } from "@/lib/site";
-import { ogImageForPost } from "@/lib/og";
+import { ogImageForPost, shareCard } from "@/lib/og";
 
 export const dynamic = "force-static";
 export const dynamicParams = false;
@@ -33,27 +33,26 @@ export async function generateMetadata({
   const post = getPost(slug);
   if (!post) return {};
   const url = `${SITE.url}/aitldr/${post.slug}`;
-  const og = ogImageForPost(post.slug, post.ogImage);
+  const share = shareCard({
+    title: post.title,
+    description: post.description,
+    url,
+    type: "article",
+    image: ogImageForPost(post.slug, post.ogImage),
+  });
   return {
     title: post.title,
     description: post.description,
     alternates: { canonical: url },
     openGraph: {
-      type: "article",
-      url,
-      title: post.title,
-      description: post.description,
-      images: [og],
+      ...share.openGraph,
       publishedTime: post.date,
       modifiedTime: post.updated,
       authors: [SITE.url],
       tags: post.tags,
     },
     twitter: {
-      card: "summary_large_image",
-      title: post.title,
-      description: post.description,
-      images: [og],
+      ...share.twitter,
       creator: SITE.handles.x,
     },
   };

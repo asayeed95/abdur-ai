@@ -27,7 +27,55 @@ export type OgImage = {
   width: number;
   height: number;
   alt: string;
+  /** Helps iMessage / Slack treat the card as a real HTTPS PNG. */
+  secureUrl: string;
+  type: "image/png";
 };
+
+/**
+ * Tags every messenger in the AGE-1222 slice must emit.
+ * iMessage + Slack read OG; X reads twitter:*. One image set.
+ */
+export const SHARE_CARD_TAGS = [
+  "og:title",
+  "og:description",
+  "og:image",
+  "og:image:width",
+  "og:image:height",
+  "og:url",
+  "og:type",
+  "twitter:card",
+  "twitter:image",
+  "twitter:title",
+  "twitter:description",
+] as const;
+
+export type ShareCardFields = {
+  title: string;
+  description: string;
+  url: string;
+  type: "website" | "article";
+  image: OgImage;
+};
+
+/** Complete OG + Twitter large-image card. Callers may spread extra article fields. */
+export function shareCard({ title, description, url, type, image }: ShareCardFields) {
+  return {
+    openGraph: {
+      type,
+      url,
+      title,
+      description,
+      images: [image],
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
 
 export function absoluteOgUrl(path: string): string {
   if (path.startsWith("https://") || path.startsWith("http://")) return path;
@@ -35,13 +83,20 @@ export function absoluteOgUrl(path: string): string {
   return `${SITE.url}${normalized}`;
 }
 
-export function ogImageForHome(): OgImage {
+function pngCard(path: string, alt: string): OgImage {
+  const url = absoluteOgUrl(path);
   return {
-    url: absoluteOgUrl(OG_PATHS.home),
+    url,
+    secureUrl: url,
+    type: "image/png",
     width: OG_WIDTH,
     height: OG_HEIGHT,
-    alt: OG_ALTS.home,
+    alt,
   };
+}
+
+export function ogImageForHome(): OgImage {
+  return pngCard(OG_PATHS.home, OG_ALTS.home);
 }
 
 export function ogImageForPost(slug: string, frontmatterOg?: string): OgImage {
@@ -49,10 +104,5 @@ export function ogImageForPost(slug: string, frontmatterOg?: string): OgImage {
   const path = frontmatterOg || known || `/blog/${slug}/cover.jpg`;
   const alt =
     OG_ALTS[slug as keyof typeof OG_ALTS] || `${slug} — ${SITE.brand}`;
-  return {
-    url: absoluteOgUrl(path),
-    width: OG_WIDTH,
-    height: OG_HEIGHT,
-    alt,
-  };
+  return pngCard(path, alt);
 }
