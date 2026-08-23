@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
 import { SITE } from "@/lib/site";
+import { ogImageForHome } from "@/lib/og";
 import "./globals.css";
+
+const homeOg = ogImageForHome();
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -68,21 +71,14 @@ export const metadata: Metadata = {
     url: SITE.url,
     title: `${SITE.author} — ${SITE.tagline}`,
     description: SITE.description,
-    images: [
-      {
-        url: `${SITE.url}/og-default.jpg`,
-        width: 1200,
-        height: 630,
-        alt: `${SITE.brand} — ${SITE.tagline}`,
-      },
-    ],
+    images: [homeOg],
   },
   twitter: {
     card: "summary_large_image",
     creator: SITE.handles.x,
     title: `${SITE.author} — ${SITE.tagline}`,
     description: SITE.description,
-    images: [`${SITE.url}/og-default.jpg`],
+    images: [homeOg],
   },
   icons: {
     icon: "/favicon.ico",

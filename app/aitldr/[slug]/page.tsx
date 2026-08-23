@@ -15,6 +15,7 @@ import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
 import { getAllPosts, getPost } from "@/lib/posts";
 import { SITE } from "@/lib/site";
+import { ogImageForPost } from "@/lib/og";
 
 export const dynamic = "force-static";
 export const dynamicParams = false;
@@ -32,7 +33,7 @@ export async function generateMetadata({
   const post = getPost(slug);
   if (!post) return {};
   const url = `${SITE.url}/aitldr/${post.slug}`;
-  const og = post.ogImage || `/blog/${post.slug}/cover.jpg`;
+  const og = ogImageForPost(post.slug, post.ogImage);
   return {
     title: post.title,
     description: post.description,
@@ -42,7 +43,7 @@ export async function generateMetadata({
       url,
       title: post.title,
       description: post.description,
-      images: [{ url: og, width: 1200, height: 630 }],
+      images: [og],
       publishedTime: post.date,
       modifiedTime: post.updated,
       authors: [SITE.url],
@@ -102,7 +103,7 @@ export default async function PostPage({
             "@id": `${SITE.url}/aitldr/${post.slug}#post`,
             headline: post.title,
             description: post.description,
-            image: post.ogImage || `${SITE.url}/blog/${post.slug}/cover.jpg`,
+            image: ogImageForPost(post.slug, post.ogImage).url,
             datePublished: post.date,
             dateModified: post.updated || post.date,
             wordCount: post.wordCount,
