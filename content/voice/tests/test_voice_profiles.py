@@ -6,7 +6,8 @@ The bundle lets runtimes load content/brand/brand-map.json first, then the
 voice profiles, verifying integrity by version hash (content/voice/VERSION.json).
 These tests were written failing-first; they must fail if:
 
-- the closer is "Choose Mnemix ..." anywhere in the bundle;
+- the closer is the stale "[LAB]" one (brand-map rule ``stale-closer``)
+  anywhere in the bundle;
 - Mnemix is presented as the commercial product/platform;
 - a banned metric/claim appears on an allowed surface (voice profiles or
   good examples) instead of only on the deny-list.
