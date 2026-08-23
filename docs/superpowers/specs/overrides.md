@@ -29,3 +29,16 @@ voice; no closer, no price, no northsun.ai link. No claims rewritten —
 "Pager is not the customer" / "The number is not the person" reference
 already-published posts. `tailwind.config.ts` / `app/globals.css` / post
 copy untouched.
+
+design-token-override: 2026-08-23 — SUBSCRIBE-002 second list (founder-directed).
+Extend the welcome to the mnemix-beta (Northsun waitlist) list: a second
+real Resend send with now-vs-later copy — logbook now, Northsun when it
+opens, no price, no access-now claim. `app/api/subscribe/route.ts`
+`sendWelcomeEmail` now branches per list. Homepage waitlist copy matched:
+`components/NorthsunWaitlistForm.tsx` button drops the arrow and the
+success line becomes "Logbook now, Northsun when it opens.";
+`components/MnemixSection.tsx` adds one now-vs-later line above the form.
+Required public-truth values untouched (identity h2, verbatim closer
+blockquote, `NorthsunWaitlistForm`, `mnemix-beta` list id). No closer
+added on emails; no price; no northsun.ai link. `tailwind.config.ts` /
+`app/globals.css` / post copy untouched.
