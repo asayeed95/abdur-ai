@@ -50,12 +50,17 @@ export function Subscribe() {
           drip campaigns, no growth hacks — just the logbook.
         </p>
 
+        {/* action/method make the form work as a native urlencoded POST when
+            JS doesn't run; onSubmit preventDefaults and takes over otherwise. */}
         <form
+          action="/api/subscribe"
+          method="post"
           onSubmit={onSubmit}
           className="flex flex-col sm:flex-row gap-3 max-w-xl"
         >
           <input
             type="email"
+            name="email"
             placeholder="you@domain.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
