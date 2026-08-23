@@ -103,20 +103,23 @@ export async function POST(req: Request) {
  */
 async function sendWelcomeEmail({ email, apiKey }: { email: string; apiKey: string }) {
   const from = `${SITE.author} <${SITE.email}>`;
-  const subject = "Welcome to the abdur.ai TLDR";
+  const subject = "The logbook, not the pitch.";
   const html = `<!doctype html>
 <html lang="en">
   <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;color:#1a1a1a;background:#ffffff;margin:0;padding:24px;">
     <div style="max-width:560px;margin:0 auto;">
-      <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#b15a3a;margin:0 0 16px;">/// WELCOME</p>
+      <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#b15a3a;margin:0 0 16px;">/// The logbook, not the pitch.</p>
       <h1 style="font-size:28px;line-height:1.1;margin:0 0 20px;">You&apos;re on the list.</h1>
       <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
-        One email when I ship something or learn something the hard way. No
-        drip campaigns, no growth hacks &mdash; just the logbook.
+        When I learn it the hard way, you get the TLDR the same week. Pager
+        is not the customer. The number is not the person. More of that as I
+        write it &mdash; not a product tour, not a waitlist for a platform
+        that isn&apos;t done.
       </p>
       <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
-        If a post ever feels worth your time, the whole archive lives at
-        <a href="https://abdur.ai/aitldr" style="color:#b15a3a;">abdur.ai/aitldr</a>.
+        Next lesson hits your email when it ships. Past lessons are at
+        <a href="https://abdur.ai/aitldr" style="color:#b15a3a;">abdur.ai/aitldr</a>
+        if you want to catch up.
       </p>
       <p style="font-size:16px;line-height:1.6;margin:0 0 32px;">
         &mdash; Abdur
