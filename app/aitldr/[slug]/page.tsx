@@ -129,20 +129,21 @@ export default async function PostPage({
 
       <article className="max-w-content mx-auto px-6 md:px-10 pt-32 pb-20">
         {/* Header */}
-        <header className="max-w-3xl mx-auto">
+        <header className="aitldr-measure">
           <p className="eyebrow mb-6">
             {(post.tags || []).slice(0, 4).join(" · ")}
           </p>
-          <h1 className="font-display text-4xl md:text-6xl tracking-tight text-text leading-[1.04] mb-6">
+          {/* No mb on title/subtitle: .aitldr-dateline owns the title→date gap. */}
+          <h1 className="font-display text-4xl md:text-6xl tracking-tight text-text leading-[1.04]">
             {post.title}
           </h1>
           {post.subtitle && (
-            <p className="font-display italic text-xl md:text-2xl text-muted mb-6">
+            <p className="font-display italic text-xl md:text-2xl text-muted mt-6">
               {post.subtitle}
             </p>
           )}
-          <div className="mt-10 mb-2">
-            <p className="font-body text-base text-text-soft">
+          <div className="aitldr-dateline mb-2">
+            <p className="font-display text-text-soft">
               {new Date(post.date).toLocaleDateString("en-US", {
                 year: "numeric", month: "long", day: "numeric",
               })}
@@ -157,7 +158,7 @@ export default async function PostPage({
         </header>
 
         {/* Body */}
-        <div className="prose-clay max-w-3xl mx-auto mt-12">
+        <div className="prose-clay aitldr-measure mt-12">
           <MDXRemote
             source={source}
             options={{
@@ -174,7 +175,7 @@ export default async function PostPage({
                   {...props}
                   alt={props.alt ?? ""}
                   loading="lazy"
-                  className="block mx-auto my-8 w-full max-w-md h-auto rounded-lg"
+                  className="aitldr-figure block mx-auto my-8 w-full h-auto rounded-lg"
                 />
               ),
               MnemixCTA,
@@ -187,7 +188,7 @@ export default async function PostPage({
         </div>
 
         {/* Prev / Next */}
-        <nav className="max-w-3xl mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
+        <nav className="aitldr-measure mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
           {prev ? (
             <Link
               href={`/aitldr/${prev.slug}`}
