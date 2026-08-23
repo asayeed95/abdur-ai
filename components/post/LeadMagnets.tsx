@@ -134,7 +134,7 @@ export function NewsletterCTA() {
         Named patterns.
       </p>
       <Link
-        href="#subscribe"
+        href="/subscribe"
         onClick={() => track("cta:newsletter:from-post")}
         className="inline-block font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
       >

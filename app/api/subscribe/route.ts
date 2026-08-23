@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { SITE } from "@/lib/site";
 
 const schema = z.object({
   email: z.string().email(),
@@ -78,11 +79,78 @@ export async function POST(req: Request) {
   });
 
   // 409 = contact already exists; that's a success from the subscriber's view.
+  // A welcome email only goes to genuinely new signups — re-welcoming an
+  // existing contact would be spammy and would double-send on retries.
+  const isNewContact = res.ok;
   if (!res.ok && res.status !== 409) {
     const detail = await res.text().catch(() => "");
     console.error(`[subscribe] Resend ${res.status} for list "${list}": ${detail}`);
     return NextResponse.json({ error: "Could not subscribe right now" }, { status: 502 });
   }
 
+  if (isNewContact && list === "tldr") {
+    await sendWelcomeEmail({ email, apiKey });
+  }
+
   return NextResponse.json({ ok: true });
+}
+
+/**
+ * Sends one welcome email to a brand-new TLDR subscriber. Best-effort: a
+ * send failure is logged but does not fail the subscribe — the contact is
+ * already on the audience, which is the subscriber's primary expectation.
+ * Uses an idempotency key derived from the email so a retry never double-sends.
+ */
+async function sendWelcomeEmail({ email, apiKey }: { email: string; apiKey: string }) {
+  const from = `${SITE.author} <${SITE.email}>`;
+  const subject = "Welcome to the abdur.ai TLDR";
+  const html = `<!doctype html>
+<html lang="en">
+  <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;color:#1a1a1a;background:#ffffff;margin:0;padding:24px;">
+    <div style="max-width:560px;margin:0 auto;">
+      <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#b15a3a;margin:0 0 16px;">/// WELCOME</p>
+      <h1 style="font-size:28px;line-height:1.1;margin:0 0 20px;">You&apos;re on the list.</h1>
+      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
+        One email when I ship something or learn something the hard way. No
+        drip campaigns, no growth hacks &mdash; just the logbook.
+      </p>
+      <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
+        If a post ever feels worth your time, the whole archive lives at
+        <a href="https://abdur.ai/aitldr" style="color:#b15a3a;">abdur.ai/aitldr</a>.
+      </p>
+      <p style="font-size:16px;line-height:1.6;margin:0 0 32px;">
+        &mdash; Abdur
+      </p>
+      <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#888;margin:0;">
+        You signed up at abdur.ai. Reply to this email if you ever want off
+        the list &mdash; one click, no questions.
+      </p>
+    </div>
+  </body>
+</html>`;
+
+  try {
+    const sendRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": `welcome-tldr/${email}`,
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject,
+        html,
+        reply_to: SITE.email,
+        unsubscribe: `mailto:${SITE.email}?subject=Unsubscribe%20TLDR`,
+      }),
+    });
+    if (!sendRes.ok) {
+      const detail = await sendRes.text().catch(() => "");
+      console.error(`[subscribe] welcome email ${sendRes.status} for ${email}: ${detail}`);
+    }
+  } catch (err) {
+    console.error(`[subscribe] welcome email failed for ${email}: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
