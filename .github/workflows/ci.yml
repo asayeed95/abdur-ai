@@ -29,4 +29,6 @@ jobs:
         run: python3 scripts/check-public-claims.py
       - name: Brand regression check (Northsun / Mnemix dual-brand law)
         run: python3 scripts/check-brand.py
+      - name: Voice profile tests (AGE-1216)
+        run: python3 content/voice/tests/test_voice_profiles.py -v
       - run: npm run build
