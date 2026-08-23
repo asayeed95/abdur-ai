@@ -108,7 +108,7 @@ export default function FeedPage() {
           Subscribe via{" "}
           <Link href="/aitldr/rss.xml" className="hover:text-clay">RSS</Link>{" "}
           ·{" "}
-          <Link href="#subscribe" className="hover:text-clay">email</Link>
+          <Link href="/subscribe" className="hover:text-clay">email</Link>
         </p>
       </main>
       <Footer />
