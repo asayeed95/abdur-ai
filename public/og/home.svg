@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="og-home-title og-home-desc">
+  <title id="og-home-title">abdur.ai  the logbook</title>
+  <desc id="og-home-desc">What shipped. What broke. What I learned. A logbook card, not a product tour.</desc>
+  <rect width="1200" height="630" fill="#0B0A08"/>
+  <rect x="24" y="24" width="1152" height="582" fill="none" stroke="#2C2620" stroke-width="1"/>
+  <rect x="24" y="24" width="8" height="582" fill="#D97757"/>
+  <text x="72" y="90" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" letter-spacing="3" fill="#D97757">ABDUR.AI</text>
+  <text x="72" y="220" font-family="'Playfair Display', 'Noto Serif', Georgia, serif" font-size="84" font-weight="700" fill="#F2EDE6">The logbook</text>
+  <rect x="72" y="248" width="60" height="3" fill="#D97757"/>
+  <text x="72" y="328" font-family="Inter, ui-sans-serif, sans-serif" font-size="28" fill="#C9C0B2">What shipped. What broke. What I learned.</text>
+  <text x="72" y="408" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" fill="#D97757">01</text>
+  <text x="120" y="408" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" fill="#948B7D">SHIPPED</text>
+  <rect x="220" y="398" width="420" height="4" fill="#2C2620"/>
+  <text x="72" y="456" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" fill="#D97757">02</text>
+  <text x="120" y="456" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" fill="#948B7D">BROKE</text>
+  <rect x="220" y="446" width="300" height="4" fill="#2C2620"/>
+  <text x="72" y="504" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" fill="#D97757">03</text>
+  <text x="120" y="504" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" fill="#948B7D">LEARNED</text>
+  <rect x="220" y="494" width="500" height="4" fill="#2C2620"/>
+  <text x="72" y="588" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="20" fill="#7A7264">abdur.ai</text>
+  <text x="860" y="588" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" fill="#7A7264">LOGBOOK  ·  NOT A TOUR</text>
+</svg>
