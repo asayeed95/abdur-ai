@@ -116,13 +116,22 @@ function read(rel) {
   return fs.readFileSync(path.join(ROOT, rel), "utf8");
 }
 
+function decodeEntities(value) {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
 function parseMeta(html) {
   const found = {};
   for (const m of html.matchAll(/<meta\s+([^>]+)/g)) {
     const attrs = m[1];
     const key = attrs.match(/(?:property|name)="([^"]+)"/)?.[1];
     const content = attrs.match(/content="([^"]*)"/)?.[1];
-    if (key && content !== undefined) found[key] = content;
+    if (key && content !== undefined) found[key] = decodeEntities(content);
   }
   return found;
 }
