@@ -7,6 +7,7 @@ export type PostMeta = {
   title: string;
   subtitle?: string;
   description: string;
+  excerpt?: string;
   dek?: string;
   date: string; // ISO
   dateDisplay: string; // "JUN 25"
@@ -65,6 +66,7 @@ export function getAllPosts(): PostMeta[] {
         title: data.title || slug,
         subtitle: data.subtitle,
         description: data.description || data.dek || "",
+        excerpt: typeof data.excerpt === "string" ? data.excerpt : undefined,
         dek: data.dek || data.description,
         date: dateIso,
         dateDisplay: dateIso ? shortDate(dateIso) : "",
