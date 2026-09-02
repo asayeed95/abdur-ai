@@ -206,12 +206,14 @@ class ClaimsPolicyTests(unittest.TestCase):
 
 
 class ChannelTests(unittest.TestCase):
-    def test_abdur_sayeed_publish_paths_are_refused(self):
+    def test_abdur_sayeed_is_authorized_via_zernio_only(self):
+        """Founder ratified 2026-09-02: @abdur_sayeed is authorized for
+        ordinary posts through the governed Zernio founder profile only."""
         text = read("abdur-voice.md")
-        self.assertIn("@abdur_sayeed", text)
-        self.assertIn("Do not write publish paths for @abdur_sayeed.", text)
-        self.assertIn("recovery-only", text.lower())
-        self.assertIn("PAUSED", text)
+        self.assertIn("@abdur_sayeed is AUTHORIZED", text)
+        self.assertIn("Zernio founder profile", text)
+        self.assertNotIn("recovery-only", text.lower())
+        self.assertIn("No\n  browser login", text)
 
     def test_abdur_content_creation_surfaces_are_listed(self):
         """Amendment: website/newsletter/LinkedIn/IG/TikTok/Shorts/Facebook

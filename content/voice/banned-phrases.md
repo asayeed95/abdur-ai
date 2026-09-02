@@ -61,9 +61,10 @@ documents:
 
 ## Channel bans
 
-- Publish paths for @abdur_sayeed (compromised, PAUSED, recovery-only): no
-  posting, replies, DMs, login attempts, OAuth, scheduling, automation,
-  queues, or drafts staged for that handle.
+- Any publish path for @abdur_sayeed other than the governed Zernio
+  founder profile: no browser posting, no direct platform API, no OAuth
+  re-connection, no account changes. (Ordinary posts through Zernio are
+  authorized — founder, 2026-09-02.)
 - Abdur first-person copy on @northsunai (company voice only).
 - Abdur first-person copy, or Northsun sales/waitlist copy, on
   @Mnemix_official (Lab voice only: Memory Lab, Forgetting Test, technical

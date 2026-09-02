@@ -67,14 +67,16 @@ then this bundle, verifying hashes via `content/voice/VERSION.json`):
 
 ## Distribution
 
-- @abdur_sayeed is compromised and PAUSED. It is recovery-only.
-  Do not write publish paths for @abdur_sayeed. No posting, replies, DMs,
-  login attempts, OAuth connections, scheduling, automation, or account
-  changes through that handle. No queued drafts and no "when the account
-  is back" staging.
-- Content creation in this voice continues for the website, newsletter,
-  LinkedIn, Instagram, TikTok, YouTube Shorts, and Facebook. Drafting for
-  those surfaces is allowed; publishing still requires the approval system.
+- @abdur_sayeed is AUTHORIZED for ordinary founder posts (founder
+  ratified 2026-09-02, superseding the 2026-08-23 PAUSED state). Publish
+  only through the governed Zernio founder profile; Zernio publish is not
+  idempotent, so one attempt per record and dedupe before any retry. No
+  browser login, OAuth re-connection, or account changes through that
+  handle — those stay founder-only.
+- Content creation in this voice continues for X (@abdur_sayeed), the
+  website, newsletter, LinkedIn, Instagram, TikTok, YouTube Shorts, and
+  Facebook. Drafting for those surfaces is allowed; publishing still
+  requires the approval system.
 - LinkedIn is Abdur's primary founder-authority, recruiting, investor, and
   design-partner channel.
 - Never post Abdur first-person copy on @northsunai; that channel belongs

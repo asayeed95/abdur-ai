@@ -63,11 +63,12 @@ Rejected: northsun.ai DNS is not live; it is never a CTA. CTAs point at
 Rejected: Abdur first-person on the company channel. @northsunai is company
 voice only.
 
-> Scheduling this thread to publish from @abdur_sayeed tomorrow.
+> Logged into x.com as @abdur_sayeed in the browser and posted the thread
+> directly since Zernio was slow.
 
-Rejected: @abdur_sayeed is compromised, PAUSED, and recovery-only; no
-publish paths exist for it. Website / LinkedIn / newsletter drafts are
-not a reason to revive that handle.
+Rejected: the only publish path for @abdur_sayeed is the governed Zernio
+founder profile. Browser posting, direct API calls, and OAuth
+re-connections on that handle are banned regardless of authorization.
 
 > (posted from @Mnemix_official) Choose Northsun as your agent memory layer.
 
