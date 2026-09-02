@@ -45,8 +45,9 @@ the implementation record for the ledger/routine machinery; where they say Blota
 
 Account status (paused / recovery / authorized) is set by the founder in that config, never in a
 content file. If this table and the live config disagree, the live config wins and this table gets fixed.
-Open reconciliation: PR #33's voice pack marks `@Abdur_sayeed` PAUSED (2026-08-23); live config and the
-2026-08-28 Zernio publish treat ordinary founder posts as authorized. Founder call; do not resolve it in a PR.
+`@Abdur_sayeed` is **authorized** for ordinary founder posts through the Zernio founder profile (founder,
+2026-09-02; supersedes the 2026-08-23 PAUSED state — PR #33 updated to match). Browser posting, direct API,
+OAuth re-connection, and account changes on that handle remain banned.
 
 ## 3. System of record — what actually exists in this repo
 
