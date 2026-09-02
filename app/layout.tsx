@@ -1,7 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
 import { SITE } from "@/lib/site";
+import { ogImageForHome, shareCard } from "@/lib/og";
 import "./globals.css";
+
+const homeTitle = `${SITE.author} — ${SITE.tagline}`;
+const homeShare = shareCard({
+  title: homeTitle,
+  description: SITE.description,
+  url: SITE.url,
+  type: "website",
+  image: ogImageForHome(),
+});
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -23,7 +33,7 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: {
-    default: `${SITE.author} — ${SITE.tagline}`,
+    default: homeTitle,
     template: `%s · ${SITE.brand}`,
   },
   description: SITE.description,
@@ -62,27 +72,13 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    type: "website",
+    ...homeShare.openGraph,
     siteName: SITE.brand,
     locale: "en_US",
-    url: SITE.url,
-    title: `${SITE.author} — ${SITE.tagline}`,
-    description: SITE.description,
-    images: [
-      {
-        url: `${SITE.url}/og-default.jpg`,
-        width: 1200,
-        height: 630,
-        alt: `${SITE.brand} — ${SITE.tagline}`,
-      },
-    ],
   },
   twitter: {
-    card: "summary_large_image",
+    ...homeShare.twitter,
     creator: SITE.handles.x,
-    title: `${SITE.author} — ${SITE.tagline}`,
-    description: SITE.description,
-    images: [`${SITE.url}/og-default.jpg`],
   },
   icons: {
     icon: "/favicon.ico",

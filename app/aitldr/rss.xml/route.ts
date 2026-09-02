@@ -1,6 +1,7 @@
 import { Feed } from "feed";
 import { SITE } from "@/lib/site";
 import { getAllPosts } from "@/lib/posts";
+import { ogImageForHome } from "@/lib/og";
 
 export const dynamic = "force-static";
 
@@ -13,7 +14,7 @@ export async function GET() {
     id: `${SITE.url}/`,
     link: SITE.url,
     language: "en",
-    image: `${SITE.url}/og-default.jpg`,
+    image: ogImageForHome().url,
     favicon: `${SITE.url}/favicon.ico`,
     copyright: `© ${new Date().getFullYear()} ${SITE.author}`,
     updated: posts[0] ? new Date(posts[0].date) : new Date(),
