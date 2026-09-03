@@ -38,7 +38,7 @@ export async function generateMetadata({
     description: post.description,
     url,
     type: "article",
-    image: ogImageForPost(post.slug, post.ogImage),
+    image: ogImageForPost(post),
   });
   return {
     title: post.title,
@@ -102,7 +102,7 @@ export default async function PostPage({
             "@id": `${SITE.url}/aitldr/${post.slug}#post`,
             headline: post.title,
             description: post.description,
-            image: ogImageForPost(post.slug, post.ogImage).url,
+            image: ogImageForPost(post).url,
             datePublished: post.date,
             dateModified: post.updated || post.date,
             wordCount: post.wordCount,
