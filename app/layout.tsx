@@ -138,6 +138,15 @@ export default function RootLayout({
                     "@type": "Organization",
                     name: "ASEC",
                   },
+                  founderOf: { "@id": `${SITE.url}/#northsun` },
+                },
+                {
+                  "@type": "Organization",
+                  "@id": `${SITE.url}/#northsun`,
+                  name: "Northsun",
+                  url: "https://northsun.ai",
+                  description: "the memory and enrichment layer for AI agents",
+                  founder: { "@id": `${SITE.url}/#abdur` },
                 },
                 {
                   "@type": "WebSite",

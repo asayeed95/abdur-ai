@@ -32,6 +32,10 @@ PUBLIC_SOURCES = (
     "app/hire/page.tsx",
     "app/about/page.tsx",
     "app/llms.txt/route.ts",
+    "app/what-is-northsun/page.tsx",
+    "app/what-is-mnemix/page.tsx",
+    "app/who-is-abdur/page.tsx",
+    "lib/aeo.ts",
 )
 # northsun.ai DNS is not live yet (verified 2026-08-22), so product CTAs must
 # point at owned surfaces: the on-site waitlist form backed by the real

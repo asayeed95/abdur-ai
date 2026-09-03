@@ -69,6 +69,9 @@ export function Footer() {
           <p className="flex gap-4">
             <Link href="/aitldr/rss.xml" className="hover:text-text">RSS</Link>
             <Link href="/llms.txt" className="hover:text-text">llms.txt</Link>
+            <Link href="/what-is-northsun" className="hover:text-text">Northsun</Link>
+            <Link href="/what-is-mnemix" className="hover:text-text">Memory Lab</Link>
+            <Link href="/who-is-abdur" className="hover:text-text">Cite</Link>
             <Link href="/sitemap.xml" className="hover:text-text">Sitemap</Link>
           </p>
         </div>
