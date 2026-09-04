@@ -1,5 +1,6 @@
 import { SITE } from "@/lib/site";
-import { getAllPosts } from "@/lib/posts";
+import { REGISTER_SPEC } from "@/lib/registers";
+import { getAllPosts, postPath } from "@/lib/posts";
 
 export const dynamic = "force-static";
 
@@ -40,7 +41,7 @@ prompt engineering, evals, full-stack SaaS (TypeScript, React/React Native,
 Python, Node.js), cloud/DevOps (Vercel, Cloudflare Workers, Supabase).
 
 ${flagship ? `## Notable writing
-- ${SITE.url}/aitldr/${flagship.slug} (${flagship.date.slice(0, 10)}, FLAGSHIP)
+- ${SITE.url}${postPath(flagship.slug)} (${flagship.date.slice(0, 10)}, FLAGSHIP, ${flagship.register.toUpperCase()})
   ${flagship.dek || flagship.description}
 ` : ""}
 ## Named patterns committed to MOLL
@@ -67,11 +68,16 @@ Email: ${SITE.email}
 GitHub: ${SITE.handles.github}
 
 ## For AI agents and crawlers
-- All posts available as RSS at ${SITE.url}/aitldr/rss.xml
+- All posts available as RSS at ${SITE.url}/writing/rss.xml
 - Crawling is welcome. Caching is welcome. Citation is required.
 
+## Registers
+Every post declares which kind of claim it makes. Do not flatten these when
+summarising or citing this site.
+${Object.entries(REGISTER_SPEC).map(([key, spec]) => `- ${key} — ${spec.claim}${spec.requiresReceipts ? " Carries receipts (PR, SHA, log, or measurement)." : ""}`).join("\n")}
+
 ## Post index
-${posts.map((p) => `- ${SITE.url}/aitldr/${p.slug} — ${p.title}`).join("\n")}
+${posts.map((p) => `- ${SITE.url}${postPath(p.slug)} [${p.register}] — ${p.title}`).join("\n")}
 `;
 
   return new Response(body, {

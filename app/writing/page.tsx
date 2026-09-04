@@ -2,42 +2,62 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { RegisterBadge } from "@/components/post/RegisterNote";
 import { getAllPosts, postPath } from "@/lib/posts";
+import { REGISTERS, REGISTER_SPEC } from "@/lib/registers";
+import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "AI TLDR — the logbook",
+  title: "Writing",
   description:
-    "Short, evidence-anchored builder logs from Abdur Rahman Sayeed. Postmortems, architecture decisions, and the things you only learn by shipping AI solo.",
-  // /writing is canonical; this index is retained for links already in the wild.
-  alternates: { canonical: "https://abdur.ai/writing" },
+    "Evidence-anchored builder logs, designs, and arguments from Abdur Rahman Sayeed. Every piece declares whether it is reported, designed, or argued.",
+  alternates: { canonical: `${SITE.url}/writing` },
 };
 
-export default function FeedPage() {
+export default function WritingIndexPage() {
   const posts = getAllPosts();
   const flagship = posts.find((p) => p.flagship);
-  const rest = posts.filter((p) => !p.flagship || p.pinned === false);
+  const rest = posts.filter((p) => p.slug !== flagship?.slug);
 
   return (
     <>
       <Nav />
       <main className="max-w-content mx-auto px-6 md:px-10 pt-32 pb-24">
-        <p className="eyebrow mb-4">/// AITLDR</p>
+        <p className="eyebrow mb-4">/// WRITING</p>
         <h1 className="font-display text-5xl md:text-7xl tracking-tight text-text mb-4">
-          The logbook.
+          Writing.
         </h1>
-        <p className="text-muted text-lg max-w-[640px] mb-16">
-          {posts.length} {posts.length === 1 ? "entry" : "entries"} · evidence-anchored builder logs · RSS available.
+        <p className="text-muted text-lg max-w-[640px] mb-8">
+          {posts.length} {posts.length === 1 ? "piece" : "pieces"} · every one
+          declares what kind of claim it is making ·{" "}
+          <Link href="/writing/rss.xml" className="hover:text-clay underline underline-offset-4">
+            RSS
+          </Link>
         </p>
+
+        <dl className="flex flex-wrap gap-x-8 gap-y-3 mb-16 pb-8 border-b border-border">
+          {REGISTERS.map((r) => (
+            <div key={r} className="flex items-center gap-3">
+              <dt>
+                <RegisterBadge register={r} />
+              </dt>
+              <dd className="font-mono text-[11px] text-muted-3">
+                {REGISTER_SPEC[r].claim}
+              </dd>
+            </div>
+          ))}
+        </dl>
 
         {flagship && (
           <Link
             href={postPath(flagship.slug)}
             className="group block bg-bg-2 border border-clay rounded-lg p-8 md:p-10 mb-16 hover:bg-surface transition-colors"
           >
-            <div className="flex items-center gap-3 mb-5">
+            <div className="flex flex-wrap items-center gap-3 mb-5">
               <span className="font-mono text-[10px] tracking-widest uppercase text-bg bg-clay px-2 py-1 rounded-sm">
-                FLAGSHIP · PINNED
+                FLAGSHIP
               </span>
+              <RegisterBadge register={flagship.register} />
               <span className="font-mono text-xs text-muted">
                 {flagship.dateDisplay} · {flagship.readingTime} MIN
               </span>
@@ -75,6 +95,14 @@ export default function FeedPage() {
                     {p.dateDisplay}
                   </span>
                   <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                      <RegisterBadge register={p.register} />
+                      {p.statusNote && (
+                        <span className="font-mono text-[10px] text-muted-3">
+                          {p.statusNote}
+                        </span>
+                      )}
+                    </div>
                     <h3 className="font-display text-2xl md:text-3xl tracking-tight text-text group-hover:text-clay transition-colors">
                       {p.title}
                     </h3>
@@ -104,13 +132,6 @@ export default function FeedPage() {
             </li>
           ))}
         </ul>
-
-        <p className="mt-10 font-mono text-xs text-muted-3">
-          Subscribe via{" "}
-          <Link href="/writing/rss.xml" className="hover:text-clay">RSS</Link>{" "}
-          ·{" "}
-          <Link href="/subscribe" className="hover:text-clay">email</Link>
-        </p>
       </main>
       <Footer />
     </>

@@ -8,13 +8,25 @@ type Primitive = {
   desc: string;
 };
 
-const PRIMITIVES: Primitive[] = [
-  { name: "recall", role: "POST /v1/recall_and_enrich", status: "primitive", desc: "Pull the right memory for this moment, already enriched and ranked." },
-  { name: "enrich", role: "Trestle · Twilio Lookup", status: "primitive", desc: "Resolve a caller into real context before the agent ever speaks." },
-  { name: "observe", role: "durable intake", status: "primitive", desc: "Stream events in through a throttled, durable, replayable write path." },
-  { name: "gate", role: "gate-first, router-second", status: "primitive", desc: "Every write clears six safety signals before it is allowed to land." },
-  { name: "evidence", role: "GET /v1/evidence/:ref", status: "primitive", desc: "Bi-temporal, replayable proof sitting behind every decision." },
-  { name: "beacon", role: "POST /v1/beacon/inject", status: "primitive", desc: "The memory layer surfaces what matters to the agent, unprompted." },
+const PERSPECTIVES: Primitive[] = [
+  {
+    name: "identity",
+    role: "memory + enrichment",
+    status: "category",
+    desc: "The memory and enrichment layer for AI agents.",
+  },
+  {
+    name: "governance",
+    role: "AI proposes. Mnemix governs.",
+    status: "differentiator",
+    desc: "The public thesis for governed context intelligence.",
+  },
+  {
+    name: "voice",
+    role: "design target",
+    status: "wedge",
+    desc: "Designed for sub-300ms voice recall.",
+  },
 ];
 
 /**
@@ -52,36 +64,30 @@ export function MnemixSection() {
               land, and every read comes back already enriched.
             </p>
             <p>
-              At the core is <span className="text-text font-semibold">BEAD</span> —
-              bi-temporal, evidence-anchored decisions. Every fact an agent acts
-              on carries two clocks, when it was true and when it was learned,
-              so a retrieval can be replayed, audited, and graded against
-              reality instead of vibes.
+              <span className="text-text font-semibold">AI proposes. Mnemix governs.</span>{" "}
+              The point is not to make an agent sound more certain; it is to
+              make its context more deliberate.
             </p>
             <p>
-              It is the spine under everything I build — and it is designed for
-              sub-300ms voice recall, because the place memory breaks first is a
-              live conversation.
+              Voice is an important wedge.
+              Mnemix is designed for sub-300ms voice recall, because a live
+              conversation is where bad context is impossible to hide.
             </p>
           </div>
           <div className="space-y-5 text-text-soft text-lg leading-relaxed">
             <p>
-              <span className="text-text font-semibold">Six primitives</span>{" "}
-              compose the whole surface — recall, enrich, observe, gate,
-              evidence, and beacon. Small enough to reason about, sharp enough
-              that an agent stops guessing and starts knowing.
+              The public work here is deliberately evidence-bound: honest build
+              notes, useful analysis, and product thinking that remains useful
+              even when nobody clicks through.
             </p>
             <p>
-              <span className="text-text font-semibold">Beacon</span> is the
-              newest — it flips memory from reactive to proactive. Instead of
-              waiting to be queried, the layer surfaces the salient thing to the
-              agent before the model knows to ask for it.
+              That gives the work a real feedback loop. Questions, objections,
+              and edge cases from people building agents should improve both the
+              public explanation and the product decisions behind it.
             </p>
             <p>
-              The public API stays deliberately small and frozen. Hobby is free;
-              everything past it is a conversation, not a pricing table —
-              because the teams that need this are building voice, and voice is
-              unforgiving.
+              Hobby is $0. Paid tiers start with contact sales. The beta is the
+              right invitation only when the live access path is real.
             </p>
           </div>
         </div>
@@ -99,9 +105,9 @@ export function MnemixSection() {
           <NorthsunWaitlistForm />
         </div>
 
-        <p className="eyebrow mb-8">/// THE PRIMITIVES</p>
+        <p className="eyebrow mb-8">/// THE POSITION</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {PRIMITIVES.map((p) => (
+          {PERSPECTIVES.map((p) => (
             <div
               key={p.name}
               className="bg-surface border border-border rounded-lg p-5 hover:border-clay hover:-translate-y-1 transition-all"

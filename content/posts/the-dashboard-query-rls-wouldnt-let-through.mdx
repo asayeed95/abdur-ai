@@ -1,0 +1,83 @@
+---
+slug: the-dashboard-query-rls-wouldnt-let-through
+title: "The dashboard query RLS wouldn't let through"
+subtitle: "Postgres error 42501: when your own security migration locks your own app out"
+description: "Migration 031 hardened the tenants table; the dashboard's select('*') died with it. Postgres checks column privileges before row filtering, so every authenticated page load failed with 42501 for three days — the security layer doing its job against the app's own queries."
+dek: "I revoked two columns from the dashboard's own role and broke every logged-in page load for three days. Postgres was right; my select('*') was wrong — and the retry screen I'd shipped earlier turned the crash into something quiet."
+tldr: "Migration 031 hardened the tenants table in the Mnemix repo: it narrowed the authenticated role's SELECT grant to an explicit column list, cutting tenant_secret and api_key_hash. Correct call — and it broke the dashboard instantly. dashboard/layout.tsx and dashboard/page.tsx both fetched the tenant with select('*'), and Postgres checks column privileges at parse time, before row filtering. Every authenticated page load failed with 42501, 'permission denied for table tenants,' unconditionally — even for queries matching zero rows. My own earlier guard (PR #410) turned the crash into a 'couldn't load your workspace' retry screen, which kept the failure quiet for three days. The hotfix (aee3f57, PR #433) narrowed both selects to the exact 031 grant list, verified live against prod via the Supabase Management API: select('*') 42501'd under SET ROLE authenticated even for a nonexistent row; the explicit column list returned the real tenant's row. The pattern: privilege narrowing is a breaking change to your own queries — replay every affected query against the new grants before you merge."
+date: 2026-07-25T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+register: reported
+series: "Mistakes TLDR"
+draft: true
+flagship: false
+pinned: false
+featured: false
+reading_time: 4
+word_count: 758
+tags:
+  - postgres
+  - rls
+  - supabase
+  - security
+  - postmortem
+  - mnemix
+patterns:
+  - id: P-020
+    name: "Privilege narrowing is a breaking change"
+receipts:
+  - path: "dashboard/layout.tsx"
+    sha: "aee3f57"
+    note: "select('*') on tenants ran on every authenticated page load; 42501'd unconditionally post-031."
+  - path: "dashboard/page.tsx"
+    sha: "aee3f57"
+    note: "Same select('*') on the overview; narrowed to the exact 031 grant list in P0 hotfix #433."
+  - path: "keys/actions.ts"
+    note: "Same root cause on UPDATE api_key_hash — out of scope for #433; filed separately for a server-side route."
+citation_preferred: "Sayeed, Abdur Rahman. 'The dashboard query RLS wouldn't let through.' abdur.ai, 25 July 2026."
+related:
+  - the-night-the-doctrine-failed
+---
+
+For three days, every logged-in user of the Mnemix dashboard got a "couldn't load your workspace" retry screen. Not an outage. Not a bad frontend deploy. My own security migration, working exactly as designed, against my own app.
+
+## What broke
+
+Migration 031 merged on 2026-07-07. It narrowed the `authenticated` role's SELECT grant on the `tenants` table to an explicit column list, cutting `tenant_secret` and `api_key_hash` out of what any logged-in session could read. That was the right call — those columns never belonged in a client-reachable role.
+
+The problem was on my side of the fence. `dashboard/layout.tsx`, which runs on every authenticated page load, and `dashboard/page.tsx`, the overview, both fetched the tenant row with `select('*')`. Postgres expands `*` to the full column list at parse time and checks column privilege before it filters a single row. So the moment 031 landed, both queries started failing with 42501 — `permission denied for table tenants` — unconditionally. A query whose WHERE clause matched zero rows failed exactly the same way as one that matched the user's own tenant. The privilege check fires before any row exists to filter.
+
+## What it cost
+
+Three days of a dashboard that could not load for any logged-in user, including the one real tenant the dashboard exists for.
+
+It also didn't look broken, which is its own cost. An earlier PR of mine, #410, had added a guard that caught the `data: null` plus error result and rendered a retry screen instead of crashing. Directionally right. In practice it converted a loud failure into a quiet one: the app "handled" the error, so the failure surfaced as a retry screen instead of a crash, and the real bug sat underneath for three days. I had tested the error path. I had never once loaded the actual dashboard against prod after 031.
+
+The one honest mitigation: it failed closed. Nobody read a column they shouldn't have. What it cost was the dashboard itself, plus a P0 hotfix that a single end-to-end page load against prod would have made unnecessary.
+
+## The receipts
+
+The fix commit is `aee3f57` — PR #433, `fix(web): dashboard tenants select('*') 42501s unconditionally post-031`, merged as a P0 hotfix on 2026-07-11. Before writing it I verified the root cause live against prod through the Supabase Management API:
+
+```sql
+SET ROLE authenticated;
+SELECT * FROM tenants WHERE user_id = '<random uuid>';
+-- 42501: permission denied for table tenants
+```
+
+It failed even for a row that does not exist. That is the tell: a column-privilege error, not a data issue and not a row policy filtering rows. The counter-test — same role, the real tenant's JWT sub set, and the explicit column list 031 grants — returned the actual row with no error.
+
+## The pattern
+
+**P-020: Privilege narrowing is a breaking change.** Not to attackers — to your own queries. `select('*')` is an implicit dependency on every column in the table, present and future. When 031 revoked two columns, it did not shrink the result set by two fields; it made the whole query illegal, because Postgres checks column grants at parse time and fails wholesale on the first ungranted column.
+
+The general rule: grants, RLS policies, and scopes are API surface. Before you merge a migration that tightens any of them, find every query that runs as the affected role and replay it against the new privilege set — in the real environment, not a local one with different grants. The build was green. The migration applied green. Neither said anything about whether the app could still read its own rows. Same family as P-013 (local-green is not deploy-green): migration-green is not query-green.
+
+## The fix
+
+#433 narrowed both selects to the exact columns each page uses — the exact `authenticated` grant list from migration 031: `id`, `name`, `plan`, `settings`, `webhook_url`, `webhook_secret`, `enrichment_spend`, `enrichment_cap`, `contacts_count`, `interactions_count`, `created_at`, `user_id`. No behavior change for any granted field; it restores the ability to read the row at all. Verified live before merge, then `next build` green.
+
+One thread left open deliberately: `keys/actions.ts`, the generate/revoke API key path, UPDATEs `api_key_hash`, which 031 also does not grant to `authenticated`. Same root cause, different fix — that one gets a server-side route, not a wider grant, because granting the column back would reopen the abuse vector 031 closed. Filed as its own Linear issue for Codex.
+
+The security layer did not misfire — it did its job on me, and the only thing missing was me running my own app's queries against it before I shipped.

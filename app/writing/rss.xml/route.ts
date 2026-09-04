@@ -1,45 +1,44 @@
 import { Feed } from "feed";
 import { SITE } from "@/lib/site";
 import { getAllPosts, postPath } from "@/lib/posts";
-import { ogImageForHome } from "@/lib/og";
+import { REGISTER_SPEC } from "@/lib/registers";
 
 export const dynamic = "force-static";
 
-/** Retained legacy feed. Items link to the canonical /writing URLs. */
-
+/** Canonical feed. `/aitldr/rss.xml` is retained and points at the same items. */
 export async function GET() {
   const posts = getAllPosts();
 
   const feed = new Feed({
-    title: "abdur.ai builder logs",
+    title: "abdur.ai writing",
     description: SITE.description,
     id: `${SITE.url}/`,
     link: SITE.url,
     language: "en",
-    image: ogImageForHome().url,
+    image: `${SITE.url}/og-default.jpg`,
     favicon: `${SITE.url}/favicon.ico`,
     copyright: `© ${new Date().getFullYear()} ${SITE.author}`,
     updated: posts[0] ? new Date(posts[0].date) : new Date(),
-    feedLinks: {
-      rss2: `${SITE.url}/aitldr/rss.xml`,
-    },
-    author: {
-      name: SITE.author,
-      email: SITE.email,
-      link: SITE.url,
-    },
+    feedLinks: { rss2: `${SITE.url}/writing/rss.xml` },
+    author: { name: SITE.author, email: SITE.email, link: SITE.url },
   });
 
   posts.forEach((p) => {
+    const url = `${SITE.url}${postPath(p.slug)}`;
     feed.addItem({
       title: p.title,
-      id: `${SITE.url}${postPath(p.slug)}`,
-      link: `${SITE.url}${postPath(p.slug)}`,
+      id: url,
+      link: url,
       description: p.dek || p.description,
       content: p.description,
       author: [{ name: p.author, link: SITE.url }],
       date: new Date(p.date),
-      category: (p.tags || []).map((t) => ({ name: t })),
+      // The register travels with the item, so a feed reader carries the same
+      // claim-type signal the page does.
+      category: [
+        { name: REGISTER_SPEC[p.register].label.toLowerCase() },
+        ...(p.tags || []).map((t) => ({ name: t })),
+      ],
     });
   });
 

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Reveal } from "./Reveal";
-import { getAllPosts } from "@/lib/posts";
+import { getAllPosts, postPath } from "@/lib/posts";
+import { RegisterBadge } from "./post/RegisterNote";
 
 /**
  * "Latest" section — top 5 TLDRs from MDX content. Dense list, editorial vibe.
- * Each row is a Link to /aitldr/[slug].
+ * Each row is a Link to /writing/[slug].
  */
 export function LatestFeed() {
   const posts = getAllPosts().slice(0, 5);
@@ -29,14 +30,15 @@ export function LatestFeed() {
         {posts.map((p) => (
           <li key={p.slug}>
             <Link
-              href={`/aitldr/${p.slug}`}
+              href={postPath(p.slug)}
               className="group block py-6 md:py-8 hover:bg-surface transition-colors -mx-3 px-3 rounded-sm"
             >
               <div className="grid md:grid-cols-[100px_1fr] gap-2 md:gap-8 items-start">
                 <span className="font-mono text-xs tracking-widest text-clay uppercase pt-1">
-                  {p.date}
+                  {p.dateDisplay}
                 </span>
                 <div className="min-w-0">
+                  <RegisterBadge register={p.register} className="mb-2" />
                   <h3 className="font-display text-2xl md:text-3xl tracking-tight text-text group-hover:text-clay transition-colors">
                     {p.title}
                   </h3>
@@ -66,7 +68,7 @@ export function LatestFeed() {
 
       <div className="mt-10">
         <Link
-          href="/aitldr"
+          href="/writing"
           className="inline-block font-mono text-xs tracking-widest uppercase text-text border border-border hover:border-clay px-4 py-3 rounded-sm transition-colors"
         >
           Read the archive →

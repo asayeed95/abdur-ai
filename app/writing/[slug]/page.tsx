@@ -7,13 +7,6 @@ import { getAllPosts, getNeighbors, getPost, getPostSource, postPath } from "@/l
 import { ogImageForPost, shareCard } from "@/lib/og";
 import { SITE } from "@/lib/site";
 
-/**
- * Retained legacy surface. `/writing/<slug>` is canonical; this route serves
- * the same content for links already in the wild (RSS subscribers, prior
- * shares, indexed URLs) and declares `rel="canonical"` at /writing so the two
- * URLs do not compete for the same ranking. Every internal link rendered by
- * `<PostArticle>` points at /writing, so arriving here funnels forward.
- */
 export const dynamic = "force-static";
 export const dynamicParams = false;
 
@@ -29,18 +22,18 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) return {};
-  const canonical = `${SITE.url}${postPath(post.slug)}`;
+  const url = `${SITE.url}${postPath(post.slug)}`;
   const share = shareCard({
     title: post.title,
     description: post.description,
-    url: canonical,
+    url: url,
     type: "article",
     image: ogImageForPost(post),
   });
   return {
     title: post.title,
     description: post.description,
-    alternates: { canonical },
+    alternates: { canonical: url },
     openGraph: {
       ...share.openGraph,
       publishedTime: post.date,
@@ -52,7 +45,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function LegacyPostPage({
+export default async function WritingPostPage({
   params,
 }: {
   params: Promise<{ slug: string }>;

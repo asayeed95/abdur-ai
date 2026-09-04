@@ -41,13 +41,13 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
         If you build with agents and have ever shipped a doctrine that failed
         in the same way this one did — you&apos;re the person Northsun is for.
       </p>
-      <a
+      <Link
         href="/#waitlist"
         onClick={() => track("cta:mnemix:from-post")}
         className="inline-block font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
       >
         Northsun is in private beta. Request access. →
-      </a>
+      </Link>
     </aside>
   );
 }
