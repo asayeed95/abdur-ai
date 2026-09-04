@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ImgHTMLAttributes } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import fs from "node:fs";
@@ -14,6 +15,7 @@ import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
 import { getAllPosts, getPost } from "@/lib/posts";
 import { SITE } from "@/lib/site";
+import { ogImageForPost, shareCard } from "@/lib/og";
 
 export const dynamic = "force-static";
 export const dynamicParams = false;
@@ -31,27 +33,26 @@ export async function generateMetadata({
   const post = getPost(slug);
   if (!post) return {};
   const url = `${SITE.url}/aitldr/${post.slug}`;
-  const og = post.ogImage || `/blog/${post.slug}/cover.jpg`;
+  const share = shareCard({
+    title: post.title,
+    description: post.description,
+    url,
+    type: "article",
+    image: ogImageForPost(post),
+  });
   return {
     title: post.title,
     description: post.description,
     alternates: { canonical: url },
     openGraph: {
-      type: "article",
-      url,
-      title: post.title,
-      description: post.description,
-      images: [{ url: og, width: 1200, height: 630 }],
+      ...share.openGraph,
       publishedTime: post.date,
       modifiedTime: post.updated,
       authors: [SITE.url],
       tags: post.tags,
     },
     twitter: {
-      card: "summary_large_image",
-      title: post.title,
-      description: post.description,
-      images: [og],
+      ...share.twitter,
       creator: SITE.handles.x,
     },
   };
@@ -101,7 +102,7 @@ export default async function PostPage({
             "@id": `${SITE.url}/aitldr/${post.slug}#post`,
             headline: post.title,
             description: post.description,
-            image: post.ogImage || `${SITE.url}/blog/${post.slug}/cover.jpg`,
+            image: ogImageForPost(post).url,
             datePublished: post.date,
             dateModified: post.updated || post.date,
             wordCount: post.wordCount,
@@ -128,32 +129,36 @@ export default async function PostPage({
 
       <article className="max-w-content mx-auto px-6 md:px-10 pt-32 pb-20">
         {/* Header */}
-        <header className="max-w-prose mx-auto">
+        <header className="aitldr-measure">
           <p className="eyebrow mb-6">
             {(post.tags || []).slice(0, 4).join(" · ")}
           </p>
-          <h1 className="font-display text-4xl md:text-6xl tracking-tight text-text leading-[1.04] mb-6">
+          {/* No mb on title/subtitle: .aitldr-dateline owns the title→date gap. */}
+          <h1 className="font-display text-4xl md:text-6xl tracking-tight text-text leading-[1.04]">
             {post.title}
           </h1>
           {post.subtitle && (
-            <p className="font-display italic text-xl md:text-2xl text-muted mb-6">
+            <p className="font-display italic text-xl md:text-2xl text-muted mt-6">
               {post.subtitle}
             </p>
           )}
-          <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-muted-3">
-            <span>{new Date(post.date).toLocaleDateString("en-US", {
-              year: "numeric", month: "long", day: "numeric",
-            })}</span>
-            <span>·</span>
-            <span>{post.readingTime} min read</span>
-            <span>·</span>
-            <span>by {post.author}</span>
+          <div className="aitldr-dateline mb-2">
+            <p className="font-display text-text-soft">
+              {new Date(post.date).toLocaleDateString("en-US", {
+                year: "numeric", month: "long", day: "numeric",
+              })}
+            </p>
+            <p className="mt-3 flex flex-wrap items-center gap-3 font-mono text-xs text-muted-3">
+              <span>{post.readingTime} min read</span>
+              <span>·</span>
+              <span>by {post.author}</span>
+            </p>
           </div>
-          <div className="w-[60px] h-[2px] bg-clay mt-8" />
+          <div className="w-[60px] h-[2px] bg-clay mt-10" />
         </header>
 
         {/* Body */}
-        <div className="prose-clay max-w-prose mx-auto mt-12">
+        <div className="prose-clay aitldr-measure mt-12">
           <MDXRemote
             source={source}
             options={{
@@ -163,6 +168,16 @@ export default async function PostPage({
               },
             }}
             components={{
+              // Keep in-post figures visibly narrower than the widened text column.
+              img: (props: ImgHTMLAttributes<HTMLImageElement>) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  {...props}
+                  alt={props.alt ?? ""}
+                  loading="lazy"
+                  className="aitldr-figure block mx-auto my-8 w-full h-auto rounded-lg"
+                />
+              ),
               MnemixCTA,
               AsecWaitlistCTA,
               NewsletterCTA,
@@ -173,7 +188,7 @@ export default async function PostPage({
         </div>
 
         {/* Prev / Next */}
-        <nav className="max-w-prose mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
+        <nav className="aitldr-measure mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
           {prev ? (
             <Link
               href={`/aitldr/${prev.slug}`}
