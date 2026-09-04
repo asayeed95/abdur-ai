@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SITE } from "@/lib/site";
 import { ogImageForHome, shareCard } from "@/lib/og";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
+import { AttributionCapture } from "@/components/AttributionCapture";
 import "./globals.css";
 
 const homeTitle = `${SITE.author} — ${SITE.tagline}`;
@@ -123,6 +124,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </head>
       <body>
+        <AttributionCapture />
         {/* JSON-LD: Person + WebSite — site-wide */}
         <script
           type="application/ld+json"

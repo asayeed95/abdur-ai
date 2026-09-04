@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { type AnalyticsEventName, trackEvent, attributionProps } from "@/lib/analytics";
+import { usePathname } from "next/navigation";
+import { buildSubscribeFields } from "@/lib/attribution";
 
 /**
  * In-post CTAs. Each is a self-contained block that can be embedded
@@ -49,10 +51,12 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
 }
 
 export function AsecWaitlistCTA() {
+  const pathname = usePathname();
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [renderedAt] = useState(() => Date.now());
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -68,7 +72,7 @@ export function AsecWaitlistCTA() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, list: "asec-waitlist" }),
+        body: JSON.stringify({ email, list: "asec-waitlist", ...buildSubscribeFields(pathname ?? "/"), rendered_at: renderedAt, company: "" }),
       });
       if (!res.ok) {
         setErr("Something broke. Try again.");
@@ -112,6 +116,15 @@ export function AsecWaitlistCTA() {
             required
             className="flex-1 bg-bg border border-border text-text px-4 py-3 rounded-sm font-mono text-sm placeholder:text-muted-3 focus:border-clay focus:outline-none"
           />
+          <input
+            type="text"
+            name="company"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            style={{ position: "absolute", left: "-9999px" }}
+          />
+          <input type="hidden" name="rendered_at" value={renderedAt} />
           <button
             type="submit"
             disabled={busy}
