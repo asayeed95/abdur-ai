@@ -1,15 +1,21 @@
 import { Reveal } from "./Reveal";
+import { getShipLog } from "@/lib/supabase";
 
 /**
  * "Ship log" — terse, git-log style. Agent-pushable.
- * Reads from /content/ship-log.json for now. Webhook stub at
- * /api/ingest/ship is wired to write here once Claude Code adds storage.
+ * Async server component: reads Supabase `ship_log` (via getShipLog(),
+ * fetch-tagged 'ship' so /api/ingest/ship's revalidateTag('ship') refreshes
+ * it). Falls back to /content/ship-log.json when the table is empty or
+ * Supabase is unreachable — never throws.
  */
 
 import shipLogData from "@/content/ship-log.json";
 
-export function ShipLog() {
-  const entries = shipLogData as Array<{ date: string; text: string; tag: string }>;
+export async function ShipLog() {
+  const rows = await getShipLog();
+  const entries = rows.length > 0
+    ? rows
+    : (shipLogData as Array<{ date: string; text: string; tag: string }>);
   return (
     <Reveal as="section" id="log" className="max-w-content mx-auto px-6 md:px-10 py-20">
       <div className="flex items-baseline justify-between mb-10 flex-wrap gap-2">
