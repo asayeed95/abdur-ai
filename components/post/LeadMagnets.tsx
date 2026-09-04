@@ -2,22 +2,18 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { trackEvent, attributionProps } from "@/lib/analytics";
 
 /**
  * In-post CTAs. Each is a self-contained block that can be embedded
  * inside an MDX file with `<MnemixCTA />`, `<AsecWaitlistCTA />`, etc.
  *
- * Each CTA fires an analytics event on click — wire to Plausible/Vercel
- * Analytics in lib/analytics.ts.
+ * Each CTA fires an analytics event via lib/analytics.ts (Vercel Web
+ * Analytics) — see README "Analytics" for the event catalog.
  */
 
 function track(name: string) {
-  if (typeof window !== "undefined") {
-    // @ts-expect-error -- plausible global
-    window.plausible?.(name);
-    // @ts-expect-error -- vercel analytics
-    window.va?.("event", { name });
-  }
+  trackEvent(name);
 }
 
 /**
@@ -43,7 +39,7 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
       </p>
       <Link
         href="/#waitlist"
-        onClick={() => track("cta:mnemix:from-post")}
+        onClick={() => track("cta:northsun:from-post")}
         className="inline-block font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
       >
         Northsun is in private beta. Request access. →
@@ -66,12 +62,17 @@ export function AsecWaitlistCTA() {
     }
     track("cta:asec:from-post");
     try {
-      await fetch("/api/subscribe", {
+      const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, list: "asec-waitlist" }),
       });
+      if (!res.ok) {
+        setErr("Something broke. Try again.");
+        return;
+      }
       setDone(true);
+      trackEvent("subscribe:asec-waitlist", attributionProps());
     } catch {
       setErr("Something broke. Try again.");
     }
