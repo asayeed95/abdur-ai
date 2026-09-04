@@ -20,28 +20,29 @@ function track(name: string) {
   }
 }
 
-export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: string }) {
+export function MnemixCTA({ heading = "The work behind this" }: { heading?: string }) {
   return (
     <aside className="not-prose my-12 bg-surface border-l-4 border-clay rounded-r-lg p-6 md:p-8">
       <p className="font-mono text-[10px] tracking-widest uppercase text-clay mb-3">
         /// {heading}
       </p>
       <p className="text-text-soft text-lg leading-relaxed mb-3">
-        MOLL is one layer of <strong className="text-text">Mnemix</strong> — the
-        contextual intelligence platform that absorbs incidents like this one
-        and turns them into doctrine other agents can use. Bi-temporal,
-        evidence-anchored decisions. Memory that grades itself.
+        <strong className="text-text">Mnemix is the memory and enrichment layer for AI agents.</strong>{" "}
+        The work around MOLL asks the same questions
+        this post does: what should an agent carry forward, when must it be
+        governed, and how can a builder understand the result?
       </p>
       <p className="text-muted leading-relaxed mb-5">
-        If you build with agents and have ever shipped a doctrine that failed
-        in the same way this one did — you&apos;re the person Mnemix is for.
+        If you build with agents, this is an invitation to follow the work and
+        help sharpen the questions behind it — not a promise that the product
+        is ready for every use case today.
       </p>
       <a
-        href="https://mnemix.ai"
+        href="https://mnemix.ai/#waitlist"
         onClick={() => track("cta:mnemix:from-post")}
         className="inline-block font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
       >
-        Mnemix is in private beta. Request access. →
+        Join Mnemix private beta →
       </a>
     </aside>
   );

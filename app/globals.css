@@ -9,6 +9,50 @@
    ============================================================ */
 
 :root {
+  /* Clay edition palette — channel triples so Tailwind's `<alpha-value>`
+     placeholder can compose opacity: rgb(var(--c-clay) / 0.4).
+     Dark is the default and the no-JS fallback. */
+  --c-bg: 11 10 8;                 /* #0B0A08 */
+  --c-bg-2: 14 12 10;                /* #0E0C0A */
+  --c-surface: 22 19 16;                /* #161310 */
+  --c-surface-2: 28 24 19;                /* #1C1813 */
+  --c-border: 44 38 32;                /* #2C2620 */
+  --c-border-2: 74 61 38;                /* #4A3D26 */
+  --c-text: 242 237 230;             /* #F2EDE6 */
+  --c-text-soft: 201 192 178;             /* #C9C0B2 */
+  --c-muted: 148 139 125;             /* #948B7D */
+  --c-muted-2: 126 118 106;             /* #7E766A */
+  --c-muted-3: 122 114 100;             /* #7A7264 */
+  --c-muted-4: 106 98 86;               /* #6A6256 */
+  --c-clay: 217 119 87;              /* #D97757 */
+  --c-gold: 245 196 81;              /* #F5C451 */
+  color-scheme: dark;
+}
+
+/* Light theme. Applied by setting data-theme="light" on <html>, which the
+   blocking script in app/layout.tsx does before first paint. Clay and gold are
+   darkened for AA contrast on a cream ground. */
+:root[data-theme="light"] {
+  --c-bg: 246 241 232;             /* #F6F1E8 */
+  --c-bg-2: 239 232 219;             /* #EFE8DB */
+  --c-surface: 255 253 248;             /* #FFFDF8 */
+  --c-surface-2: 239 232 219;             /* #EFE8DB */
+  --c-border: 228 218 202;             /* #E4DACA */
+  --c-border-2: 211 196 168;             /* #D3C4A8 */
+  --c-text: 31 26 20;                /* #1F1A14 */
+  --c-text-soft: 70 64 54;                /* #464036 */
+  --c-muted: 126 118 106;             /* #7E766A */
+  --c-muted-2: 154 144 127;             /* #9A907F */
+  --c-muted-3: 154 144 127;             /* #9A907F */
+  --c-muted-4: 154 144 127;             /* #9A907F */
+  --c-clay: 180 86 58;               /* #B4563A */
+  --c-gold: 143 106 0;               /* #8F6A00 */
+  color-scheme: light;
+}
+
+/* An explicit dark choice must beat the :root default for nothing, but the
+   attribute is always written by the pre-paint script, so state it plainly. */
+:root[data-theme="dark"] {
   color-scheme: dark;
 }
 
@@ -23,13 +67,13 @@ body {
 
 /* Selection */
 ::selection {
-  background: #D97757;
-  color: #0B0A08;
+  background: rgb(var(--c-clay));
+  color: rgb(var(--c-bg));
 }
 
 /* Focus ring */
 *:focus-visible {
-  outline: 2px solid #D97757;
+  outline: 2px solid rgb(var(--c-clay));
   outline-offset: 2px;
   border-radius: 2px;
 }

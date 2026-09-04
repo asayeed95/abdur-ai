@@ -20,7 +20,7 @@ export function Footer() {
 
         <div className="grid grid-cols-2 gap-6 font-mono text-xs tracking-widest uppercase">
           <ul className="space-y-2">
-            <li><Link href="/aitldr" className="text-muted hover:text-text">TLDR</Link></li>
+            <li><Link href="/writing" className="text-muted hover:text-text">Writing</Link></li>
             <li><Link href="/#tools" className="text-muted hover:text-text">Tools</Link></li>
             <li><Link href="/#projects" className="text-muted hover:text-text">Mnemix</Link></li>
           </ul>
@@ -67,7 +67,7 @@ export function Footer() {
             </Link>
           </p>
           <p className="flex gap-4">
-            <Link href="/aitldr/rss.xml" className="hover:text-text">RSS</Link>
+            <Link href="/writing/rss.xml" className="hover:text-text">RSS</Link>
             <Link href="/llms.txt" className="hover:text-text">llms.txt</Link>
             <Link href="/sitemap.xml" className="hover:text-text">Sitemap</Link>
           </p>

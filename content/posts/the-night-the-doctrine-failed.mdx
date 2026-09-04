@@ -7,6 +7,7 @@ dek: "Seven-rule batch protocol. Five rounds of adversarial audit. An independen
 date: 2026-06-25T03:30:00-04:00
 author: Abdur Rahman Sayeed
 section: "Agent Systems"
+register: reported
 flagship: true
 pinned: true
 featured: true
@@ -47,7 +48,7 @@ related:
   - who-owns-the-architecture-when-ai-writes-the-code
 ---
 
-I had spent roughly six months building Mnemix — a contextual intelligence platform on Cloudflare Workers, Supabase, pgvector, Qdrant, Redis, R2, Vercel, and Stripe — driven by a swarm of thirty-plus agents across Claude Opus 4.8, Sonnet 4.6, and Haiku, plus Codex, Gemini, Grok, Kimi, and custom MCP servers. By late June the repo state had drifted: twenty-one stale PRs across worktrees from different sessions, branches whose names no longer matched their content, Linear issues whose status disagreed with the code.
+I had spent roughly six months building Mnemix on Cloudflare Workers, Supabase, pgvector, Qdrant, Redis, R2, Vercel, and Stripe — driven by a swarm of thirty-plus agents across Claude Opus 4.8, Sonnet 4.6, and Haiku, plus Codex, Gemini, Grok, Kimi, and custom MCP servers. By late June the repo state had drifted: twenty-one stale PRs across worktrees from different sessions, branches whose names no longer matched their content, Linear issues whose status disagreed with the code.
 
 I designed a cleanup pass to close the drift. The cleanup pass came within one approved command of destroying a production fix, and the way it failed is more interesting than the way it succeeded.
 
