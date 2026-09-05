@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
 import { SITE } from "@/lib/site";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
+import { AttributionCapture } from "@/components/AttributionCapture";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -126,6 +127,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </head>
       <body>
+        <AttributionCapture />
         {/* JSON-LD: Person + WebSite — site-wide */}
         <script
           type="application/ld+json"
