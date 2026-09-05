@@ -10,7 +10,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "validate:apply": "node scripts/validate-applications.mjs",
-    "check:og": "node scripts/check-og-meta.mjs"
+    "check:og": "node scripts/check-og-meta.mjs",
+    "subscribers:sources": "node scripts/subscriber-sources.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "3.1.0",

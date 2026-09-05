@@ -1,4 +1,5 @@
 import { track } from "@vercel/analytics";
+import { buildSubscribeFields } from "@/lib/attribution";
 
 /**
  * Single funnel for all custom analytics events. Wraps Vercel Web
@@ -28,16 +29,11 @@ export function trackEvent(name: AnalyticsEventName, props?: Record<string, stri
 }
 
 /**
- * Source-props seam for subscriber attribution (PR #38,
- * feat/subscriber-attribution → lib/attribution.ts). That branch owns the
- * single capture mechanism for "where the subscriber came from"
- * (first-touch UTMs / landing_path / referrer in sessionStorage). When it
- * lands, this becomes one import-line change —
- * `return buildSubscribeFields(window.location.pathname)` — so a `source`
- * prop on an event uses the identical vocabulary as Resend contact
- * properties and "source" means exactly one thing. Until then it returns
- * no props; call sites are already wired through it.
+ * Source props for analytics events — the SAME vocabulary the subscribe route
+ * writes to Resend contact properties (lib/attribution.ts), so "source" means
+ * exactly one thing whether you read it in Vercel Events or in Resend.
  */
 export function attributionProps(): Record<string, string> {
-  return {};
+  if (typeof window === "undefined") return {};
+  return buildSubscribeFields(window.location.pathname);
 }

@@ -1,13 +1,24 @@
 "use client";
 
+/** The honeypot as actually submitted — a bot that fills the hidden field must trip the server check. */
+function honeypotValue(e: React.FormEvent): string {
+  const el = (e.currentTarget as HTMLFormElement).elements.namedItem("company");
+  return el instanceof HTMLInputElement ? el.value : "";
+}
+
 import { useState } from "react";
 import { trackEvent, attributionProps } from "@/lib/analytics";
+import { usePathname } from "next/navigation";
+import { buildSubscribeFields } from "@/lib/attribution";
 import { Reveal } from "./Reveal";
 
 export function Subscribe() {
+  const pathname = usePathname();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
   const [msg, setMsg] = useState("");
+  // Spam timing signal: how long the form sat rendered before submit.
+  const [renderedAt] = useState(() => Date.now());
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,7 +33,7 @@ export function Subscribe() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, ...buildSubscribeFields(pathname ?? "/"), rendered_at: renderedAt, company: honeypotValue(e) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Subscribe failed");
@@ -69,6 +80,17 @@ export function Subscribe() {
             className="flex-1 bg-surface border border-border text-text px-4 py-3 rounded-sm font-mono text-sm placeholder:text-muted-3 focus:border-clay focus:outline-none transition-colors"
             disabled={status === "loading"}
           />
+          {/* Honeypot + render timestamp for bot filtering. Visually hidden,
+              no CSS changes — inline off-screen positioning only. */}
+          <input
+            type="text"
+            name="company"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            style={{ position: "absolute", left: "-9999px" }}
+          />
+          <input type="hidden" name="rendered_at" value={renderedAt} />
           <button
             type="submit"
             disabled={status === "loading" || status === "ok"}
