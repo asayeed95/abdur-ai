@@ -82,3 +82,7 @@ Eyebrow style: `class="eyebrow"` — mono, tracking-widest, clay color, uppercas
 See `CLAUDE.md` for the next steps. The scaffold is ~85% complete; remaining
 work is wiring Resend, Supabase persistence for the webhooks, the OG cover
 image, replacing two TODO placeholders, deploying to Vercel.
+
+## Integration notes
+
+- Issue #1 is reserved as the GitHub add-issue-comment playground target.
