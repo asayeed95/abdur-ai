@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { SITE } from "@/lib/site";
 import { ogImageForHome, shareCard } from "@/lib/og";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
@@ -173,6 +174,7 @@ export default function RootLayout({
           }}
         />
         {children}
+        <Analytics />
       </body>
     </html>
   );

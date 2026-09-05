@@ -2,22 +2,18 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { type AnalyticsEventName, trackEvent, attributionProps } from "@/lib/analytics";
 
 /**
  * In-post CTAs. Each is a self-contained block that can be embedded
  * inside an MDX file with `<MnemixCTA />`, `<AsecWaitlistCTA />`, etc.
  *
- * Each CTA fires an analytics event on click — wire to Plausible/Vercel
- * Analytics in lib/analytics.ts.
+ * Each CTA fires an analytics event via lib/analytics.ts (Vercel Web
+ * Analytics) — see README "Analytics" for the event catalog.
  */
 
-function track(name: string) {
-  if (typeof window !== "undefined") {
-    // @ts-expect-error -- plausible global
-    window.plausible?.(name);
-    // @ts-expect-error -- vercel analytics
-    window.va?.("event", { name });
-  }
+function track(name: AnalyticsEventName) {
+  trackEvent(name);
 }
 
 /**
@@ -43,7 +39,7 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
       </p>
       <Link
         href="/#waitlist"
-        onClick={() => track("cta:mnemix:from-post")}
+        onClick={() => track("cta:northsun:from-post")}
         className="inline-block font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
       >
         Northsun is in private beta. Request access. →
@@ -55,6 +51,7 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
 export function AsecWaitlistCTA() {
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
   async function submit(e: React.FormEvent) {
@@ -64,16 +61,25 @@ export function AsecWaitlistCTA() {
       setErr("That doesn't look like an email.");
       return;
     }
+    if (busy) return;
+    setBusy(true);
     track("cta:asec:from-post");
     try {
-      await fetch("/api/subscribe", {
+      const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, list: "asec-waitlist" }),
       });
+      if (!res.ok) {
+        setErr("Something broke. Try again.");
+        return;
+      }
       setDone(true);
+      trackEvent("subscribe:asec-waitlist", attributionProps());
     } catch {
       setErr("Something broke. Try again.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -108,6 +114,8 @@ export function AsecWaitlistCTA() {
           />
           <button
             type="submit"
+            disabled={busy}
+            aria-busy={busy}
             className="font-mono text-xs tracking-widest uppercase text-text border border-border hover:border-clay px-4 py-3 rounded-sm"
           >
             Join the ASEC waitlist →

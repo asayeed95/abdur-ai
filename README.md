@@ -59,6 +59,60 @@ Body content here. Can use <MnemixCTA />, <AsecWaitlistCTA />, <NewsletterCTA />
 <ReceiptsBlock />, <PatternsBlock />.
 ```
 
+## Analytics
+
+Provider: **Vercel Web Analytics** (`@vercel/analytics`). `<Analytics />` in
+`app/layout.tsx` auto-tracks pageviews (including App Router SPA transitions);
+the script is served same-origin from `/_vercel/insights/*`. No env var —
+enable in the Vercel dashboard (project → Analytics → Enable). Chosen over
+Plausible because this audience is developers (high adblock usage) and the
+same-origin proxy is blocked far less often.
+
+**Adblock caveat:** same-origin mitigates but does not eliminate blocking, so
+counts systematically under-report adblock users. Treat numbers as
+directional, not absolute.
+
+**Plan requirement:** pageviews record on every Vercel plan, but **custom
+events (everything in the catalog below) require Pro or higher**. On Hobby the
+`track()` calls are accepted and silently dropped — the dashboard shows
+pageviews and nothing else, which reads as "no conversions" rather than "not
+recorded". Confirm the team plan before treating an empty Events view as data.
+
+Event catalog (all fired via `trackEvent` in `lib/analytics.ts`; the list is
+the `ANALYTICS_EVENTS` const — a name outside it is a type error).
+**Provisional — pending GMP analytics stage ownership (AGE-1548).**
+
+| Event | Meaning | Where |
+|---|---|---|
+| `cta:northsun:from-post` | Click on the Northsun product CTA | `components/post/LeadMagnets.tsx` (`MnemixCTA`) |
+| `cta:asec:from-post` | Submit attempt on the ASEC waitlist CTA | `components/post/LeadMagnets.tsx` (`AsecWaitlistCTA`) |
+| `cta:newsletter:from-post` | Click on the newsletter CTA | `components/post/LeadMagnets.tsx` (`NewsletterCTA`) |
+| `subscribe:tldr` | Successful TLDR email capture (`/api/subscribe` 2xx) | `components/Subscribe.tsx` |
+| `subscribe:asec-waitlist` | Successful ASEC waitlist signup (`/api/subscribe` 2xx) | `components/post/LeadMagnets.tsx` |
+
+`subscribe:*` events fire **only after a 2xx response** — they count real
+conversions, not attempts. `cta:asec:from-post` fires on submit attempt, so
+the pair gives a crude attempt→success funnel.
+
+The component is still named `MnemixCTA` and its visible copy still says
+`MnemixCTA` is a frozen legacy technical identifier (MDX contract); the product it renders is Northsun. Only the
+event string carries the rebranded `northsun` name (the rebrand landed on
+main after this base; renaming the event now costs zero historical data
+since Web Analytics is not yet enabled).
+
+**Attribution seam:** `subscribe:*` events pass `attributionProps()` from
+`lib/analytics.ts`. Today it returns no props; when PR #38
+(`feat/subscriber-attribution`, `lib/attribution.ts`) lands it becomes a
+one-import-line change to `buildSubscribeFields(...)`, so event `source`
+props use the identical vocabulary as Resend contact properties.
+
+**No-PII rule:** never put email addresses, names, or any user input in event
+names or props. Coarse strings only (which CTA, which surface).
+
+**Adding a new event:** call `trackEvent("your:event", { prop: "value" })`
+from `lib/analytics.ts`, then add a row to the table above. Never call
+`window.plausible` / `window.va` directly.
+
 ## Design system
 
 **Do not modify** without explicit reason.

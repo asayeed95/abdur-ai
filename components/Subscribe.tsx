@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent, attributionProps } from "@/lib/analytics";
 import { Reveal } from "./Reveal";
 
 export function Subscribe() {
@@ -25,6 +26,7 @@ export function Subscribe() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Subscribe failed");
+      trackEvent("subscribe:tldr", attributionProps());
       setStatus("ok");
       setMsg("You're on the list. Next lesson hits email when it ships.");
       setEmail("");
