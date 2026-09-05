@@ -73,7 +73,7 @@ counts systematically under-report adblock users. Treat numbers as
 directional, not absolute.
 
 Event catalog (all fired via `trackEvent` in `lib/analytics.ts`).
-**Provisional — pending GMP analytics stage ownership (age-1548).**
+**Provisional — pending GMP analytics stage ownership (AGE-1548).**
 
 | Event | Meaning | Where |
 |---|---|---|
