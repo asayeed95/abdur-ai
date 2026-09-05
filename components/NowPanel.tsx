@@ -1,11 +1,13 @@
 import { Reveal } from "./Reveal";
+import { getNowState } from "@/lib/supabase";
 
 /**
  * Live "Now" panel — agents currently running, last shipped, what's next.
  *
- * Reads from a JSON file in /content for now. Wired so Claude Code can
- * swap the source to GET /api/now (Supabase-backed) without changing the
- * markup. The agent webhook stub at /api/ingest/now writes there.
+ * Async server component: reads the latest state from Supabase `now_state`
+ * (via getNowState(), fetch-tagged 'now' so /api/ingest/now's
+ * revalidateTag('now') refreshes it). Falls back to SEED_AGENTS when the
+ * table is empty or Supabase is unreachable — never throws.
  */
 
 type Agent = {
@@ -29,7 +31,9 @@ const SEED_AGENTS: Agent[] = [
   { agent: "stress-harness", task: "voice recall p95 under real concurrency", state: "queued" },
 ];
 
-export function NowPanel() {
+export async function NowPanel() {
+  const rows = await getNowState();
+  const agents = rows && rows.length > 0 ? rows : SEED_AGENTS;
   return (
     <Reveal as="section" className="border-y border-border bg-bg-2">
       <div className="max-w-content mx-auto px-6 md:px-10 py-14">
@@ -46,7 +50,7 @@ export function NowPanel() {
         </div>
 
         <ul className="grid gap-3">
-          {SEED_AGENTS.map((a) => (
+          {agents.map((a) => (
             <li
               key={a.agent + a.task}
               className="grid grid-cols-[120px_1fr_110px] md:grid-cols-[180px_1fr_140px] items-center gap-4 py-3 border-t border-border first:border-t-0"
