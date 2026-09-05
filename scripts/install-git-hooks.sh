@@ -9,7 +9,10 @@ ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
 HOOKDIR="$(git config core.hooksPath 2>/dev/null || true)"
-[ -z "$HOOKDIR" ] && HOOKDIR=".git/hooks"
+# In a linked worktree `.git` is a file, not a directory, so `.git/hooks` does
+# not exist. `git rev-parse --git-path hooks` resolves the real hooks directory
+# in both layouts.
+[ -z "$HOOKDIR" ] && HOOKDIR="$(git rev-parse --git-path hooks)"
 case "$HOOKDIR" in /*) ;; *) HOOKDIR="$ROOT/$HOOKDIR";; esac
 mkdir -p "$HOOKDIR"
 HOOK="$HOOKDIR/pre-commit"

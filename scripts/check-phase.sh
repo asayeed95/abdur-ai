@@ -27,11 +27,22 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT" || exit 0
 
 HARD=0
+LOCKS_ONLY=0
+RANGE=""
+prev=""
 for arg in "$@"; do
+  case "$prev" in --range) RANGE="$arg" ;; esac
   case "$arg" in
     --hard) HARD=1 ;;
+    --locks-only) LOCKS_ONLY=1 ;;
   esac
+  prev="$arg"
 done
+# --range <base>...<head>: judge the locks over that diff instead of the index.
+# This is what CI runs over a PR, so a lock is enforced on what actually merges,
+# not only on what one developer happened to stage. An override only counts if
+# it is ADDED inside the same range — a historical entry does not clear a new
+# change to a locked file.
 
 FAILS=0
 pass()  { printf "  \033[32m✓\033[0m %s\n" "$1"; }
@@ -47,13 +58,19 @@ OVERRIDES="docs/superpowers/specs/overrides.md"
 # The override must be IN THE COMMIT, so read the staged (index) copy, not the
 # working tree — an override typed into the file but left unstaged would
 # otherwise clear the gate and then not ship.
-OVERRIDES_STAGED="$(git show ":$OVERRIDES" 2>/dev/null || true)"
+if [ -n "$RANGE" ]; then
+  OVERRIDES_STAGED="$(git diff "$RANGE" -- "$OVERRIDES" 2>/dev/null | grep -E '^\+' | grep -vE '^\+\+\+' | sed 's/^+//' || true)"
+  changed_in_range() { git diff --name-only "$RANGE" 2>/dev/null; }
+else
+  OVERRIDES_STAGED="$(git show ":$OVERRIDES" 2>/dev/null || true)"
+  changed_in_range() { git diff --cached --name-only 2>/dev/null; }
+fi
 TMPD="$(mktemp -d "${TMPDIR:-/tmp}/bd-gate.XXXXXX")"
 
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   STAGED_HITS=""
   for f in $LOCKED_FILES; do
-    git diff --cached --name-only 2>/dev/null | grep -qx "$f" && STAGED_HITS="$STAGED_HITS $f"
+    changed_in_range | grep -qx "$f" && STAGED_HITS="$STAGED_HITS $f"
   done
   UNSTAGED_HITS=""
   for f in $LOCKED_FILES; do
@@ -87,7 +104,7 @@ fi
 echo "==> [NEVER-SKIP] Content publish lock (content/posts/*.mdx outside _drafts/)"
 
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  STAGED_PUBLISHED=$(git diff --cached --name-only 2>/dev/null | grep -E '^content/posts/[^/]+\.mdx$' || true)
+  STAGED_PUBLISHED=$(changed_in_range | grep -E '^content/posts/[^/]+\.mdx$' || true)
 
   if [ -n "$STAGED_PUBLISHED" ]; then
     UNCOVERED=""
@@ -108,6 +125,12 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   fi
 else
   warn "not inside a git work tree — skipping content publish lock check"
+fi
+
+if [ "$LOCKS_ONLY" -eq 1 ]; then
+  echo
+  if [ "$FAILS" -gt 0 ]; then echo "==> $FAILS lock failure(s)."; [ "$HARD" -eq 1 ] && exit 1; else echo "==> Locks green."; fi
+  exit 0
 fi
 
 # ---------- Public claims ----------

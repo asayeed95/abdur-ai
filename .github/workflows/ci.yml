@@ -19,11 +19,23 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+          fetch-depth: 0 # the lock step diffs against the base branch
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Design-token + content-publish locks over the PR diff
+        # Step-level, not job-level — the required check must never be able to
+        # skip itself (see the 29-review-rounds post). On push there is no PR
+        # base, so the merge commit is judged against its first parent.
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            RANGE="origin/${{ github.base_ref }}...HEAD"
+          else
+            RANGE="HEAD^1...HEAD"
+          fi
+          ./scripts/check-phase.sh --hard --locks-only --range "$RANGE"
       - run: npm run typecheck
       - name: Validate public claims
         run: python3 scripts/check-public-claims.py
