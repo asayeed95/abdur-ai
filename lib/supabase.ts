@@ -18,9 +18,17 @@
 const BASE = () => process.env.NEXT_PUBLIC_SUPABASE_URL;
 const KEY = () => process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Warn once per process: the homepage readers call configured() on every
+// request during the seed-fallback period, and a per-request warning would
+// flood production logs while saying nothing new.
+let warnedUnconfigured = false;
+
 function configured(): boolean {
   if (!BASE() || !KEY()) {
-    console.warn("[supabase] missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY — using fallback");
+    if (!warnedUnconfigured) {
+      warnedUnconfigured = true;
+      console.warn("[supabase] missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY — using fallback");
+    }
     return false;
   }
   return true;
@@ -100,7 +108,9 @@ export async function upsertNowState(agents: NowAgent[]): Promise<void> {
   const res = await postgrest("/now_state", {
     method: "POST",
     headers: { Prefer: "resolution=merge-duplicates" },
-    body: JSON.stringify({ profile_id: "abdur", agents }),
+    // Set explicitly: with merge-duplicates the column default only fires on
+    // the first insert, so a later ingest would keep the original timestamp.
+    body: JSON.stringify({ profile_id: "abdur", agents, updated_at: new Date().toISOString() }),
     cache: "no-store",
   });
   if (!res.ok) {
