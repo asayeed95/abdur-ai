@@ -11,3 +11,15 @@
 - Verified: service-role `GET /rest/v1/now_state?select=*` and `.../ship_log?select=*` both
   return 200 with `[]`; bogus-key requests return 401. Key material lives in doppler
   (`asec-production/prd`); do not commit it here.
+
+## Preview-env posture (Vercel)
+
+`NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set on the Vercel project's
+**preview** environment (added 2026-09-04 for W-1 preview verification, left in place).
+This is acceptable **only because** the project enforces Vercel Authentication
+(`ssoProtection: all_except_custom_domains`): previews are not public, so the service-role
+key — which bypasses RLS entirely — is reachable only behind SSO. If SSO protection is ever
+disabled, or a long-lived protection-bypass token is issued, this posture must be
+re-evaluated: a preview deployment would then expose a working RLS-bypass credential to
+anyone who can reach the preview URL. Bypass tokens used for automated verification must be
+revoked after use (the W-1 verification token was).
