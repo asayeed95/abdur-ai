@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NAV, SITE } from "@/lib/site";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -37,24 +38,35 @@ export function Nav() {
         </Link>
 
         <ul className="hidden md:flex items-center gap-7">
-          {NAV.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className="font-mono text-[11px] tracking-widest uppercase text-muted hover:text-text transition-colors"
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
+          {NAV.map((item) => {
+            // Only route links can be "current" — the homepage anchors (/#log,
+            // /#tools) are all the same page and would all light up at once.
+            const current = item.href.startsWith("/") && !item.href.includes("#") && pathname === item.href;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={current ? "page" : undefined}
+                  className={`font-mono text-[11px] tracking-widest uppercase transition-colors ${
+                    current ? "text-clay" : "text-muted hover:text-text"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
 
-        <Link
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Link
           href={pathname === "/" ? "#subscribe" : "/subscribe"}
           className="font-mono text-[11px] tracking-widest uppercase text-clay border border-clay/40 hover:border-clay px-3 py-1.5 rounded-sm transition-colors"
         >
           Subscribe
         </Link>
+        </div>
       </div>
     </nav>
   );

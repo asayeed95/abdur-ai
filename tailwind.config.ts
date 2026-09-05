@@ -9,21 +9,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Clay edition palette — locked from the design bundle
-        bg: "#0B0A08",
-        "bg-2": "#0E0C0A",
-        surface: "#161310",
-        "surface-2": "#1C1813",
-        border: "#2C2620",
-        "border-2": "#4A3D26",
-        text: "#F2EDE6",
-        "text-soft": "#C9C0B2",
-        muted: "#948B7D",
-        "muted-2": "#7E766A",
-        "muted-3": "#7A7264",
-        "muted-4": "#6A6256",
-        clay: "#D97757",
-        gold: "#F5C451",
+        // Clay edition palette — locked from the design bundle.
+        // Channel values live in app/globals.css (:root and
+        // :root[data-theme="light"]). The `<alpha-value>` placeholder keeps
+        // opacity utilities working: border-clay/40 -> rgb(var(--c-clay) / 0.4).
+        bg: "rgb(var(--c-bg) / <alpha-value>)",
+        "bg-2": "rgb(var(--c-bg-2) / <alpha-value>)",
+        surface: "rgb(var(--c-surface) / <alpha-value>)",
+        "surface-2": "rgb(var(--c-surface-2) / <alpha-value>)",
+        border: "rgb(var(--c-border) / <alpha-value>)",
+        "border-2": "rgb(var(--c-border-2) / <alpha-value>)",
+        text: "rgb(var(--c-text) / <alpha-value>)",
+        "text-soft": "rgb(var(--c-text-soft) / <alpha-value>)",
+        muted: "rgb(var(--c-muted) / <alpha-value>)",
+        "muted-2": "rgb(var(--c-muted-2) / <alpha-value>)",
+        "muted-3": "rgb(var(--c-muted-3) / <alpha-value>)",
+        "muted-4": "rgb(var(--c-muted-4) / <alpha-value>)",
+        clay: "rgb(var(--c-clay) / <alpha-value>)",
+        gold: "rgb(var(--c-gold) / <alpha-value>)",
+        // Semantic status colours are theme-independent.
         good: "#6FCF97",
         "good-2": "#7FB88A",
         "good-3": "#26352B",

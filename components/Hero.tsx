@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE } from "@/lib/site";
+import { postPath } from "@/lib/posts";
 
 export function Hero() {
   return (
@@ -47,7 +48,7 @@ export function Hero() {
 
       <div className="mt-10 flex flex-wrap gap-3">
         <Link
-          href="/aitldr/the-night-the-doctrine-failed"
+          href={postPath("the-night-the-doctrine-failed")}
           className="font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
         >
           Read the flagship postmortem →
