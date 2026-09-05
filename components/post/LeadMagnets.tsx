@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { trackEvent, attributionProps } from "@/lib/analytics";
+import { type AnalyticsEventName, trackEvent, attributionProps } from "@/lib/analytics";
 
 /**
  * In-post CTAs. Each is a self-contained block that can be embedded
@@ -12,7 +12,7 @@ import { trackEvent, attributionProps } from "@/lib/analytics";
  * Analytics) — see README "Analytics" for the event catalog.
  */
 
-function track(name: string) {
+function track(name: AnalyticsEventName) {
   trackEvent(name);
 }
 
@@ -51,6 +51,7 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
 export function AsecWaitlistCTA() {
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
   async function submit(e: React.FormEvent) {
@@ -60,6 +61,8 @@ export function AsecWaitlistCTA() {
       setErr("That doesn't look like an email.");
       return;
     }
+    if (busy) return;
+    setBusy(true);
     track("cta:asec:from-post");
     try {
       const res = await fetch("/api/subscribe", {
@@ -75,6 +78,8 @@ export function AsecWaitlistCTA() {
       trackEvent("subscribe:asec-waitlist", attributionProps());
     } catch {
       setErr("Something broke. Try again.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -109,6 +114,8 @@ export function AsecWaitlistCTA() {
           />
           <button
             type="submit"
+            disabled={busy}
+            aria-busy={busy}
             className="font-mono text-xs tracking-widest uppercase text-text border border-border hover:border-clay px-4 py-3 rounded-sm"
           >
             Join the ASEC waitlist →

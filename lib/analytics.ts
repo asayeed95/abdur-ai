@@ -9,7 +9,21 @@ import { track } from "@vercel/analytics";
  * names and props go to the analytics dashboard. Coarse strings only
  * (e.g. which CTA, which surface), never user input.
  */
-export function trackEvent(name: string, props?: Record<string, string>) {
+/**
+ * The catalog. A name not in this list is a type error, so a misspelled or
+ * removed event cannot compile and quietly create an untracked variant.
+ * Add here first, then at the call site; README "Event catalog" mirrors it.
+ */
+export const ANALYTICS_EVENTS = [
+  "cta:northsun:from-post",
+  "cta:asec:from-post",
+  "cta:newsletter:from-post",
+  "subscribe:tldr",
+  "subscribe:asec-waitlist",
+] as const;
+export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number];
+
+export function trackEvent(name: AnalyticsEventName, props?: Record<string, string>) {
   track(name, props);
 }
 

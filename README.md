@@ -72,7 +72,14 @@ same-origin proxy is blocked far less often.
 counts systematically under-report adblock users. Treat numbers as
 directional, not absolute.
 
-Event catalog (all fired via `trackEvent` in `lib/analytics.ts`).
+**Plan requirement:** pageviews record on every Vercel plan, but **custom
+events (everything in the catalog below) require Pro or higher**. On Hobby the
+`track()` calls are accepted and silently dropped — the dashboard shows
+pageviews and nothing else, which reads as "no conversions" rather than "not
+recorded". Confirm the team plan before treating an empty Events view as data.
+
+Event catalog (all fired via `trackEvent` in `lib/analytics.ts`; the list is
+the `ANALYTICS_EVENTS` const — a name outside it is a type error).
 **Provisional — pending GMP analytics stage ownership (AGE-1548).**
 
 | Event | Meaning | Where |
