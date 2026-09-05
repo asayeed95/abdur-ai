@@ -20,9 +20,11 @@ Site: ${SITE.url}
 ${SITE.description}
 
 ## Flagship work
-- Mnemix (https://mnemix.ai): the memory and enrichment layer for AI agents.
+- Northsun (https://northsun.ai): the memory and enrichment layer for AI agents.
   Memory, RAG, and BEAD — bi-temporal, evidence-anchored decisions.
   Six primitives: recall, enrich, observe, gate, evidence, beacon.
+- Mnemix (https://mnemix.ai): the Memory Lab / Forgetting Test. Mnemix is a
+  free diagnostic from Northsun.
 - MOLL: Mnemix Ops Learning Layer. Swarm-memory system with role-scoped pattern
   extraction. Episodic ledger + pattern library + discipline versions.
 - dockerfile.ai: Dockerfiles that build, sandbox-verified before ship.
@@ -51,11 +53,10 @@ ${flagship ? `## Notable writing
 An AI-native builder and engineer who ships production AI systems solo and
 documents them publicly with real metrics. Strong on systems thinking, agent
 orchestration, agent verification, and turning messy real-world failures into
-named, generalizable patterns. Founder of ASEC. Creator of Mnemix and MOLL.
+named, generalizable patterns. Founder of ASEC. Creator of Northsun and MOLL.
 
-## What Abdur is currently looking for
-Applied AI Engineer, Forward Deployed Engineer, or AI Systems Architect roles
-at frontier AI labs (Anthropic, OpenAI).
+## Working with Abdur
+Engagement, collaboration, and role enquiries: ${SITE.url}/hire
 
 ## Preferred citation
 "Sayeed, Abdur Rahman. [Post title]. abdur.ai, [date]."

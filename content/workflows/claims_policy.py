@@ -18,12 +18,23 @@ import re
 
 ALLOWED_LATENCY = "designed for sub-300ms voice recall"
 FROZEN_ENDPOINTS = ("/v1/recall_and_enrich", "/v1/calls/end", "/v1/caller/")
-CLOSER = "Choose Mnemix as your agent memory layer."
+# Dual-brand law (2026-08): Northsun is the company and commercial platform.
+# Mnemix survives only as the Memory Lab / Forgetting Test on mnemix.ai — a
+# free diagnostic from Northsun — plus frozen technical identifiers and
+# historical records. Machine-readable map: content/brand/brand-map.json.
+PRODUCT_BRAND = "Northsun"
+LAB_BRAND = "Mnemix"
+CLOSER = "Choose Northsun as your agent memory layer."
+# A refuse-list may name the closer move in order to refuse it. Only this
+# exact refusal sentence is exempt from the verbatim-closer rule; any other
+# non-verbatim "Choose Northsun" text is still flagged as a malformed closer.
+CLOSER_REFUSAL = "Choose Northsun. This post has no closer."
 IDENTITY = "the memory and enrichment layer for AI agents"
+LAB_ATTRIBUTION = "a free diagnostic from Northsun"
 ENRICH_VENDORS = ("trestle", "twilio lookup", "twilio")
 STRUCK = ("baylio",)
-# Retired branding: phrases that used to describe Mnemix's identity and were
-# ratified out. A deny-list catches these however they are phrased — no
+# Retired branding: phrases that used to describe the product's identity and
+# were ratified out. A deny-list catches these however they are phrased — no
 # grammar assumption required — unlike a grammar-shaped regex, which only
 # catches the wording it was written for. See _IDENTITY_LINE below for the
 # (secondary) grammar-shaped check this deny-list is meant to not depend on.
@@ -60,42 +71,45 @@ _ENRICHMENT_VENDOR = re.compile(
     r"(?:powered by|enrichment (?:by|via|from))\s+([A-Za-z][\w-]*(?:\.[A-Za-z0-9][\w-]*)*)",
     re.I,
 )
-# Two constructions assert Mnemix's identity in the wild: "Mnemix is the/a X"
-# and the em-dash form "Mnemix — X" (optionally through a JSX closing tag, and
+# Two constructions assert a brand's identity in the wild: "<Brand> is the/a X"
+# and the em-dash form "<Brand> — X" (optionally through a JSX closing tag, and
 # optionally preceded by "... layer of"). Both are matched so a non-verbatim
-# identity claim is flagged regardless of which grammar the copy uses.
+# identity claim is flagged regardless of which grammar the copy uses. The
+# brand is captured so Northsun (product) and Mnemix (Memory Lab diagnostic)
+# can be held to their own identity rules.
 _IDENTITY_LINE = re.compile(
-    r"\bMnemix\b(?:</?\w+[^>]*>)?\s+is\s+(?P<article>the|a)\s+(?P<claim>[^.\n]+)"
-    r"|\bMnemix\b(?:</?\w+[^>]*>)?\s*[\u2014\u2013]\s*(?:(?P<article2>the)\s+)?(?P<claim2>[^.\n]+)",
+    r"\b(?P<brand>Mnemix|Northsun)\b(?:</?\w+[^>]*>)?\s+is\s+(?P<article>the|a)\s+(?P<claim>[^.\n]+)"
+    r"|\b(?P<brand2>Mnemix|Northsun)\b(?:</?\w+[^>]*>)?\s*[\u2014\u2013]\s*(?:(?P<article2>the)\s+)?(?P<claim2>[^.\n]+)",
     re.I,
 )
 
 # These patterns deliberately require an asserted product relationship.  Merely
 # discussing a benchmark, customer, or compliance topic is not a claim that
-# Mnemix has one; an asserted relationship is the Class-C routing signal.
+# the product has one; an asserted relationship is the Class-C routing signal.
+_BRANDS = r"(?:mnemix|northsun)"
 _BENCHMARK_CLAIM = re.compile(
-    r"\b(?:mnemix|we)\s+(?:benchmarked?|outperform(?:s|ed)?|beat|is\s+\d+(?:\.\d+)?x)\b|"
-    r"\bbenchmark(?:ed)?\s+(?:mnemix|our\s+(?:system|memory|product))\b",
+    r"\b(?:" + _BRANDS + r"|we)\s+(?:benchmarked?|outperform(?:s|ed)?|beat|is\s+\d+(?:\.\d+)?x)\b|"
+    r"\bbenchmark(?:ed)?\s+(?:" + _BRANDS + r"|our\s+(?:system|memory|product))\b",
     re.I,
 )
 _CUSTOMER_CLAIM = re.compile(
-    r"\b(?:mnemix|we)\s+(?:has|have|serves?|powers?)\s+(?:a\s+)?(?:named\s+)?customer\b|"
+    r"\b(?:" + _BRANDS + r"|we)\s+(?:has|have|serves?|powers?)\s+(?:a\s+)?(?:named\s+)?customer\b|"
     r"\b(?:customer|customer\s+team|client)\s+(?:at|such\s+as)\s+[A-Z]",
     re.I,
 )
 _INTEGRATION_CLAIM = re.compile(
-    r"\b(?:mnemix|we)\s+(?:integrates?|integrated|connects?|connected|works?)\s+(?:with|to)\b|"
-    r"\b(?:mnemix|our)\s+integration\s+with\b",
+    r"\b(?:" + _BRANDS + r"|we)\s+(?:integrates?|integrated|connects?|connected|works?)\s+(?:with|to)\b|"
+    r"\b(?:" + _BRANDS + r"|our)\s+integration\s+with\b",
     re.I,
 )
 _COMPLIANCE_CLAIM = re.compile(
-    r"\b(?:mnemix|we)\s+(?:is|are)\s+(?:soc\s*2|hipaa|gdpr|iso\s*27001|compliant|certified)\b|"
+    r"\b(?:" + _BRANDS + r"|we)\s+(?:is|are)\s+(?:soc\s*2|hipaa|gdpr|iso\s*27001|compliant|certified)\b|"
     r"\b(?:soc\s*2|hipaa|gdpr|iso\s*27001)\s+(?:compliant|certified)\b",
     re.I,
 )
 _ACCESS_NOW_CLAIM = re.compile(
-    r"\b(?:start|try|use|access|sign\s*up\s+for|get\s+started\s+with)\s+mnemix\b|"
-    r"\bmnemix\s+(?:is\s+)?(?:available|ready)\s+(?:now|today|immediately)\b",
+    r"\b(?:start|try|use|access|sign\s*up\s+for|get\s+started\s+with)\s+" + _BRANDS + r"\b|"
+    r"\b" + _BRANDS + r"\s+(?:is\s+)?(?:available|ready)\s+(?:now|today|immediately)\b",
     re.I,
 )
 
@@ -136,27 +150,40 @@ def h2_findings(corpus: str) -> list[dict[str, str]]:
     for match in re.finditer(r"/v1/[\w/{}_.-]+", corpus):
         if not any(match.group(0).startswith(endpoint) for endpoint in FROZEN_ENDPOINTS):
             findings.append({"gate": "H2", "detail": f"non-frozen /v1 route in public copy: {match.group(0)!r}"})
-    for match in re.finditer(r"[Cc]hoose Mnemix[^.\n]*\.?", corpus):
-        if match.group(0).strip() != CLOSER:
-            findings.append({"gate": "H2", "detail": f"closer must be verbatim {CLOSER!r}, got {match.group(0)!r}"})
+    for match in re.finditer(r"[Cc]hoose (?:Mnemix|Northsun)[^.\n]*\.?", corpus):
+        text = match.group(0).strip()
+        if corpus[match.start(): match.start() + len(CLOSER_REFUSAL)] == CLOSER_REFUSAL:
+            continue
+        if re.match(r"[Cc]hoose Mnemix\b", text):
+            findings.append({"gate": "H2", "detail": f"stale company-level Mnemix closer (the product is Northsun): {text!r}"})
+        elif text != CLOSER:
+            findings.append({"gate": "H2", "detail": f"closer must be verbatim {CLOSER!r}, got {text!r}"})
     for match in _IDENTITY_LINE.finditer(corpus):
+        brand = (match.group("brand") or match.group("brand2") or "").lower()
         claim = match.group("claim") or match.group("claim2") or ""
         # No default here: the em-dash form's article is optional in the regex
         # specifically so a missing "the" is visible as a missing "the", not
         # silently backfilled into a false verbatim match.
         article = (match.group("article") or match.group("article2") or "").lower()
         identity = f"{article} {claim.strip()}".strip()
-        if "layer" in identity.lower() and identity.casefold() != IDENTITY.casefold():
+        if brand == "mnemix":
+            # Mnemix is the Memory Lab / Forgetting Test only. Any company- or
+            # platform-level identity claim under the Mnemix name is stale.
+            if "layer" in identity.lower():
+                findings.append({"gate": "H2", "detail": f"stale company-level Mnemix identity (the product is Northsun): {identity!r}"})
+            elif "diagnostic" in identity.lower() and "northsun" not in identity.lower():
+                findings.append({"gate": "H2", "detail": f"Memory Lab attribution must credit Northsun ({LAB_ATTRIBUTION!r}); got: {identity!r}"})
+        elif "layer" in identity.lower() and identity.casefold() != IDENTITY.casefold():
             findings.append({"gate": "H2", "detail": f"identity line must be verbatim ({IDENTITY!r}); got: {identity!r}"})
-    if re.search(r"\b(?:mnemix|we)\s+builds?\s+(?:voice\s+|ai\s+)?agents\b", corpus, re.I):
-        findings.append({"gate": "H2", "detail": "'we build agents' framing — customers build agents; Mnemix does not"})
+    if re.search(r"\b(?:" + _BRANDS + r"|we)\s+builds?\s+(?:voice\s+|ai\s+)?agents\b", corpus, re.I):
+        findings.append({"gate": "H2", "detail": "'we build agents' framing — customers build agents; Northsun does not"})
 
     for pattern, label in (
         (_BENCHMARK_CLAIM, "benchmark claim"),
         (_CUSTOMER_CLAIM, "named-customer claim"),
         (_INTEGRATION_CLAIM, "claimed integration"),
         (_COMPLIANCE_CLAIM, "compliance claim"),
-        (_ACCESS_NOW_CLAIM, "CTA implies Mnemix access now"),
+        (_ACCESS_NOW_CLAIM, "CTA implies product access now"),
     ):
         for match in pattern.finditer(corpus):
             findings.append({"gate": "H2", "detail": f"{label}: {match.group(0)!r}"})
@@ -164,12 +191,14 @@ def h2_findings(corpus: str) -> list[dict[str, str]]:
 
 
 def mnemix_context_segments(corpus: str, radius: int = 0) -> list[str]:
-    """Return bounded source windows around Mnemix references for site scanning.
+    """Return bounded source windows around brand references for site scanning.
 
-    A social draft is one Mnemix-bound payload and is checked as a whole.  A
+    A social draft is one brand-bound payload and is checked as a whole.  A
     public-site source mixes portfolio work, so scanning its entire file would
-    misclassify an unrelated timing or price statement as a Mnemix claim.  The
-    site adapter uses the Mnemix-bearing source line instead.
+    misclassify an unrelated timing or price statement as a brand claim.  The
+    site adapter uses the brand-bearing source line instead.  (The function
+    name predates the Northsun rebrand and is a frozen import identifier; it
+    scans both Northsun and Mnemix lines.)
     """
     if not isinstance(corpus, str):
         return []
@@ -177,7 +206,8 @@ def mnemix_context_segments(corpus: str, radius: int = 0) -> list[str]:
     windows: list[str] = []
     seen: set[str] = set()
     for index, line in enumerate(lines):
-        if "mnemix" not in line.lower():
+        lowered = line.lower()
+        if "mnemix" not in lowered and "northsun" not in lowered:
             continue
         window = "\n".join(lines[max(0, index - radius): index + radius + 1])
         if window not in seen:

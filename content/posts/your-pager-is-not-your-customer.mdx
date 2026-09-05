@@ -1,0 +1,66 @@
+---
+slug: your-pager-is-not-your-customer
+title: "Your pager is not your customer"
+description: "A production health cron aborted around 100ms while the documented slow-warn was 2000ms. First seen 2026-08-12. Still firing in a 2026-08-22 check. Customer impact unknown. Recovery not claimed."
+dek: "A synthetic check that fatals inside its own warn budget will page for days without proving anyone is hurt. Keep signal, diagnosis, mitigation, and recovery as four evidence states."
+date: 2026-08-22T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "SRE"
+flagship: false
+pinned: false
+featured: false
+reading_time: 2
+word_count: 421
+tags:
+  - sre
+  - incidents
+  - verification
+  - agents
+citation_preferred: "Sayeed, Abdur Rahman. 'Your pager is not your customer.' abdur.ai, 22 August 2026."
+related:
+  - the-night-the-doctrine-failed
+  - who-owns-the-architecture-when-ai-writes-the-code
+---
+
+On-call systems reward activity. A check that fatals on about a 60-second sample looks like diligence. It can also be a category error.
+
+Sentry first saw a production synthetic health cron fatal-timing out on a Redis ping at 2026-08-12T17:08:08.393Z. That is first-seen, not a proven start-of-failure. A Sentinel packet collected on 2026-08-22T05:54Z–06:00Z (1:54–2:00 AM ET) still saw it firing, sampled about once a minute in that window. The documented slow-warn in that check is 2000ms. The abort that actually kills the probe is about 100ms. The ticket opened as P0 and sat in a backlog after the first hour.
+
+We do not have proof a user felt it. So this is not an outage post. Recovery is not claimed. A later independent probe has not been run.
+
+That is the useful part.
+
+## The trap
+
+You write a slow-warn budget you believe in. A lower-level client cancels much sooner. The sampled cron fatals. The graph is honest about the abort and silent about the customer.
+
+If abort is tighter than warn, the page is about your client policy, not customer impact, until you prove otherwise.
+
+## Four evidence states
+
+![Four evidence states: signal, diagnosis, mitigation, recovery; abort 100ms vs warn 2000ms.](/blog/your-pager-is-not-your-customer/four-evidence-states-variant-b.svg)
+
+I want these on the incident template, not in a slide deck after the fact.
+
+1. **Signal.** A detector fired, with a time and an identity. That is a fact about a check.
+2. **Diagnosis.** A causal story that can be wrong.
+3. **Mitigation.** You reduced harm or noise without claiming the world is fixed. Muting a cron is mitigation. It is not recovery.
+4. **Recovery.** A second independent probe, later, that would have failed during the incident. The absence of the original exception is not this box.
+
+Quiet Slack is not box 4.
+
+## What I refuse to say from this packet
+
+- Users are down. (Unproven.)
+- We recovered. (No second probe.)
+- This is a customer-facing SEV because Sentry was loud.
+- A P0 label from an auto-opened ticket is accepted severity.
+- The cron “started” on 12 August. (That date is first-seen.)
+
+The lesson is proposed, not a ratified architecture decision: a synthetic health check that fatals on a tighter timeout than its own slow-warn budget will page for days without proving customer impact. Recovery must be a second independent probe.
+
+## What to do Monday
+
+Print the abort timeout next to the warn budget in the same file. If they disagree, write severity as `unknown` until a user-path probe exists that does not share that abort.
+
+The homework is the check in *your* repo. Not a waitlist.

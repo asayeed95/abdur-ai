@@ -17,7 +17,8 @@ knowledge_base:
   linked_repositories:
     - repository: "asayeed95/mnemix"
       instructions: >-
-        Use Mnemix only to verify canonical identity, capability, availability,
+        Repo slug is a frozen legacy identifier; the product is Northsun. Use
+        this repo only to verify canonical identity, capability, availability,
         and public-claim boundaries referenced by abdur.ai content.
   code_guidelines:
     enabled: true
@@ -45,13 +46,16 @@ reviews:
   path_instructions:
     - path: "app/**"
       instructions: >-
-        Block client-secret exposure, unavailable calls to action, and Mnemix
+        Block client-secret exposure, unavailable calls to action, and Northsun
         availability claims without a verified access path.
     - path: "content/**"
       instructions: >-
         Block invented customers, benchmarks, latency, pricing, integrations,
-        compliance, or historical attribution. Mnemix is the memory and
-        enrichment layer for AI agents; customers build agents, not Mnemix.
+        compliance, or historical attribution. Northsun is the memory and
+        enrichment layer for AI agents; customers build agents, not Northsun.
+        Mnemix is only the free Memory Lab / Forgetting Test diagnostic from
+        Northsun; company-level Mnemix branding is stale
+        (content/brand/brand-map.json).
     - path: "content/workflows/**"
       instructions: >-
         Outward-facing automation needs source attribution, consent, caps, quiet

@@ -27,4 +27,8 @@ jobs:
       - run: npm run typecheck
       - name: Validate public claims
         run: python3 scripts/check-public-claims.py
+      - name: Brand regression check (Northsun / Mnemix dual-brand law)
+        run: python3 scripts/check-brand.py
+      - name: Check OG share cards
+        run: npm run check:og
       - run: npm run build

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="og-number-title og-number-desc">
+  <title id="og-number-title">The number is not the person</title>
+  <desc id="og-number-desc">Phone-key persist. A number is a channel, not a principal. No vendor-as-customer claim.</desc>
+  <rect width="1200" height="630" fill="#0B0A08"/>
+  <rect x="24" y="24" width="1152" height="582" fill="none" stroke="#2C2620" stroke-width="1"/>
+  <rect x="24" y="24" width="8" height="582" fill="#D97757"/>
+  <text x="72" y="82" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" letter-spacing="3" fill="#D97757">TLDR</text>
+  <text x="72" y="154" font-family="'Playfair Display', 'Noto Serif', Georgia, serif" font-size="56" font-weight="700" fill="#F2EDE6">The number is not</text>
+  <text x="72" y="222" font-family="'Playfair Display', 'Noto Serif', Georgia, serif" font-size="56" font-style="italic" fill="#F2EDE6">the person</text>
+  <rect x="72" y="248" width="60" height="3" fill="#D97757"/>
+  <text x="72" y="312" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="22" fill="#D97757">phone-key persist</text>
+  <text x="72" y="360" font-family="Inter, ui-sans-serif, sans-serif" font-size="26" fill="#C9C0B2">A channel is not a principal.</text>
+  <text x="72" y="440" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="28" font-weight="700" fill="#948B7D">NUMBER</text>
+  <text x="72" y="500" font-family="'Playfair Display', 'Noto Serif', Georgia, serif" font-size="48" fill="#D97757">`</text>
+  <text x="130" y="500" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="28" font-weight="700" fill="#F2EDE6">PERSON</text>
+  <!-- abstract keypad: hash marks, not a real ANI -->
+  <g fill="#161310" stroke="#2C2620" stroke-width="2">
+    <rect x="820" y="120" width="72" height="72" rx="10"/>
+    <rect x="906" y="120" width="72" height="72" rx="10"/>
+    <rect x="992" y="120" width="72" height="72" rx="10"/>
+    <rect x="820" y="206" width="72" height="72" rx="10"/>
+    <rect x="992" y="206" width="72" height="72" rx="10"/>
+    <rect x="820" y="292" width="72" height="72" rx="10"/>
+    <rect x="906" y="292" width="72" height="72" rx="10"/>
+    <rect x="992" y="292" width="72" height="72" rx="10"/>
+    <rect x="820" y="378" width="72" height="72" rx="10"/>
+    <rect x="906" y="378" width="72" height="72" rx="10"/>
+    <rect x="992" y="378" width="72" height="72" rx="10"/>
+  </g>
+  <rect x="906" y="206" width="72" height="72" rx="10" fill="#D97757" stroke="#D97757" stroke-width="2"/>
+  <g fill="#2C2620">
+    <rect x="844" y="154" width="24" height="4"/>
+    <rect x="930" y="154" width="24" height="4"/>
+    <rect x="1016" y="154" width="24" height="4"/>
+    <rect x="844" y="240" width="24" height="4"/>
+    <rect x="1016" y="240" width="24" height="4"/>
+    <rect x="844" y="326" width="24" height="4"/>
+    <rect x="930" y="326" width="24" height="4"/>
+    <rect x="1016" y="326" width="24" height="4"/>
+    <rect x="844" y="412" width="24" height="4"/>
+    <rect x="930" y="412" width="24" height="4"/>
+    <rect x="1016" y="412" width="24" height="4"/>
+  </g>
+  <rect x="930" y="240" width="24" height="4" fill="#0B0A08"/>
+  <text x="820" y="518" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="16" fill="#7A7264">KEY  =  CHANNEL</text>
+  <text x="72" y="588" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="20" fill="#7A7264">abdur.ai</text>
+  <text x="900" y="588" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" fill="#7A7264">NUMBER  `  PERSON</text>
+</svg>

@@ -10,6 +10,22 @@
 
 :root {
   color-scheme: dark;
+
+  /* ------------------------------------------------------------
+     AITLDR-LAYOUT-001 demo tokens — UNLOCKED, not part of the Clay
+     design lock. Tune freely; Revenue owns reader accept. Other
+     pages may inherit these instead of hard-coding max-w-* widths.
+     ------------------------------------------------------------ */
+  /* Fluid article measure: full width on small screens (~390px),
+     wider readable column on desktop than the old max-w-3xl. */
+  --aitldr-measure: min(100%, 92vw, 54rem);
+  /* Named title→date gap so the pair can't collapse into the title. */
+  --aitldr-title-to-date: 2.5rem;
+  /* Magazine dateline: larger optical size + a little tracking. */
+  --aitldr-date-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  --aitldr-date-tracking: 0.025em;
+  /* In-post figure cap (maps the previous max-w-md). */
+  --aitldr-figure-max: 28rem;
 }
 
 html {
@@ -44,6 +60,27 @@ body {
 [data-reveal].in {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ------------------------------------------------------------
+   AITLDR-LAYOUT-001 demo consumers (unlocked, see :root tokens)
+   ------------------------------------------------------------ */
+/* Shared article column — replaces hard-coded max-w-3xl. */
+.aitldr-measure {
+  width: 100%;
+  max-width: var(--aitldr-measure);
+  margin-inline: auto;
+}
+/* Editorial dateline: serif face, magazine sizing, owns the
+   title→date gap so title mb and date mt never fight. */
+.aitldr-dateline {
+  margin-top: var(--aitldr-title-to-date);
+  font-size: var(--aitldr-date-size);
+  letter-spacing: var(--aitldr-date-tracking);
+}
+/* In-post figure width cap (was max-w-md). */
+.aitldr-figure {
+  max-width: var(--aitldr-figure-max);
 }
 
 /* Editorial prose styling for /aitldr/[slug] post bodies */

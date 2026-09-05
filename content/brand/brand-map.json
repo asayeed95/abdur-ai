@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "updated": "2026-08-22",
+  "law": "Northsun is the company and commercial platform (product, API, SDKs, backend). Mnemix survives only as: the Memory Lab / Forgetting Test on mnemix.ai (a free diagnostic from Northsun), frozen legacy technical identifiers, and historical records. Frozen identifiers change only in a dedicated cutover, never a search-replace.",
+  "brands": {
+    "northsun": {
+      "category": "NORTHSUN_PRODUCT",
+      "name": "Northsun",
+      "url": "https://northsun.ai",
+      "identity": "the memory and enrichment layer for AI agents",
+      "closer": "Choose Northsun as your agent memory layer.",
+      "public_pricing": ["Hobby $0", "Contact sales"]
+    },
+    "mnemix": {
+      "category": "MNEMIX_MEMORY_LAB",
+      "name": "Mnemix",
+      "url": "https://mnemix.ai",
+      "scope": ["Memory Lab", "Forgetting Test"],
+      "attribution": "Mnemix is a free diagnostic from Northsun."
+    }
+  },
+  "categories": {
+    "NORTHSUN_PRODUCT": "Company, commercial platform, paid memory layer, product CTAs, current positioning, founder/company descriptions. Say Northsun.",
+    "MNEMIX_MEMORY_LAB": "The free diagnostic / Forgetting Test on mnemix.ai. Mnemix is preserved here, attributed as a free diagnostic from Northsun.",
+    "LEGACY_TECHNICAL_IDENTIFIER": "Repo slugs, package scopes, env vars, list ids, tags, subdomains, component/export names, analytics event names, acronym expansions. Preserved until a dedicated cutover.",
+    "HISTORICAL_EVIDENCE": "Dated posts, receipts, quotes, changelogs, ship-log entries, application documents, archives. Preserved as written; present-day clarifications may be added, never rewrites.",
+    "STALE_INTERNAL_DOCTRINE": "Internal instructions that conflict with the dual-brand law. Updated in place."
+  },
+  "stale_company_patterns": [
+    {
+      "id": "stale-closer",
+      "regex": "[Cc]hoose\\s+Mnemix\\b",
+      "reason": "The closer is 'Choose Northsun as your agent memory layer.'"
+    },
+    {
+      "id": "stale-identity",
+      "regex": "\\bMnemix\\b(?:</?\\w+[^>]*>)?\\s*(?:is\\s+the|[\\u2014\\u2013])\\s*(?:the\\s+)?memory and enrichment layer",
+      "reason": "The memory and enrichment layer for AI agents is Northsun; Mnemix is only the Memory Lab diagnostic."
+    },
+    {
+      "id": "stale-waitlist-cta",
+      "regex": "Join the Mnemix waitlist|Mnemix is in private beta|mnemix\\.ai/#waitlist",
+      "reason": "Product CTAs belong to Northsun (https://northsun.ai)."
+    },
+    {
+      "id": "stale-lead-magnet",
+      "regex": "[Ll]ead magnet for Mnemix",
+      "reason": "abdur.ai is a lead magnet for Northsun."
+    },
+    {
+      "id": "stale-spine",
+      "regex": "memory spine, Mnemix|Mnemix is the spine",
+      "reason": "The portfolio spine is Northsun."
+    }
+  ],
+  "stale_scan_exclude": [
+    ".git/",
+    "node_modules/",
+    ".next/",
+    "coverage/",
+    "package-lock.json",
+    "content/brand/",
+    "content/workflows/",
+    "scripts/check-brand.py",
+    "docs/archive/"
+  ],
+  "live_surface_paths": [
+    "app/",
+    "components/",
+    "lib/",
+    "public/",
+    "middleware.ts",
+    "package.json",
+    "README.md",
+    ".env.example"
+  ],
+  "allowed_mnemix_contexts": [
+    { "id": "env-var", "regex": "MNEMIX_[A-Z_]*|RESEND_AUDIENCE_MNEMIX", "category": "LEGACY_TECHNICAL_IDENTIFIER" },
+    { "id": "list-id", "regex": "mnemix-beta", "category": "LEGACY_TECHNICAL_IDENTIFIER" },
+    { "id": "npm-or-tap", "regex": "@mnemix-ai/|mnemix-ai/tap", "category": "LEGACY_TECHNICAL_IDENTIFIER" },
+    { "id": "repo-slug", "regex": "asayeed95/mnemix", "category": "LEGACY_TECHNICAL_IDENTIFIER" },
+    { "id": "component-id", "regex": "MnemixSection|MnemixCTA", "category": "LEGACY_TECHNICAL_IDENTIFIER" },
+    { "id": "analytics-event", "regex": "cta:mnemix:from-post", "category": "LEGACY_TECHNICAL_IDENTIFIER" },
+    { "id": "quoted-tag-or-subdomain", "regex": "\"mnemix\"", "category": "LEGACY_TECHNICAL_IDENTIFIER" },
+    { "id": "frontmatter-or-list-tag", "regex": "tags?:.*\\bmnemix\\b", "category": "LEGACY_TECHNICAL_IDENTIFIER" },
+    { "id": "moll-expansion", "regex": "Mnemix Ops Learning Layer", "category": "LEGACY_TECHNICAL_IDENTIFIER" },
+    { "id": "memory-lab", "regex": "Memory Lab|Forgetting Test|free diagnostic from Northsun", "category": "MNEMIX_MEMORY_LAB" }
+  ],
+  "required_public_truth": [
+    { "file": "lib/site.ts", "contains": "name: \"Northsun\"" },
+    { "file": "lib/site.ts", "contains": "https://northsun.ai" },
+    { "file": "components/MnemixSection.tsx", "contains": "Choose Northsun as your agent memory layer." },
+    { "file": "components/MnemixSection.tsx", "contains": "NorthsunWaitlistForm" },
+    { "file": "components/NorthsunWaitlistForm.tsx", "contains": "mnemix-beta" },
+    { "file": "components/post/LeadMagnets.tsx", "contains": "/#waitlist" },
+    { "file": "app/llms.txt/route.ts", "contains": "https://northsun.ai" },
+    { "file": "app/llms.txt/route.ts", "contains": "free diagnostic from Northsun" }
+  ],
+  "cta_policy": {
+    "note": "northsun.ai DNS is not live (verified 2026-08-22). Product CTAs must point at owned surfaces until the founder ratifies the domain: the /#waitlist form backed by /api/subscribe with the frozen mnemix-beta list. lib/site.ts flagship.url and llms.txt keep https://northsun.ai as the canonical product reference, not a CTA.",
+    "cta_href": "/#waitlist",
+    "backend_route": "/api/subscribe",
+    "list_id": "mnemix-beta"
+  },
+  "legacy_routes": [
+    {
+      "source": "/mnemix",
+      "destination": "/#projects",
+      "status": 301,
+      "reason": "Mnemix-era product path; the flagship (Northsun) section owns that intent. Route never existed in this repo (Sentinel 2026-08-22: 404)."
+    },
+    {
+      "source": "/blog/:slug((?!.*\\.(?:svg|png|jpg|jpeg|webp|gif|css|js|woff|woff2)$).*)",
+      "destination": "/aitldr",
+      "status": 301,
+      "reason": "Legacy /blog namespace (e.g. /blog/mnemix-vs-general-memory) never existed here; writing lives at /aitldr. No per-slug mapping is invented — everything lands on the index. Paths ending in a static-file extension are excluded so post assets in public/blog/<slug>/ serve bytes instead of 301ing to HTML."
+    }
+  ]
+}

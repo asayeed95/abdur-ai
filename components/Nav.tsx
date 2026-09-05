@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NAV, SITE } from "@/lib/site";
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -48,7 +50,7 @@ export function Nav() {
         </ul>
 
         <Link
-          href="#subscribe"
+          href={pathname === "/" ? "#subscribe" : "/subscribe"}
           className="font-mono text-[11px] tracking-widest uppercase text-clay border border-clay/40 hover:border-clay px-3 py-1.5 rounded-sm transition-colors"
         >
           Subscribe
