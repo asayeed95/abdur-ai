@@ -1,5 +1,11 @@
 "use client";
 
+/** The honeypot as actually submitted — a bot that fills the hidden field must trip the server check. */
+function honeypotValue(e: React.FormEvent): string {
+  const el = (e.currentTarget as HTMLFormElement).elements.namedItem("company");
+  return el instanceof HTMLInputElement ? el.value : "";
+}
+
 import { useState } from "react";
 import { trackEvent, attributionProps } from "@/lib/analytics";
 import { usePathname } from "next/navigation";
@@ -27,7 +33,7 @@ export function Subscribe() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, ...buildSubscribeFields(pathname ?? "/"), rendered_at: renderedAt, company: "" }),
+        body: JSON.stringify({ email, ...buildSubscribeFields(pathname ?? "/"), rendered_at: renderedAt, company: honeypotValue(e) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Subscribe failed");

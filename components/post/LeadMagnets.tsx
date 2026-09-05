@@ -1,5 +1,11 @@
 "use client";
 
+/** The honeypot as actually submitted — a bot that fills the hidden field must trip the server check. */
+function honeypotValue(e: React.FormEvent): string {
+  const el = (e.currentTarget as HTMLFormElement).elements.namedItem("company");
+  return el instanceof HTMLInputElement ? el.value : "";
+}
+
 import Link from "next/link";
 import { useState } from "react";
 import { type AnalyticsEventName, trackEvent, attributionProps } from "@/lib/analytics";
@@ -72,7 +78,7 @@ export function AsecWaitlistCTA() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, list: "asec-waitlist", ...buildSubscribeFields(pathname ?? "/"), rendered_at: renderedAt, company: "" }),
+        body: JSON.stringify({ email, list: "asec-waitlist", ...buildSubscribeFields(pathname ?? "/"), rendered_at: renderedAt, company: honeypotValue(e) }),
       });
       if (!res.ok) {
         setErr("Something broke. Try again.");
@@ -107,8 +113,10 @@ export function AsecWaitlistCTA() {
           ✓ On the list. I&apos;ll email when ASEC opens.
         </p>
       ) : (
-        <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3">
+        <form onSubmit={submit} action="/api/subscribe" method="post" className="flex flex-col sm:flex-row gap-3">
+          <input type="hidden" name="list" value="asec-waitlist" />
           <input
+            name="email"
             type="email"
             placeholder="you@domain.com"
             value={email}

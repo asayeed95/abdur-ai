@@ -102,6 +102,10 @@ for (const [list, audienceId] of audiences) {
     totals.contacts++;
     let props = contact.properties;
     if (!props) {
+      if (!contact.email) {
+        console.error(`  ! contact without email in "${list}" — skipped`);
+        continue;
+      }
       try {
         const full = await resend(
           `/contacts/${encodeURIComponent(contact.email)}?audience_id=${audienceId}`,
