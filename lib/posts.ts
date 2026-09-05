@@ -2,13 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import { isRegister, REGISTER_SPEC, REGISTERS, type Register } from "./registers";
+import { POST_BASE } from "./site";
 
 /**
  * Canonical public base for a post. `/aitldr/<slug>` still serves the same
  * content, but every generated link, feed item, sitemap entry and JSON-LD
  * `@id` points here, so the duplicate surface never competes with this one.
  */
-export const POST_BASE = "/writing";
+export { POST_BASE };
 
 export function postPath(slug: string): string {
   return `${POST_BASE}/${slug}`;

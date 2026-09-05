@@ -1,4 +1,4 @@
-import { SITE } from "@/lib/site";
+import { POST_BASE, SITE } from "@/lib/site";
 
 /** Site-wide OG size (Twitter/Facebook large card). */
 export const OG_WIDTH = 1200;
@@ -112,7 +112,7 @@ export function monthYear(iso: string): string {
   return `${month} ${d.getUTCFullYear()}`;
 }
 
-/** encodeURIComponent but keep `/` so path=abdur.ai/aitldr/... matches the handoff URL. */
+/** encodeURIComponent but keep `/` so path=abdur.ai/writing/... matches the handoff URL. */
 function encodeOgValue(value: string): string {
   return encodeURIComponent(value).replace(/%2F/gi, "/");
 }
@@ -178,7 +178,7 @@ export function ogImageForPost(post: OgPostInput): OgImage {
     buildOgPath({
       title: post.title,
       excerpt,
-      path: `abdur.ai/aitldr/${post.slug}`,
+      path: `abdur.ai${POST_BASE}/${post.slug}`,
       kicker: OG_KICKER,
       tag: OG_TAG_POST,
       meta: monthYear(post.date),

@@ -106,7 +106,7 @@ export function PostArticle({
         />
       </div>
 
-      <nav className="max-w-prose mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
+      <nav aria-label="Previous and next post" className="max-w-prose mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
         {prev ? (
           <Link
             href={postPath(prev.slug)}

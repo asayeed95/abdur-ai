@@ -37,6 +37,13 @@ export const SITE = {
   },
 } as const;
 
+/**
+ * Canonical public base for a post. Lives here (not lib/posts.ts) so modules
+ * with no business importing node:fs — lib/og.ts, client components — can
+ * build post URLs without dragging the filesystem reader into their graph.
+ */
+export const POST_BASE = "/writing";
+
 export const NAV = [
   { href: "/writing", label: "Writing" },
   { href: "/#log", label: "Ship log" },

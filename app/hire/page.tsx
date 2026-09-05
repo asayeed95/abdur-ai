@@ -239,8 +239,8 @@ export default function HirePage() {
           <div className="w-[60px] h-0.5 bg-clay mt-8 mb-6" />
           <p className="max-w-[620px] text-base md:text-lg leading-relaxed text-muted text-pretty">
             Applied AI engineer · forward deployed · client delivery. I build agent systems and the
-            machinery that proves they work — deploy gates, evidence ledgers, rollback paths. Everything
-            below links to code you can read.
+            machinery that proves they work — deploy gates, evidence ledgers, rollback paths. Status labels
+            below are literal — shipped means shipped, and a prototype says so.
           </p>
           <p className="max-w-[620px] text-base md:text-lg leading-relaxed text-text-soft text-pretty mt-5">
             Drop me into a team whose agents work in the demo and break in production, and in week one the

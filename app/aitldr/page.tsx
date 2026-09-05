@@ -3,13 +3,14 @@ import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { getAllPosts, postPath } from "@/lib/posts";
+import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "AI TLDR — the logbook",
   description:
     "Short, evidence-anchored builder logs from Abdur Rahman Sayeed. Postmortems, architecture decisions, and the things you only learn by shipping AI solo.",
   // /writing is canonical; this index is retained for links already in the wild.
-  alternates: { canonical: "https://abdur.ai/writing" },
+  alternates: { canonical: `${SITE.url}/writing` },
 };
 
 export default function FeedPage() {

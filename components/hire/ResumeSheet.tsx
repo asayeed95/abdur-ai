@@ -214,7 +214,7 @@ export function ResumeSheet() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <p className={RULE}>/// Shipped systems</p>
+            <p className={RULE}>/// Selected systems</p>
             <div className="flex flex-col gap-3">
               {SHIPPED.map((s) => (
                 <div key={s.name} className="border border-[#E8DECC] rounded p-3">

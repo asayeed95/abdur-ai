@@ -70,14 +70,14 @@ const ROUTES = [
   },
   {
     id: "pager",
-    path: "/aitldr/your-pager-is-not-your-customer",
-    pageUrl: `${SITE}/aitldr/your-pager-is-not-your-customer`,
+    path: "/writing/your-pager-is-not-your-customer",
+    pageUrl: `${SITE}/writing/your-pager-is-not-your-customer`,
     type: "article",
     image: apiOg({
       title: "Your pager is not your customer",
       excerpt:
         "A production health cron aborted around 100ms while the documented slow-warn was 2000ms.",
-      path: "abdur.ai/aitldr/your-pager-is-not-your-customer",
+      path: "abdur.ai/writing/your-pager-is-not-your-customer",
       tag: "AI TLDR",
       meta: "AUG 2026",
     }),
@@ -85,14 +85,14 @@ const ROUTES = [
   },
   {
     id: "number",
-    path: "/aitldr/the-number-is-not-the-person",
-    pageUrl: `${SITE}/aitldr/the-number-is-not-the-person`,
+    path: "/writing/the-number-is-not-the-person",
+    pageUrl: `${SITE}/writing/the-number-is-not-the-person`,
     type: "article",
     image: apiOg({
       title: "The number is not the person",
       excerpt:
         "Voice agents that persist contact memory on the phone number will replay the last caller on a shared line.",
-      path: "abdur.ai/aitldr/the-number-is-not-the-person",
+      path: "abdur.ai/writing/the-number-is-not-the-person",
       tag: "AI TLDR",
       meta: "AUG 2026",
     }),
@@ -101,7 +101,7 @@ const ROUTES = [
 ];
 
 const PROOF_OG =
-  "https://abdur.ai/api/og?title=The%20number%20is%20not%20the%20person&excerpt=Voice%20agents%20that%20persist%20contact%20memory%20on%20the%20phone%20number%20will%20replay%20the%20last%20caller%20on%20a%20shared%20line.&path=abdur.ai/aitldr/the-number-is-not-the-person&kicker=ABDUR%20R%20SAYEED&tag=AI%20TLDR&meta=AUG%202026";
+  "https://abdur.ai/api/og?title=The%20number%20is%20not%20the%20person&excerpt=Voice%20agents%20that%20persist%20contact%20memory%20on%20the%20phone%20number%20will%20replay%20the%20last%20caller%20on%20a%20shared%20line.&path=abdur.ai/writing/the-number-is-not-the-person&kicker=ABDUR%20R%20SAYEED&tag=AI%20TLDR&meta=AUG%202026";
 
 const failures = [];
 

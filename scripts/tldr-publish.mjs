@@ -102,7 +102,19 @@ if (fs.existsSync(claims)) {
 // internal paths on a published surface, and lib/posts.ts never reads the
 // field — the public evidence is the receipts: block. Strip it on promotion so
 // provenance stays in the draft and out of the published frontmatter.
-const promoted = raw.replace(/^source:[ \t].*\r?\n/m, "");
+// Operate on the frontmatter block only — a body line beginning "source:" or
+// "draft:" (in a code block, say) must survive. `draft:` is the drafts-dir
+// state flag and has no meaning once the file is published.
+const fmMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+if (!fmMatch) {
+  console.error("Draft needs YAML frontmatter (--- ... ---).");
+  process.exit(1);
+}
+const cleanedFm = fmMatch[1]
+  .split(/\r?\n/)
+  .filter((line) => !/^(source|draft):[ \t]/.test(line))
+  .join("\n");
+const promoted = raw.slice(0, fmMatch.index) + "---\n" + cleanedFm + "\n---\n" + raw.slice(fmMatch.index + fmMatch[0].length);
 fs.writeFileSync(dest, promoted);
 fs.unlinkSync(src);
 console.log(`Published file: content/posts/${slug}.mdx`);

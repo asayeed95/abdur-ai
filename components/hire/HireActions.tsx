@@ -4,9 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { SITE } from "@/lib/site";
 
 const RESUMES = [
-  { href: "/resume-ats.pdf", label: "ATS résumé — 1 page", note: "Single column, machine-parseable" },
-  { href: "/resume-ats-2page.pdf", label: "ATS résumé — 2 pages", note: "Full detail, same parseable format" },
-  { href: "/resume-designed.pdf", label: "Designed résumé — 1 page", note: "The laid-out version, for humans" },
+  { href: "/resume-forward-deployed-ai.pdf", label: "Forward Deployed AI résumé", note: "ATS-first, single column, machine-parseable" },
+  { href: "/resume-master-career.pdf", label: "Master career résumé", note: "Full detail, same parseable format" },
   { href: "#sheet", label: "Read it here", note: "The sheet, below on this page" },
 ] as const;
 
@@ -121,7 +120,8 @@ export function HireActions() {
 
   const copy = async () => {
     try {
-      await navigator.clipboard?.writeText(SITE.hireEmail);
+      if (!navigator.clipboard) return; // no API: do not claim a copy happened
+      await navigator.clipboard.writeText(SITE.hireEmail);
       setCopied(true);
     } catch {
       /* clipboard blocked — the address is visible on the button regardless */
@@ -136,7 +136,7 @@ export function HireActions() {
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
             aria-expanded={menuOpen}
-            aria-haspopup="menu"
+            aria-haspopup="true"
             className="w-full sm:w-auto justify-center font-mono text-xs tracking-widest uppercase text-bg bg-clay border-0 px-[18px] py-3.5 rounded-sm cursor-pointer flex items-center gap-2.5 hover:opacity-90 transition-opacity"
           >
             Download résumé <span className="text-[10px]" aria-hidden>▾</span>

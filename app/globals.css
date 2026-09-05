@@ -26,6 +26,7 @@
   --c-muted-4: 106 98 86;               /* #6A6256 */
   --c-clay: 217 119 87;              /* #D97757 */
   --c-gold: 245 196 81;              /* #F5C451 */
+
   color-scheme: dark;
 }
 
@@ -45,8 +46,9 @@
   --c-muted-2: 154 144 127;             /* #9A907F */
   --c-muted-3: 154 144 127;             /* #9A907F */
   --c-muted-4: 154 144 127;             /* #9A907F */
-  --c-clay: 180 86 58;               /* #B4563A */
+  --c-clay: 174 83 56;               /* #AE5338 — 4.56:1 on the cream ground; #B4563A was 4.31, under AA for 11px chrome */
   --c-gold: 143 106 0;               /* #8F6A00 */
+
   color-scheme: light;
 }
 
