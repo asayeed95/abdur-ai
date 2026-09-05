@@ -42,10 +42,10 @@
   --c-border-2: 211 196 168;             /* #D3C4A8 */
   --c-text: 31 26 20;                /* #1F1A14 */
   --c-text-soft: 70 64 54;                /* #464036 */
-  --c-muted: 126 118 106;             /* #7E766A */
-  --c-muted-2: 154 144 127;             /* #9A907F */
-  --c-muted-3: 154 144 127;             /* #9A907F */
-  --c-muted-4: 154 144 127;             /* #9A907F */
+  --c-muted: 116 109 98;      /* #746D62 — 4.55:1 on the cream ground (was #7E766A, 3.98) */
+  --c-muted-2: 119 109 94;      /* #776D5E — 4.52:1 (was #9A907F, 2.80 — failed AA for 12px dates) */
+  --c-muted-3: 119 109 94;      /* #776D5E — 4.52:1 (was #9A907F, 2.80 — failed AA for 12px dates) */
+  --c-muted-4: 119 109 94;      /* #776D5E — 4.52:1 (was #9A907F, 2.80 — failed AA for 12px dates) */
   --c-clay: 174 83 56;               /* #AE5338 — 4.56:1 on the cream ground; #B4563A was 4.31, under AA for 11px chrome */
   --c-gold: 143 106 0;               /* #8F6A00 */
 

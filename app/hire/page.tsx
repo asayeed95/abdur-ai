@@ -173,7 +173,7 @@ const STACK = [
  */
 const REPO_COUNTS = [
   { value: "330", note: "test files · *.test.ts across the workspace", clay: false },
-  { value: "15", note: "CI workflows · every merge runs them", clay: false },
+  { value: "15", note: "CI workflow files · 13 run on push or PR, 2 are manual dispatch", clay: false },
   { value: "16", note: "workspace packages", clay: false },
   { value: "@mnemix-ai/client", note: "published SDK on npm · v0.2.2", clay: true },
 ];

@@ -186,7 +186,18 @@ export function HireActions() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full md:w-[520px] max-w-full bg-surface border border-border rounded-lg shadow-[0_48px_120px_-32px_rgba(0,0,0,0.65)] overflow-hidden"
+            onKeyDown={(e) => {
+              // Keep Tab inside the dialog: aria-modal does not trap focus by itself.
+              if (e.key !== "Tab") return;
+              const focusable = e.currentTarget.querySelectorAll<HTMLElement>(
+                'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+              );
+              if (focusable.length === 0) return;
+              const first = focusable[0], last = focusable[focusable.length - 1];
+              if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+              else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }}
+            className="w-full md:w-[520px] max-w-full max-h-[calc(100dvh-3rem)] overflow-y-auto bg-surface border border-border rounded-lg shadow-[0_48px_120px_-32px_rgba(0,0,0,0.65)] overflow-hidden"
           >
             <div className="px-5 md:px-8 pt-7 flex justify-between items-start gap-4">
               <div>

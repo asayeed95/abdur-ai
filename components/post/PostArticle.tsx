@@ -104,6 +104,12 @@ export function PostArticle({
               post.patterns ? <PatternsBlock items={post.patterns} /> : null,
           }}
         />
+        {/* A reported post owes its reader the receipts, not just the gate. Render
+            them after the body unless the author placed <ReceiptsBlock /> inline
+            (the flagship does), so evidence is never silently frontmatter-only. */}
+        {post.register === "reported" && post.receipts?.length && !source.includes("<ReceiptsBlock") ? (
+          <ReceiptsBlock items={post.receipts} />
+        ) : null}
       </div>
 
       <nav aria-label="Previous and next post" className="max-w-prose mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
