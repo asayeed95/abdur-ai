@@ -37,6 +37,7 @@ related:
   - the-night-the-doctrine-failed
 ---
 
+> *Editor's note (August 2026): the platform this post describes under the name Mnemix now ships as [Northsun](https://northsun.ai). Mnemix today is the free Memory Lab / Forgetting Test — a free diagnostic from Northsun, at [mnemix.ai](https://mnemix.ai). The post is preserved as written.*
 I built the money ledger for Mnemix before charging anyone. Migration 032 created `usage_events`: append-only, RLS-scoped per tenant, integer micro-dollar costs, all behind an `ENABLE_USAGE_METERING` flag that defaults to off. The Stripe path is a separate, founder-gated effort. The point of shipping the counter first was to break it while breaking it was free.
 
 Review broke it three times before prod saw the migration.

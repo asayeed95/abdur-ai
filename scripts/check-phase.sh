@@ -44,6 +44,11 @@ echo "==> abdur-ai build-discipline gate $([ $HARD -eq 1 ] && echo '[HARD]')"
 echo "==> [NEVER-SKIP] Design token lock (tailwind.config.ts, app/globals.css)"
 LOCKED_FILES="tailwind.config.ts app/globals.css"
 OVERRIDES="docs/superpowers/specs/overrides.md"
+# The override must be IN THE COMMIT, so read the staged (index) copy, not the
+# working tree — an override typed into the file but left unstaged would
+# otherwise clear the gate and then not ship.
+OVERRIDES_STAGED="$(git show ":$OVERRIDES" 2>/dev/null || true)"
+TMPD="$(mktemp -d "${TMPDIR:-/tmp}/bd-gate.XXXXXX")"
 
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   STAGED_HITS=""
@@ -58,7 +63,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if [ -n "$STAGED_HITS" ]; then
     UNCOVERED=""
     for f in $STAGED_HITS; do
-      if [ -f "$OVERRIDES" ] && grep -qE "design-token-override:[[:space:]]*${f}([[:space:]]|\$|#)" "$OVERRIDES" 2>/dev/null; then
+      if printf "%s" "$OVERRIDES_STAGED" | grep -qE "design-token-override:[[:space:]]*${f}([[:space:]]|\$|#)"; then
         :
       else
         UNCOVERED="$UNCOVERED $f"
@@ -87,7 +92,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if [ -n "$STAGED_PUBLISHED" ]; then
     UNCOVERED=""
     for f in $STAGED_PUBLISHED; do
-      if [ -f "$OVERRIDES" ] && grep -qE "content-publish-override:[[:space:]]*${f}([[:space:]]|\$|#)" "$OVERRIDES" 2>/dev/null; then
+      if printf "%s" "$OVERRIDES_STAGED" | grep -qE "content-publish-override:[[:space:]]*${f}([[:space:]]|\$|#)"; then
         :
       else
         UNCOVERED="$UNCOVERED $f"
@@ -107,38 +112,38 @@ fi
 
 # ---------- Public claims ----------
 echo "==> Public claims"
-if python3 scripts/check-public-claims.py >/tmp/.bd-public-claims.out 2>&1; then
+if python3 scripts/check-public-claims.py >$TMPD/public-claims.out 2>&1; then
   pass "python3 scripts/check-public-claims.py"
 else
-  fail "python3 scripts/check-public-claims.py FAILED — see /tmp/.bd-public-claims.out"
-  tail -20 /tmp/.bd-public-claims.out | sed 's/^/      /'
+  fail "python3 scripts/check-public-claims.py FAILED — see $TMPD/public-claims.out"
+  tail -20 $TMPD/public-claims.out | sed 's/^/      /'
 fi
 
 # ---------- Typecheck ----------
 echo "==> Typecheck"
-if npm run typecheck >/tmp/.bd-typecheck.out 2>&1; then
+if npm run typecheck >$TMPD/typecheck.out 2>&1; then
   pass "npm run typecheck"
 else
-  fail "npm run typecheck FAILED — see /tmp/.bd-typecheck.out"
-  tail -20 /tmp/.bd-typecheck.out | sed 's/^/      /'
+  fail "npm run typecheck FAILED — see $TMPD/typecheck.out"
+  tail -20 $TMPD/typecheck.out | sed 's/^/      /'
 fi
 
 # ---------- Lint ----------
 echo "==> Lint"
-if npm run lint >/tmp/.bd-lint.out 2>&1; then
+if npm run lint >$TMPD/lint.out 2>&1; then
   pass "npm run lint"
 else
-  fail "npm run lint FAILED — see /tmp/.bd-lint.out"
-  tail -20 /tmp/.bd-lint.out | sed 's/^/      /'
+  fail "npm run lint FAILED — see $TMPD/lint.out"
+  tail -20 $TMPD/lint.out | sed 's/^/      /'
 fi
 
 # ---------- Build ----------
 echo "==> Build"
-if npm run build >/tmp/.bd-build.out 2>&1; then
+if npm run build >$TMPD/build.out 2>&1; then
   pass "npm run build"
 else
-  fail "npm run build FAILED — see /tmp/.bd-build.out"
-  tail -30 /tmp/.bd-build.out | sed 's/^/      /'
+  fail "npm run build FAILED — see $TMPD/build.out"
+  tail -30 $TMPD/build.out | sed 's/^/      /'
 fi
 
 # ---------- RETRO hygiene (nudge only, not a gate) ----------

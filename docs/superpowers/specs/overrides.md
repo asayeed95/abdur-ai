@@ -30,7 +30,7 @@ voice; no closer, no price, no northsun.ai link. No claims rewritten —
 already-published posts. `tailwind.config.ts` / `app/globals.css` / post
 copy untouched.
 
-```
+```yaml
 - task-id: <id from build-plan.md>
   design-token-override: <locked-file>   # write the real filename; placeholder is deliberately non-matching so this example can never satisfy the gate
   reason: <why this specific change is warranted — not "needed a color">
@@ -39,7 +39,7 @@ copy untouched.
 
 `scripts/check-phase.sh` looks for a `design-token-override:` line naming the exact locked file that's staged. A vague or missing entry does not pass the gate.
 
-```
+```yaml
 - task-id: <id from build-plan.md>
   content-publish-override: content/posts/<slug>.mdx   # exact published path (the <slug> placeholder cannot match a real staged file)
   reason: <why this is going straight to published, not through _drafts/>
@@ -180,3 +180,22 @@ body already makes, not authored.
   content-publish-override: content/posts/the-number-is-not-the-person.mdx
   reason: Add `register: argued` + status_note — the post is grounded in public vendor docs and explicitly declines to claim an incident. No prose changed.
   approved-by: Abdur / "go ahead" live session / 2026-09-04
+
+
+## C-11 (review) — Editor's note on the three new posts whose bodies predate the rename
+
+Same pattern main applied to the two August posts: one italic note at the top
+naming the rename, no body prose changed. Raised by review on #39.
+
+- task-id: C-11
+  content-publish-override: content/posts/the-dashboard-query-rls-wouldnt-let-through.mdx
+  reason: Add main's verbatim Editor's note (Mnemix → Northsun rename). No other change.
+  approved-by: Abdur / "do all the work" live session / 2026-09-05
+- task-id: C-11
+  content-publish-override: content/posts/the-health-check-that-became-a-retry-storm.mdx
+  reason: Add main's verbatim Editor's note. No other change.
+  approved-by: Abdur / "do all the work" live session / 2026-09-05
+- task-id: C-11
+  content-publish-override: content/posts/the-meter-that-counted-cache-hits-as-cash.mdx
+  reason: Add main's verbatim Editor's note. No other change.
+  approved-by: Abdur / "do all the work" live session / 2026-09-05

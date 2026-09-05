@@ -71,7 +71,16 @@ if (data.title === "TITLE" || data.slug === "SLUG") {
 // Register: what kind of claim is this? See content/posts/REGISTERS.md.
 // The site build refuses an undeclared post; refusing it here means you find
 // out at publish time instead of at deploy time.
-const REGISTERS = ["reported", "designed", "argued"];
+// Single authority: lib/registers.ts. Parsed rather than imported because
+// this is a plain .mjs run before any build — the same approach
+// scripts/check-public-claims.py takes, so all three cannot drift.
+const registersTs = fs.readFileSync(path.join(root, "lib", "registers.ts"), "utf8");
+const registersMatch = registersTs.match(/export const REGISTERS = \[([^\]]*)\]/);
+const REGISTERS = registersMatch ? [...registersMatch[1].matchAll(/"([a-z]+)"/g)].map((m) => m[1]) : [];
+if (REGISTERS.length === 0) {
+  console.error("Could not read the register list from lib/registers.ts.");
+  process.exit(1);
+}
 if (!REGISTERS.includes(data.register)) {
   console.error(
     `Frontmatter needs "register:" — one of ${REGISTERS.join(", ")}. ` +
@@ -79,7 +88,10 @@ if (!REGISTERS.includes(data.register)) {
   );
   process.exit(1);
 }
-if (data.register === "reported" && !Array.isArray(data.receipts)) {
+const usableReceipts = Array.isArray(data.receipts)
+  ? data.receipts.filter((r) => r && typeof r.path === "string" && r.path.trim().length > 0)
+  : [];
+if (data.register === "reported" && usableReceipts.length === 0) {
   console.error(
     'register "reported" claims an event happened, so it owes a receipts: ' +
       "block (PR, SHA, log, or measurement). Use \"designed\" or \"argued\" if " +

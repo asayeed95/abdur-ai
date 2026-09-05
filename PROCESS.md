@@ -88,9 +88,11 @@ Override entry format (append to `docs/superpowers/specs/overrides.md`):
 `scripts/check-phase.sh` checks, in order:
 
 1. **[NEVER-SKIP]** No staged/working-tree change to `tailwind.config.ts` or `app/globals.css` without a matching override (see above).
-2. `npm run typecheck`
-3. `npm run lint`
-4. `npm run build`
+2. **[NEVER-SKIP]** No staged `content/posts/*.mdx` outside `_drafts/` without a matching `content-publish-override:`.
+3. `python3 scripts/check-public-claims.py` — public-claims policy, register declarations, receipts on `reported` posts.
+4. `npm run typecheck`
+5. `npm run lint`
+6. `npm run build`
 
 Soft mode (default) reports and exits 0 so an agent can read the failures and act. `--hard` exits 1 on any failure — that's what the pre-commit hook uses.
 

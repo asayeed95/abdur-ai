@@ -1,6 +1,6 @@
 # How to ship a TLDR (no engineering)
 
-The site already turns every file in this folder into a page, an index row, RSS, and sitemap. You do not add a route or a React component.
+The site already turns every `.mdx` file in this folder into a page (`.md` here is documentation, not content), an index row, RSS, and sitemap. You do not add a route or a React component.
 
 ## You (or an agent)
 

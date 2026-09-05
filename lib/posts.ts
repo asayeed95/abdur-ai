@@ -161,9 +161,14 @@ export function getPost(slug: string): PostMeta | null {
 
 /** Raw MDX body (frontmatter stripped) for a published slug, or null. */
 export function getPostSource(slug: string): string | null {
-  const file = path.join(POSTS_DIR, `${slug}.mdx`);
-  if (!fs.existsSync(file)) return null;
-  return matter(fs.readFileSync(file, "utf8")).content;
+  // Same key getAllPosts() uses (frontmatter `slug`, else filename), so a post
+  // whose declared slug differs from its filename resolves the same way for
+  // both the route and the body.
+  for (const file of listMdxFiles()) {
+    const { data, content } = matter(fs.readFileSync(path.join(POSTS_DIR, file), "utf8"));
+    if ((data.slug || file.replace(/\.mdx$/, "")) === slug) return content;
+  }
+  return null;
 }
 
 /**

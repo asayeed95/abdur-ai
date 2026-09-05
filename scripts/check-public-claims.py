@@ -112,6 +112,29 @@ def _frontmatter_keys(text: str) -> dict[str, str]:
     return keys
 
 
+def _receipt_paths(text: str) -> list[str]:
+    """Non-empty `path:` values inside the frontmatter `receipts:` block.
+
+    `receipts:` with no items, `receipts: []`, or items with a blank path all
+    return [] — a declared-but-empty block must not satisfy `reported`.
+    """
+    if not text.startswith("---"):
+        return []
+    body = text.partition("---")[2].partition("\n---")[0]
+    paths, inside = [], False
+    for line in body.splitlines():
+        if inside and line and not line[0].isspace():
+            break
+        if re.match(r"^receipts:\s*(\[\s*\]\s*)?$", line):
+            inside = not line.rstrip().endswith("]")
+            continue
+        if inside:
+            m = re.match(r"^\s+-?\s*path:\s*[\"']?([^\"'\n]+?)[\"']?\s*$", line)
+            if m and m.group(1).strip():
+                paths.append(m.group(1).strip())
+    return paths
+
+
 def _ts_registers() -> tuple[str, ...]:
     """The register list as `lib/registers.ts` actually defines it."""
     source = (ROOT / "lib" / "registers.ts").read_text(encoding="utf-8")
@@ -154,10 +177,11 @@ def check_registers() -> list[str]:
                 f"got {register or '<missing>'!r}"
             )
             continue
-        if register == "reported" and "receipts" not in keys:
+        if register == "reported" and not _receipt_paths(path.read_text(encoding="utf-8")):
             failures.append(
                 f"{rel}: register 'reported' claims an event happened and owes a "
-                f"receipts: block (PR, SHA, log, or measurement)"
+                f"receipts: block with at least one item carrying a non-empty path: "
+                f"(PR, SHA, log, or measurement) — an empty or absent block is not a receipt"
             )
     return failures
 
