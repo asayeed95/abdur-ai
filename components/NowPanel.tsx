@@ -7,7 +7,8 @@ import { getNowState } from "@/lib/supabase";
  * Async server component: reads the latest state from Supabase `now_state`
  * (via getNowState(), fetch-tagged 'now' so /api/ingest/now's
  * revalidateTag('now') refreshes it). Falls back to SEED_AGENTS when the
- * table is empty or Supabase is unreachable — never throws.
+ * row is missing or Supabase is unreachable — never throws. An empty
+ * agents list is truthful and renders as "none running", not as seed.
  */
 
 type Agent = {
@@ -33,7 +34,9 @@ const SEED_AGENTS: Agent[] = [
 
 export async function NowPanel() {
   const rows = await getNowState();
-  const agents = rows && rows.length > 0 ? rows : SEED_AGENTS;
+  // null = no row / Supabase unreachable → seed. [] = a real, truthful
+  // "nothing running" state and must render as such, never as fake activity.
+  const agents = rows ?? SEED_AGENTS;
   return (
     <Reveal as="section" className="border-y border-border bg-bg-2">
       <div className="max-w-content mx-auto px-6 md:px-10 py-14">
@@ -50,6 +53,9 @@ export async function NowPanel() {
         </div>
 
         <ul className="grid gap-3">
+          {agents.length === 0 && (
+            <p className="font-mono text-sm text-muted-3 py-6">No agents running right now.</p>
+          )}
           {agents.map((a) => (
             <li
               key={a.agent + a.task}
