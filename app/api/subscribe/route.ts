@@ -74,8 +74,14 @@ export async function POST(req: Request) {
   if (company && company.trim() !== "") {
     return NextResponse.json({ ok: true });
   }
-  if (rendered_at !== undefined && Date.now() - rendered_at < MIN_FILL_MS) {
-    return NextResponse.json({ ok: true });
+  // rendered_at is the BROWSER's clock; the server's is unrelated. A visitor
+  // whose clock runs ahead yields a negative elapsed and must not be treated
+  // as a bot — only a small, positive elapsed is evidence of a scripted submit.
+  if (rendered_at !== undefined) {
+    const elapsed = Date.now() - rendered_at;
+    if (elapsed >= 0 && elapsed < MIN_FILL_MS) {
+      return NextResponse.json({ ok: true });
+    }
   }
 
   // Requests carrying no attribution fields (e.g. older clients) fall back
@@ -112,7 +118,12 @@ export async function POST(req: Request) {
 
   // Declare the attribution contact properties once per cold start. Failures
   // are logged and non-fatal — attribution must never break subscribing.
-  await ensureAttributionProperties(apiKey);
+  // Bounded: Resend's default limit is 10 rps team-wide, and eight
+  // declarations must never stand between a subscriber and the audience.
+  await Promise.race([
+    ensureAttributionProperties(apiKey),
+    new Promise<void>((resolve) => setTimeout(resolve, 3000)),
+  ]);
 
   const properties = nonEmptyProperties(attribution);
 
@@ -174,31 +185,33 @@ function nonEmptyProperties(
 /**
  * Module-scope cache for contact-property declarations so the eight
  * `contact-properties` calls happen once per cold start, not per subscribe.
- * A rejected promise is cleared so the next request retries.
+ * Any failed declaration clears the cache so the next request retries the
+ * set — a partial success is never cached as done.
  */
 let declarePropertiesPromise: Promise<void> | null = null;
 
 function ensureAttributionProperties(apiKey: string): Promise<void> {
   if (!declarePropertiesPromise) {
     declarePropertiesPromise = (async () => {
-      for (const key of ATTRIBUTION_KEYS) {
-        try {
+      const results = await Promise.allSettled(
+        ATTRIBUTION_KEYS.map(async (key) => {
           const res = await fetch("https://api.resend.com/contact-properties", {
             method: "POST",
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              "Content-Type": "application/json",
-            },
+            headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({ key, type: "string" }),
           });
           // 409/422 = already declared on a previous run; that's success.
           if (!res.ok && res.status !== 409 && res.status !== 422) {
             const detail = await res.text().catch(() => "");
-            console.error(`[subscribe] declare property "${key}" ${res.status}: ${detail}`);
+            throw new Error(`declare property "${key}" ${res.status}: ${detail}`);
           }
-        } catch (err) {
-          console.error(`[subscribe] declare property "${key}" failed: ${err instanceof Error ? err.message : String(err)}`);
-        }
+        }),
+      );
+      const failed = results.filter((x): x is PromiseRejectedResult => x.status === "rejected");
+      for (const f of failed) console.error(`[subscribe] ${f.reason instanceof Error ? f.reason.message : String(f.reason)}`);
+      if (failed.length > 0) {
+        // Do not cache a partial success: the next request retries the set.
+        declarePropertiesPromise = null;
       }
     })().catch((err) => {
       declarePropertiesPromise = null;

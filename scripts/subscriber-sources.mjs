@@ -53,10 +53,15 @@ async function listContacts(audienceId) {
     const data = await resend(path);
     const items = Array.isArray(data) ? data : data.data ?? [];
     contacts.push(...items);
-    const next = data?.next_cursor ?? null;
+    // Documented shape: `has_more` + `after=<last id>`. Older/undocumented
+    // `next_cursor` is still followed if it ever appears.
+    const last = items[items.length - 1];
+    let next = null;
+    if (data?.has_more && last?.id) next = `/audiences/${audienceId}/contacts?after=${encodeURIComponent(last.id)}`;
+    else if (data?.next_cursor) next = `/audiences/${audienceId}/contacts?cursor=${encodeURIComponent(data.next_cursor)}`;
     if (next && !seen.has(next)) {
       seen.add(next);
-      path = `/audiences/${audienceId}/contacts?cursor=${encodeURIComponent(next)}`;
+      path = next;
     } else {
       break;
     }
@@ -82,7 +87,7 @@ function printTable(title, map, total) {
   }
 }
 
-const totals = { contacts: 0, attributed: 0 };
+const totals = { contacts: 0, attributed: 0, failed: 0 };
 const bySource = new Map();
 const byUtm = new Map();
 const byListSource = new Map();
@@ -104,6 +109,7 @@ for (const [list, audienceId] of audiences) {
     if (!props) {
       if (!contact.email) {
         console.error(`  ! contact without email in "${list}" — skipped`);
+        totals.failed++;
         continue;
       }
       try {
@@ -113,6 +119,7 @@ for (const [list, audienceId] of audiences) {
         props = full.properties ?? {};
       } catch (err) {
         console.error(`  ! could not fetch properties for one contact in "${list}": ${err.message}`);
+        totals.failed++;
         continue;
       }
     }
@@ -126,6 +133,10 @@ for (const [list, audienceId] of audiences) {
 
 console.log(`Audiences: ${audiences.map(([l]) => l).join(", ")}`);
 console.log(`Contacts scanned: ${totals.contacts} (${totals.attributed} with attribution)`);
+if (totals.failed > 0) {
+  console.error(`INCOMPLETE: ${totals.failed} contact(s) could not be read — the counts below cover a subset. Exit 1.`);
+  process.exitCode = 1;
+}
 printTable("By source_path", bySource, totals.contacts || 1);
 printTable("By utm_source", byUtm, totals.contacts || 1);
 printTable("By list + source_path", byListSource, totals.contacts || 1);
