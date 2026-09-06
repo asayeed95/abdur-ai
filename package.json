@@ -2,7 +2,7 @@
   "name": "abdur-ai",
   "version": "0.1.0",
   "private": true,
-  "description": "abdur.ai \u2014 solo AI founder's logbook. Portfolio + TLDR + tools. Lead magnet for Northsun.",
+  "description": "abdur.ai — solo AI founder's logbook. Portfolio + TLDR + tools. Lead magnet for Northsun.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,7 +11,10 @@
     "typecheck": "tsc --noEmit",
     "validate:apply": "node scripts/validate-applications.mjs",
     "check:og": "node scripts/check-og-meta.mjs",
-    "subscribers:sources": "node scripts/subscriber-sources.mjs"
+    "subscribers:sources": "node scripts/subscriber-sources.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "candidates:export": "node scripts/export-candidates.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "3.1.0",
@@ -39,7 +42,8 @@
     "eslint-config-next": "15.5.19",
     "postcss": "8.4.49",
     "tailwindcss": "3.4.15",
-    "typescript": "5.6.3"
+    "typescript": "5.6.3",
+    "vitest": "^2.1.8"
   },
   "engines": {
     "node": ">=20"
