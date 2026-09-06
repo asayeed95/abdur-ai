@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
+import { upsertNowState } from "@/lib/supabase";
 
 /**
  * POST /api/ingest/now
@@ -9,8 +11,9 @@ import { z } from "zod";
  *
  * Auth: Bearer token via `AGENT_TOKEN` env var.
  *
- * Storage: stub. Claude Code wires to Supabase (table: `now_state`)
- * and triggers `revalidateTag('now')` so the homepage re-renders.
+ * Storage: upserts the `now_state` row (pk profile_id='abdur') in Supabase
+ * via PostgREST, then `revalidateTag('now')` so the homepage re-renders.
+ * Returns 502 {error:'persist_failed'} if the write fails — never a silent 200.
  */
 
 const schema = z.object({
@@ -41,8 +44,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
 
-  // TODO(claude-code): persist to Supabase + revalidateTag('now').
-  console.log(`[ingest/now] received ${parsed.data.agents.length} agents`);
+  try {
+    await upsertNowState(parsed.data.agents);
+  } catch (err) {
+    console.error("[ingest/now] persist failed:", err);
+    return NextResponse.json({ error: "persist_failed" }, { status: 502 });
+  }
+
+  revalidateTag("now");
 
   return NextResponse.json({ ok: true });
 }

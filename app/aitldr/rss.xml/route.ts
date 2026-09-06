@@ -1,9 +1,11 @@
 import { Feed } from "feed";
 import { SITE } from "@/lib/site";
-import { getAllPosts } from "@/lib/posts";
+import { getAllPosts, postPath } from "@/lib/posts";
 import { ogImageForHome } from "@/lib/og";
 
 export const dynamic = "force-static";
+
+/** Retained legacy feed. Items link to the canonical /writing URLs. */
 
 export async function GET() {
   const posts = getAllPosts();
@@ -31,8 +33,8 @@ export async function GET() {
   posts.forEach((p) => {
     feed.addItem({
       title: p.title,
-      id: `${SITE.url}/aitldr/${p.slug}`,
-      link: `${SITE.url}/aitldr/${p.slug}`,
+      id: `${SITE.url}${postPath(p.slug)}`,
+      link: `${SITE.url}${postPath(p.slug)}`,
       description: p.dek || p.description,
       content: p.description,
       author: [{ name: p.author, link: SITE.url }],
