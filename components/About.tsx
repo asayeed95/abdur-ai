@@ -52,7 +52,7 @@ export function About() {
             </p>
             <div className="flex flex-wrap gap-3 mt-6">
               <a
-                href="/resume.pdf"
+                href="/resume-forward-deployed-ai.pdf"
                 className="font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
               >
                 Résumé →
