@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "validate:apply": "node scripts/validate-applications.mjs",
     "check:og": "node scripts/check-og-meta.mjs",
-    "subscribers:sources": "node scripts/subscriber-sources.mjs"
+    "subscribers:sources": "node scripts/subscriber-sources.mjs",
+    "tldr:new": "node scripts/tldr-new.mjs",
+    "tldr:publish": "node scripts/tldr-publish.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "3.1.0",

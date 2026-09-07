@@ -199,3 +199,25 @@ naming the rename, no body prose changed. Raised by review on #39.
   content-publish-override: content/posts/the-meter-that-counted-cache-hits-as-cash.mdx
   reason: Add main's verbatim Editor's note. No other change.
   approved-by: Abdur / "do all the work" live session / 2026-09-05
+
+## C-10 (Codex review) — status notes that name missing evidence
+
+Independent review (2026-09-05) found two `argued` posts whose prose recounts a
+measurement / an incident. REGISTERS.md's own rule for this case: if the
+evidence is gone, the post is `argued` and says so. Notes only; no prose edited.
+
+- task-id: C-10
+  content-publish-override: content/posts/voice-ai-memory-latency-is-a-dead-argument.mdx
+  reason: status_note now names that the recalled measurement has no surviving receipt.
+  approved-by: Abdur / "do all the work" live session / 2026-09-05
+- task-id: C-10
+  content-publish-override: content/posts/who-owns-the-architecture-when-ai-writes-the-code.mdx
+  reason: status_note names that the $14/day incident predates the receipts ledger.
+  approved-by: Abdur / "do all the work" live session / 2026-09-05
+
+## H-2 (Codex review) — light-mode muted scale to AA
+
+- task-id: H-2
+  design-token-override: app/globals.css
+  reason: Light-theme muted text was 2.80:1 (12px dates) and 3.98:1 (muted) on the cream ground — below AA. muted → #746D62 (4.55:1), muted-2/3/4 → #776D5E (4.52:1). Dark tokens untouched. Found by independent review; browser-measured.
+  approved-by: Abdur / "do all the work" live session / 2026-09-05

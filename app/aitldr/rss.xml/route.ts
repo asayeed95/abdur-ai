@@ -33,7 +33,9 @@ export async function GET() {
   posts.forEach((p) => {
     feed.addItem({
       title: p.title,
-      id: `${SITE.url}${postPath(p.slug)}`,
+      // GUID stays on the legacy URL so existing subscribers' readers do not
+      // re-surface every post as new; only the click-through link moves.
+      id: `${SITE.url}/aitldr/${p.slug}`,
       link: `${SITE.url}${postPath(p.slug)}`,
       description: p.dek || p.description,
       content: p.description,

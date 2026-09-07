@@ -125,8 +125,17 @@ def _receipt_paths(text: str) -> list[str]:
     for line in body.splitlines():
         if inside and line and not line[0].isspace():
             break
-        if re.match(r"^receipts:\s*(\[\s*\]\s*)?$", line):
-            inside = not line.rstrip().endswith("]")
+        # Flow style is valid YAML and the publisher (gray-matter) accepts it:
+        #   receipts: [{path: evidence.md, note: "..."}]
+        # Accept the same shapes here so the two gates cannot disagree.
+        flow = re.match(r"^receipts:\s*\[(.*)\]\s*$", line)
+        if flow:
+            for m in re.finditer(r"path:\s*[\"']?([^\"',}\]]+?)[\"']?\s*(?:[,}]|$)", flow.group(1)):
+                if m.group(1).strip():
+                    paths.append(m.group(1).strip())
+            break
+        if re.match(r"^receipts:\s*$", line):
+            inside = True
             continue
         if inside:
             m = re.match(r"^\s+-?\s*path:\s*[\"']?([^\"'\n]+?)[\"']?\s*$", line)

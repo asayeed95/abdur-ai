@@ -37,3 +37,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# compiled Python — the claims gate writes these on every run
+__pycache__/
+*.pyc
