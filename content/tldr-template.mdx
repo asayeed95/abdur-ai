@@ -1,0 +1,33 @@
+---
+title: "TITLE"
+slug: SLUG
+description: "One or two sentences. This is the search/social blurb."
+dek: "Optional deck — one line under the title on the index. Can match description."
+date: DATE
+author: Abdur Rahman Sayeed
+section: "Builder Logs"
+# reported = "this happened" (owes a receipts: block below)
+# designed = "this is what I designed / how I'd build it" (needs nothing shipped)
+# argued   = "this is what I think is true" (needs no artifact)
+# See content/posts/REGISTERS.md. Required — the build fails without it.
+register: argued
+# Optional. designed/argued get a sensible default; override when it would
+# misstate the piece. Rendered as a one-line note near the top of the post.
+# status_note: "Design. Not built yet."
+tags:
+  - northsun
+tldr: "≤180 words. What happened, why it matters, what you learned. No fake numbers."
+# Optional extras (omit unless you have them) — EXCEPT receipts, which is
+# REQUIRED with at least one path when register: reported:
+# subtitle: ""
+# og:
+#   image: /blog/SLUG/cover.jpg
+# receipts:
+#   - path: "repo/path.ts"
+#     sha: "abc1234"
+#     note: "what this proves"
+---
+
+Lead paragraph. Then write. Headings (`##`) become the outline. Links and lists work.
+
+No custom React. No new route. No cover image required — the site default OG is used until you add `public/blog/SLUG/cover.jpg`.

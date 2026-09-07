@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { SITE } from "@/lib/site";
 import { ogImageForHome, shareCard } from "@/lib/og";
+import { THEME_BOOTSTRAP } from "@/lib/theme";
+import { AttributionCapture } from "@/components/AttributionCapture";
 import "./globals.css";
 
 const homeTitle = `${SITE.author} — ${SITE.tagline}`;
@@ -58,7 +61,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE.url,
     types: {
-      "application/rss+xml": `${SITE.url}/aitldr/rss.xml`,
+      "application/rss+xml": `${SITE.url}/writing/rss.xml`,
     },
   },
   robots: {
@@ -87,8 +90,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B0A08",
-  colorScheme: "dark",
+  // The active theme follows the visitor's clock, which no meta tag can
+  // express; prefers-color-scheme is the closest approximation for browser
+  // chrome. The page itself is governed by data-theme, set pre-paint below.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F6F1E8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B0A08" },
+  ],
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -100,8 +109,22 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${playfair.variable} ${inter.variable} ${mono.variable}`}
+      // data-theme is written by the pre-paint script below, so the server
+      // markup and the first client render legitimately differ on <html>.
+      suppressHydrationWarning
     >
+      <head>
+        {/*
+          Blocking, pre-paint theme resolution. This MUST stay synchronous and
+          in <head>: if it ran after paint, every visitor after 18:00 would get
+          a white flash before the dark theme applied. It is deliberately not a
+          server computation — the clock belongs to the visitor, and this page
+          is statically cached.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+      </head>
       <body>
+        <AttributionCapture />
         {/* JSON-LD: Person + WebSite — site-wide */}
         <script
           type="application/ld+json"
@@ -153,6 +176,7 @@ export default function RootLayout({
           }}
         />
         {children}
+        <Analytics />
       </body>
     </html>
   );
