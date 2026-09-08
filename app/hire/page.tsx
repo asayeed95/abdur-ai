@@ -4,12 +4,30 @@ import { Footer } from "@/components/Footer";
 import { HireActions } from "@/components/hire/HireActions";
 import { ResumeSheet } from "@/components/hire/ResumeSheet";
 import { OPEN_TO_ROLES, SITE } from "@/lib/site";
+import { ogImageForHire, shareCard } from "@/lib/og";
+
+const hireDescription =
+  "Abdur Rahman Sayeed — applied AI engineer, forward deployed, client delivery. Agent systems and the machinery that proves they work: deploy gates, evidence ledgers, rollback paths.";
+
+const hireShare = shareCard({
+  title: "Hire me",
+  description: hireDescription,
+  url: `${SITE.url}/hire`,
+  type: "website",
+  image: ogImageForHire(),
+});
 
 export const metadata: Metadata = {
   title: "Hire me",
-  description:
-    "Abdur Rahman Sayeed — applied AI engineer, forward deployed, client delivery. Agent systems and the machinery that proves they work: deploy gates, evidence ledgers, rollback paths.",
+  description: hireDescription,
   alternates: { canonical: `${SITE.url}/hire` },
+  openGraph: {
+    ...hireShare.openGraph,
+    siteName: SITE.brand,
+  },
+  twitter: {
+    ...hireShare.twitter,
+  },
 };
 
 /**

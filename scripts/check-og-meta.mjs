@@ -69,6 +69,19 @@ const ROUTES = [
     altIncludes: "logbook",
   },
   {
+    id: "hire",
+    path: "/hire",
+    pageUrl: `${SITE}/hire`,
+    type: "website",
+    image: apiOg({
+      title: "Open to roles",
+      excerpt: "One page of resume. A site full of proof.",
+      path: "abdur.ai/hire",
+      tag: "HIRE",
+    }),
+    altIncludes: "hire",
+  },
+  {
     id: "pager",
     path: "/writing/your-pager-is-not-your-customer",
     pageUrl: `${SITE}/writing/your-pager-is-not-your-customer`,
@@ -199,6 +212,14 @@ if (!postPage.includes("shareCard") || !postPage.includes("ogImageForPost")) {
 }
 if (postPage.includes("ogImageForPost(post.slug")) {
   failures.push("generateMetadata must pass the post (frontmatter), not only the slug");
+}
+
+const hirePage = read("app/hire/page.tsx");
+if (!hirePage.includes("shareCard") || !hirePage.includes("ogImageForHire")) {
+  failures.push("app/hire/page.tsx must use shareCard() + ogImageForHire()");
+}
+if (!ogTs.includes("ogImageForHire") || (!ogTs.includes('tag: OG_TAG_HIRE') && !ogTs.includes('tag: "HIRE"'))) {
+  failures.push("lib/og.ts must export ogImageForHire with tag=HIRE");
 }
 
 const base = process.env.CHECK_OG_BASE;

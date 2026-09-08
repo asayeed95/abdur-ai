@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { SITE } from "@/lib/site";
 
 const RESUMES = [
-  { href: "/resume-forward-deployed-ai.pdf", label: "Forward Deployed AI résumé", note: "ATS-first, single column, machine-parseable" },
-  { href: "/resume-master-career.pdf", label: "Master career résumé", note: "Full detail, same parseable format" },
+  { href: "/resume-ats.pdf", label: "ATS résumé — 1 page", note: "Single column, machine-parseable" },
+  { href: "/resume-master-career.pdf", label: "Master career résumé — 2 pages", note: "Full detail, same parseable format" },
   { href: "#sheet", label: "Read it here", note: "The sheet, below on this page" },
 ] as const;
 
