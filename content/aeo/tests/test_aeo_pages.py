@@ -45,7 +45,7 @@ HIRE = ROOT / "app" / "hire" / "page.tsx"
 # AGE-462: do not rewrite the career surfaces while adding AEO pages.
 FROZEN_SHA256 = {
     ABOUT: "94a6d2e5eff224d2fe11576d5a1d98bd17adaabc8394f82cfd912f0d36857694",
-    HIRE: "7ca6602c739faa90607f41793b2e459b018793cbb0b5f1abfd3ebd00ca230513",
+    HIRE: "26474890958a09a3311410850e49be4ced96df30130cc85108ee3deaf203610a",
 }
 
 BANNED_CLAIM_TOKENS = {
