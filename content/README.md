@@ -42,6 +42,7 @@ the implementation record for the ledger/routine machinery; where they say Blota
 | LinkedIn | Abdur (personal) | founder authority, longer form | Zernio where supported, else staged manual | same |
 | abdur.ai | `content/posts/` | canonical essays / TLDRs | git → Cloudflare deploy | founder merge + deploy |
 | HN / Reddit | — | manual only | none | founder, per post |
+| Mnemix | *none declared* | ships under `@northsunai` / abdur.ai until an account exists | — | founder decision pending |
 
 Account status (paused / recovery / authorized) is set by the founder in that config, never in a
 content file. If this table and the live config disagree, the live config wins and this table gets fixed.
@@ -81,7 +82,7 @@ project:         northsun | abdur-ai | heycli | dockerfile-ai
 pillar:
 channel:         x | linkedin | instagram | threads | tiktok | shorts | site
 account:
-status:          draft | approved | scheduled | published | rejected | failed
+status:          draft | needs_human | approved | approved-draft | scheduled | scheduled-with-veto | published | rejected | failed
 source_type:     repo_commit | pr | issue | screenshot | transcript | tldr | demo | opinion | research
 source_refs:     []        # URLs / commit SHAs / file paths — required, no placeholders at approval time
 why_this_post:
@@ -155,8 +156,8 @@ landing page, rewrite it the way Abdur would say it at 2 AM while debugging the 
 |---|---|---|
 | Source capture, drafts, ledger writes, local gates | Hermes + Agora (Grok fleet) | repo/file-system truth; Codex manages Hermes |
 | Approval routing, veto cards, timeouts, audit | Slack `#northsun-agent-bridge` via Agora | replaces the Pipedream orchestration layer |
-| Publishing | **Zernio** (`posts_create`, explicit profile) | Agora owns publish; Orbit publishes from the founder 1:1 if a specialist card is blocked |
-| Inbound events (comments, mentions, failed publish) | Agora `zernio-inbound` webhook | logs to `northsun-ops/reports/agora/zernio-events/` |
+| Publishing | **Zernio** (`posts_create`, explicit profile) | Zernio publisher is checked in. *Planned:* Agora as publish owner; Orbit founder-1:1 fallback when a specialist card is blocked — neither is implemented here |
+| Inbound events (comments, mentions, failed publish) | *Planned* — Agora `zernio-inbound` webhook | No handler or `northsun-ops/reports/agora/zernio-events/` consumer is checked in. Until one is, inbound events are read manually |
 | Site essays / TLDRs | abdur.ai lane (Claude Code) → `posts/_drafts/` | human merge + deploy only |
 | Visual assets | Signal Noir batches → `distribution/<slug>/` | briefs weekly; immediate for launches |
 | Memory / dedupe / continuity | the ledger + this directory | read before every draft and schedule |
@@ -172,7 +173,12 @@ founder override rate because copy sounded fake.
 
 ## 10. Build order (what is still open)
 
-1. ~~content/ system~~ — exists (this repo). 2. Voice files — **PR #33**. 3. Ledgers — rebase from PR #3/#6.
-4. Duplicate checker — PR #6 `gates.py`, port `blotato` spacing → Zernio. 5. Slack approval batch — PR #6
-`batchlib.py`. 6. Floor rescue — last. 7. Zernio schedules — only after 1–6 are green. No step
-publishes anything on its own.
+1. ~~content/ system~~ — exists (this repo).
+2. Voice files — **PR #33**.
+3. Ledgers — rebase from PR #3/#6.
+4. Duplicate checker — PR #6 `gates.py`, port `blotato` spacing → Zernio.
+5. Slack approval batch — PR #6 `batchlib.py`.
+6. Floor rescue — last.
+7. Zernio schedules — only after 1–6 are green.
+
+No step publishes anything on its own.
