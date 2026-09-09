@@ -1,4 +1,4 @@
-import { SITE } from "@/lib/site";
+import { POST_BASE, SITE } from "@/lib/site";
 
 /** Site-wide OG size (Twitter/Facebook large card). */
 export const OG_WIDTH = 1200;
@@ -7,6 +7,7 @@ export const OG_HEIGHT = 630;
 export const OG_KICKER = "ABDUR R SAYEED";
 export const OG_TAG_POST = "AI TLDR";
 export const OG_TAG_HOME = "LOGBOOK";
+export const OG_TAG_HIRE = "HIRE";
 
 /**
  * Leftover AGE-1222 static cards under public/og/. They may stay on disk.
@@ -20,6 +21,7 @@ export const OG_LEFTOVER_PNGS = {
 
 export const OG_ALTS = {
   home: "abdur.ai — the logbook. What shipped, what broke, what I learned.",
+  hire: "abdur.ai/hire — Abdur R Sayeed, applied AI / forward deployed. Open to roles.",
   "your-pager-is-not-your-customer":
     "Your pager is not your customer — four evidence states: signal, diagnosis, mitigation, recovery.",
   "the-number-is-not-the-person":
@@ -112,7 +114,7 @@ export function monthYear(iso: string): string {
   return `${month} ${d.getUTCFullYear()}`;
 }
 
-/** encodeURIComponent but keep `/` so path=abdur.ai/aitldr/... matches the handoff URL. */
+/** encodeURIComponent but keep `/` so path=abdur.ai/writing/... matches the handoff URL. */
 function encodeOgValue(value: string): string {
   return encodeURIComponent(value).replace(/%2F/gi, "/");
 }
@@ -161,6 +163,23 @@ export function ogImageForHome(): OgImage {
   );
 }
 
+
+const HIRE_TITLE = "Open to roles";
+const HIRE_EXCERPT = "One page of resume. A site full of proof.";
+
+export function ogImageForHire(): OgImage {
+  return pngCard(
+    buildOgPath({
+      title: HIRE_TITLE,
+      excerpt: HIRE_EXCERPT,
+      path: "abdur.ai/hire",
+      kicker: OG_KICKER,
+      tag: OG_TAG_HIRE,
+    }),
+    OG_ALTS.hire,
+  );
+}
+
 export type OgPostInput = {
   slug: string;
   title: string;
@@ -178,7 +197,7 @@ export function ogImageForPost(post: OgPostInput): OgImage {
     buildOgPath({
       title: post.title,
       excerpt,
-      path: `abdur.ai/aitldr/${post.slug}`,
+      path: `abdur.ai${POST_BASE}/${post.slug}`,
       kicker: OG_KICKER,
       tag: OG_TAG_POST,
       meta: monthYear(post.date),

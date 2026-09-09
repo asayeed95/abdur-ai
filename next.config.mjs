@@ -42,6 +42,10 @@ const nextConfig = {
         headers: [{ key: "Content-Type", value: "text/plain; charset=utf-8" }],
       },
       {
+        source: "/writing/rss.xml",
+        headers: [{ key: "Content-Type", value: "application/rss+xml" }],
+      },
+      {
         source: "/aitldr/rss.xml",
         headers: [{ key: "Content-Type", value: "application/rss+xml" }],
       },

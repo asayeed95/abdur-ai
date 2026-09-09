@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
-import { getAllPosts } from "@/lib/posts";
+import { getAllPosts, postPath } from "@/lib/posts";
+import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "AI TLDR — the logbook",
   description:
     "Short, evidence-anchored builder logs from Abdur Rahman Sayeed. Postmortems, architecture decisions, and the things you only learn by shipping AI solo.",
-  alternates: { canonical: "https://abdur.ai/aitldr" },
+  // /writing is canonical; this index is retained for links already in the wild.
+  alternates: { canonical: `${SITE.url}/writing` },
 };
 
 export default function FeedPage() {
@@ -30,7 +32,7 @@ export default function FeedPage() {
 
         {flagship && (
           <Link
-            href={`/aitldr/${flagship.slug}`}
+            href={postPath(flagship.slug)}
             className="group block bg-bg-2 border border-clay rounded-lg p-8 md:p-10 mb-16 hover:bg-surface transition-colors"
           >
             <div className="flex items-center gap-3 mb-5">
@@ -66,7 +68,7 @@ export default function FeedPage() {
           {rest.map((p) => (
             <li key={p.slug}>
               <Link
-                href={`/aitldr/${p.slug}`}
+                href={postPath(p.slug)}
                 className="group block py-7 md:py-9 hover:bg-surface transition-colors -mx-3 px-3 rounded-sm"
               >
                 <div className="grid md:grid-cols-[110px_1fr_70px] gap-2 md:gap-8 items-start">
@@ -106,7 +108,7 @@ export default function FeedPage() {
 
         <p className="mt-10 font-mono text-xs text-muted-3">
           Subscribe via{" "}
-          <Link href="/aitldr/rss.xml" className="hover:text-clay">RSS</Link>{" "}
+          <Link href="/writing/rss.xml" className="hover:text-clay">RSS</Link>{" "}
           ·{" "}
           <Link href="/subscribe" className="hover:text-clay">email</Link>
         </p>

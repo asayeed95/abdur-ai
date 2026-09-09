@@ -11,6 +11,9 @@ export const SITE = {
   url: "https://abdur.ai",
   location: "West New York, NJ · NYC metro",
   email: "hello@abdur.ai",
+  /** Direct line on /hire. Deliberately the personal address, not the site
+      alias — a hiring conversation should land in the inbox Abdur reads. */
+  hireEmail: "asayeed95@outlook.com",
   handles: {
     x: "@asayeed95",
     github: "https://github.com/asayeed95",
@@ -34,13 +37,20 @@ export const SITE = {
   },
 } as const;
 
+/**
+ * Canonical public base for a post. Lives here (not lib/posts.ts) so modules
+ * with no business importing node:fs — lib/og.ts, client components — can
+ * build post URLs without dragging the filesystem reader into their graph.
+ */
+export const POST_BASE = "/writing";
+
 export const NAV = [
-  { href: "/#latest", label: "Latest" },
+  { href: "/writing", label: "Writing" },
   { href: "/#log", label: "Ship log" },
   { href: "/#tools", label: "Tools" },
   { href: "/#projects", label: "Northsun" },
   { href: "/#about", label: "About" },
-  { href: "/aitldr", label: "TLDR" },
+  { href: "/hire", label: "Hire" },
 ] as const;
 
 /** Whether the /hire CTA + "Currently open to roles" block renders. */

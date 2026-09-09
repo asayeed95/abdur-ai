@@ -1,23 +1,27 @@
 "use client";
 
+/** The honeypot as actually submitted — a bot that fills the hidden field must trip the server check. */
+function honeypotValue(e: React.FormEvent): string {
+  const el = (e.currentTarget as HTMLFormElement).elements.namedItem("company");
+  return el instanceof HTMLInputElement ? el.value : "";
+}
+
 import Link from "next/link";
 import { useState } from "react";
+import { type AnalyticsEventName, trackEvent, attributionProps } from "@/lib/analytics";
+import { usePathname } from "next/navigation";
+import { buildSubscribeFields } from "@/lib/attribution";
 
 /**
  * In-post CTAs. Each is a self-contained block that can be embedded
  * inside an MDX file with `<MnemixCTA />`, `<AsecWaitlistCTA />`, etc.
  *
- * Each CTA fires an analytics event on click — wire to Plausible/Vercel
- * Analytics in lib/analytics.ts.
+ * Each CTA fires an analytics event via lib/analytics.ts (Vercel Web
+ * Analytics) — see README "Analytics" for the event catalog.
  */
 
-function track(name: string) {
-  if (typeof window !== "undefined") {
-    // @ts-expect-error -- plausible global
-    window.plausible?.(name);
-    // @ts-expect-error -- vercel analytics
-    window.va?.("event", { name });
-  }
+function track(name: AnalyticsEventName) {
+  trackEvent(name);
 }
 
 /**
@@ -41,21 +45,24 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
         If you build with agents and have ever shipped a doctrine that failed
         in the same way this one did — you&apos;re the person Northsun is for.
       </p>
-      <a
+      <Link
         href="/#waitlist"
-        onClick={() => track("cta:mnemix:from-post")}
+        onClick={() => track("cta:northsun:from-post")}
         className="inline-block font-mono text-xs tracking-widest uppercase text-bg bg-clay px-4 py-3 rounded-sm hover:opacity-90 transition-opacity"
       >
         Northsun is in private beta. Request access. →
-      </a>
+      </Link>
     </aside>
   );
 }
 
 export function AsecWaitlistCTA() {
+  const pathname = usePathname();
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [renderedAt] = useState(() => Date.now());
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,16 +71,25 @@ export function AsecWaitlistCTA() {
       setErr("That doesn't look like an email.");
       return;
     }
+    if (busy) return;
+    setBusy(true);
     track("cta:asec:from-post");
     try {
-      await fetch("/api/subscribe", {
+      const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, list: "asec-waitlist" }),
+        body: JSON.stringify({ email, list: "asec-waitlist", ...buildSubscribeFields(pathname ?? "/"), rendered_at: renderedAt, company: honeypotValue(e) }),
       });
+      if (!res.ok) {
+        setErr("Something broke. Try again.");
+        return;
+      }
       setDone(true);
+      trackEvent("subscribe:asec-waitlist", attributionProps());
     } catch {
       setErr("Something broke. Try again.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -97,8 +113,10 @@ export function AsecWaitlistCTA() {
           ✓ On the list. I&apos;ll email when ASEC opens.
         </p>
       ) : (
-        <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3">
+        <form onSubmit={submit} action="/api/subscribe" method="post" className="flex flex-col sm:flex-row gap-3">
+          <input type="hidden" name="list" value="asec-waitlist" />
           <input
+            name="email"
             type="email"
             placeholder="you@domain.com"
             value={email}
@@ -106,8 +124,19 @@ export function AsecWaitlistCTA() {
             required
             className="flex-1 bg-bg border border-border text-text px-4 py-3 rounded-sm font-mono text-sm placeholder:text-muted-3 focus:border-clay focus:outline-none"
           />
+          <input
+            type="text"
+            name="company"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            style={{ position: "absolute", left: "-9999px" }}
+          />
+          <input type="hidden" name="rendered_at" value={renderedAt} />
           <button
             type="submit"
+            disabled={busy}
+            aria-busy={busy}
             className="font-mono text-xs tracking-widest uppercase text-text border border-border hover:border-clay px-4 py-3 rounded-sm"
           >
             Join the ASEC waitlist →

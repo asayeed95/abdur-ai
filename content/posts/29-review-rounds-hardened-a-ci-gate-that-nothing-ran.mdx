@@ -1,0 +1,131 @@
+---
+title: "29 review rounds hardened a CI gate that nothing ran"
+slug: 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
+description: "We had a path-authorization script hardened through 29 adversarial review rounds — and no CI job ever invoked it. Wiring it in took one evening, three review rounds, and turned up a bypass that needed no code edit at all. Seven rules you can steal."
+dek: "The bypass that needed no edit at all — and the five-minute audit that finds it in your repo."
+date: 2026-08-25T20:58:00-04:00
+author: Abdur Rahman Sayeed
+section: "Builder Logs"
+register: reported
+tags:
+  - northsun
+  - github-actions
+  - ai-agents
+  - ci
+tldr: "Our monorepo had a script that decides whether a PR touched only the files its task row authorizes. It had survived 29 adversarial review rounds. It was invoked by nothing in CI — the whole regime was advisory. Wiring it into a required-check job took one session and three review rounds. Round one: I read a table column by position; Markdown ignores extra cells, so an appended cell shifts what you read while the rendered row looks identical. Round two: a job-level `if: github.event_name == 'pull_request'` is an off switch — a manual `workflow_dispatch` posts a *skipped* job on the PR's head SHA, and a skipped job satisfies a required status check. No edit, no diff, nothing for a reviewer to see. Fix: no job-level `if`; decide the event inside the step and refuse anything that is not a PR. Both directions proven with real PRs, 186 fixtures, six hand-mutations that each turn the suite red. Five holes disclosed with owners instead of smoothed over."
+receipts:
+  - path: ".github/workflows/ci.yml"
+    sha: "6a7442f1"
+    note: "the job: own required context, no job-level if, gate + verifier materialized from origin/main, sha256-pinned bootstrap"
+  - path: "scripts/verify/build-plan-gate.mjs"
+    sha: "6a7442f1"
+    note: "the CI entrypoint: base ref is a constant, --ref is a usage error, every skip is named"
+  - path: "scripts/test/run-all.sh"
+    sha: "6a7442f1"
+    note: "20 gate fixtures asserting exit code AND named VERDICT cause"
+  - path: "RETRO.md"
+    sha: "6a7442f1"
+    note: "the two scars: a skip a required context accepts, and a mutation absorbed by operator precedence"
+  - path: "docs/decisions-log/2026-08-25-age-1270-build-plan-gate.md"
+    sha: "6a7442f1"
+    note: "alternatives rejected, measured facts with revisions, known open holes with owners, exact rollback"
+---
+
+We had a script in the Northsun monorepo that answers one question about a pull request: did it touch only the files its build-plan row authorizes? It had been through twenty-nine adversarial review rounds on a sibling PR. Symlink-path false greens, escaped-pipe cell shifts, regex backtracking — all closed. Then someone checked the obvious thing: which CI job runs it?
+
+None. It was a script an agent runs by hand and self-reports.
+
+To be clear about what that means: twenty-nine rounds had built a very good lock. Nobody had put it on the door yet. Those are two different jobs, and the second one is small *precisely because* the first was done well — the CI gate I added is about 150 lines, and all it does with the verifier is read its exit code. "Hardened" and "enforced" are different states. Most repos only ever reach the first, and the gap between them is invisible from inside the code.
+
+This is the log of the second job. One evening, three review rounds, and the most useful bug I've seen in months — a bypass that needs no code change at all. The rules below are the transferable part. The receipts are in the frontmatter.
+
+## The setup
+
+I ran this as a small multi-agent lane, and the shape matters more than the models:
+
+- One **writer** (a Claude Code session) that made every commit on the branch. Exactly one.
+- One **fresh-context reviewer** (a second Claude Code session on a sibling PR) who re-verified every claim from source, not from my report.
+- One **adversarial verifier on a different model family** (GLM), in its own throwaway worktree, whose job was to refute, not confirm.
+- The usual PR bots: Codex connector and CodeRabbit.
+
+The "exactly one writer" rule exists because earlier that day a concurrent writer left `if (false && …)` — a disabled gate — in another tree, and the tell was a nondeterministic test failure that read as a logic bug for twenty minutes. Two writers on one branch is how you ship a forged green without anyone lying.
+
+## What the gate does now
+
+A GitHub Actions job, `Build-plan path authorization`, as its **own job with its own status context** — not a step inside the existing test job. It derives the task id from the PR head branch (`…/age-1270-…`), reads the task's row from the build plan, and runs the verifier against the diff from `origin/main`.
+
+Three design choices carry the weight:
+
+1. **The base ref is a constant inside the gate.** Passing `--ref` is a usage error. The script the CI job runs is not the one in the PR — both the gate and the verifier are materialized from `origin/main` at run time. A gate the candidate can edit in the same PR is not a gate. To change the ref you merge a change to `main` first.
+2. **Every non-enforced outcome is a loud, named skip.** `VERDICT: skip reason=no-task-id`, `reason=no-row`, `reason=legacy-row shape=no-column`. A task whose row predates the convention gets *"this is MISSING COVERAGE, not a pass on the merits"* in the log. A silent skip would have been the entire failure class wearing a green badge.
+3. **A dead verifier is not a pass.** If the verifier is killed by a signal, the gate exits 2 with `VERDICT: no-verdict`. Zero failures from a dead run is byte-identical to zero failures from a clean one; you have to make them different on purpose.
+
+## Round one: I read a table by position
+
+My first version found the "Allowed paths" cell as *second from the end*. The reviewer's blocker: Markdown ignores cells past the header's column count, so a legacy row with prose in its real Allowed cell plus an appended `` `**` `` cell renders identically — and a positional reader now sees the appended cell and calls the row enforceable. He had a reproduction, not an argument.
+
+Fix: resolve the cell **by header name** — walk up to the nearest header row in the same table that names "Allowed paths". Three outcomes, each routed differently: a clean cell (its backticks decide); a table with **no such column at all**, which is legacy by construction and gets a named skip; and a row whose cell count disagrees with its header, which is malformed and goes to the verifier, which refuses it. *A parser that cannot understand a row must not conclude the row is harmless* — but, as round two taught, it also must not redden honest work, because a gate that reddens legitimate work gets disabled, and a disabled gate is a permanent bypass.
+
+## Round two: the bypass with no edit
+
+Codex flagged the job's `if: github.event_name == 'pull_request'`. I'd added it so the job wouldn't run on pushes to `main`. Here is what it actually does:
+
+`gh workflow run ci.yml --ref <pr-branch>` — a manual dispatch on the PR's branch — runs the workflow on the PR's head SHA. The `if` makes the job **skipped**. GitHub treats a skipped job as satisfying a required status check. So a red PR gets a passing check on the same SHA, with no commit, no diff, and nothing for a reviewer to look at.
+
+We proved it live after the fix: a manual dispatch now fails with `VERDICT: refuse reason=not-a-pull-request event=workflow_dispatch`. Before the fix it would have been a green skip.
+
+The fix is small and worth copying:
+
+```yaml
+build-plan-authorization:
+  name: Build-plan path authorization
+  runs-on: ubuntu-latest
+  # NO job-level `if:`. A skipped job SATISFIES a required context.
+  steps:
+    - uses: actions/checkout@v4
+      with: { fetch-depth: 0 }
+    - env:
+        HEAD_BRANCH: ${{ github.head_ref }}     # env indirection: branch names are attacker-chosen text
+        EVENT_NAME: ${{ github.event_name }}
+      run: |
+        set -euo pipefail
+        case "$EVENT_NAME" in
+          pull_request) ;;
+          push) echo "VERDICT: skip reason=not-a-pull-request event=push"; exit 0 ;;   # push fires only for main
+          *) echo "::error::event '$EVENT_NAME' cannot stand in for the PR gate"; exit 1 ;;
+        esac
+        dir="${RUNNER_TEMP}/gate"; mkdir -p "$dir"
+        git show origin/main:scripts/verify/build-plan-gate.mjs  > "$dir/gate.mjs"      # trusted copies, not the PR's
+        git show origin/main:scripts/verify/build-plan-paths.mjs > "$dir/verifier.mjs"
+        node "$dir/gate.mjs" --branch "$HEAD_BRANCH" --verifier "$dir/verifier.mjs"
+```
+
+The lesson, as the reviewer put it: **a gate that cannot run must never be mistaken for a gate that passed.** A skip that a required context accepts is a pass wearing a different word.
+
+## The one where my mutation test lied to me
+
+I mutation-test gates: break the thing, watch the suite go red, restore. One mutation — disabling the eligibility check with `false && (…)` — "survived": the suite stayed green. Real gap? No. My `sed` had produced `false && X || Y`, which is just `Y`. The mutant was a no-op and the gate was fully armed the whole time.
+
+**A survived mutation is only evidence once the mutant is proven effective.** Re-run with parentheses; six reds. Same family as a mutation that sits behind an early `return` — it survives while proving nothing.
+
+## Round three: know what you did not fix
+
+The reviewer's best note was about what I *shouldn't* do. Five other task rows in the plan still carry stale globs (done tasks, files their own work deleted). Modernizing them would have made my gate greener. It would also have been me editing authorization rows I don't own to make my own check pass. Those five are listed in the decision log with owners. *Quietly modernizing rows you do not own to make your own gate green is how a gate stops meaning anything.*
+
+The PR body ends with five **known open holes**, each named, each with an owner: a same-repo PR can still edit the workflow file (needs push-protection); a branch named `age-1202-anything` inherits AGE-1202's row (needs a Linear-linkage check); one subprocess in the verifier still escapes to the PR tree (the sibling PR's next round); the five stale rows; and a bootstrap window that only existed until merge — pinned to the gate's sha256 and announced in the run log, then **observed closed** on the first post-merge run (`VERDICT: bootstrap` count: 0), not assumed closed.
+
+## The Nothing-Ran Audit (five minutes)
+
+Steal this. For every verifier, linter, policy check, or "gate" script in your repo:
+
+1. `grep -rn '<script-name>' .github/workflows/` — if it returns nothing, the gate is advisory. Twenty-nine rounds of hardening do not change that — and they are not wasted, either; they are what makes wiring it worth doing.
+2. Is it a **required** status context, and is it its **own job**? A step inside a required job fails *open* when deleted; an own-context job fails *closed* — the context never reports and the PR holds at "Expected".
+3. Does the job have a job-level `if:`? If yes, `workflow_dispatch` is a bypass. Move the decision into the step and refuse.
+4. Does CI run the **PR's copy** of the gate? Then the PR can edit its own judge. Materialize from the base ref.
+5. What does it print when it skips? If the answer is "nothing", you cannot tell a skip from a pass in the log.
+6. Break it on purpose — in a fixture, never the live subject — and confirm the mutant actually changed behavior before you read "survived" as a gap.
+7. When two agents can write to one branch, put a lease on it. Ours was a `LEASE:` comment on the PR; the prior writer stops when it appears. Two Cursor agents claimed it simultaneously anyway, so the follow-up rule is: if a lease already exists, stand down — and if the head is already approved and green, merge it rather than arbitrate.
+
+If you run agents against your repo, do the audit this week and tell me what you found — [@asayeed95](https://x.com/asayeed95).
+
+*This is the repo behind Northsun. Choose Northsun as your agent memory layer.*

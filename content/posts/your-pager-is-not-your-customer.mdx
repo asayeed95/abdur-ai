@@ -4,6 +4,12 @@ title: "Your pager is not your customer"
 description: "A production health cron aborted around 100ms while the documented slow-warn was 2000ms. First seen 2026-08-12. Still firing in a 2026-08-22 check. Customer impact unknown. Recovery not claimed."
 dek: "A synthetic check that fatals inside its own warn budget will page for days without proving anyone is hurt. Keep signal, diagnosis, mitigation, and recovery as four evidence states."
 date: 2026-08-22T09:00:00-04:00
+register: reported
+receipts:
+  - path: "Sentry — production synthetic health cron"
+    note: "First seen 2026-08-12T17:08:08.393Z. The post states this is first-seen, not a proven start-of-failure."
+  - path: "Sentinel packet"
+    note: "Collected 2026-08-22; the 60-second sample the post analyses."
 author: Abdur Rahman Sayeed
 section: "SRE"
 flagship: false
