@@ -42,7 +42,6 @@ the implementation record for the ledger/routine machinery; where they say Blota
 | LinkedIn | Abdur (personal) | founder authority, longer form | Zernio where supported, else staged manual | same |
 | abdur.ai | `content/posts/` | canonical essays / TLDRs | git → Cloudflare deploy | founder merge + deploy |
 | HN / Reddit | — | manual only | none | founder, per post |
-| Mnemix | *none declared* | ships under `@northsunai` / abdur.ai until an account exists | — | founder decision pending |
 
 Account status (paused / recovery / authorized) is set by the founder in that config, never in a
 content file. If this table and the live config disagree, the live config wins and this table gets fixed.
