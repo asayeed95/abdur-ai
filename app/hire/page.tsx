@@ -7,7 +7,7 @@ import { OPEN_TO_ROLES, SITE } from "@/lib/site";
 import { ogImageForHire, shareCard } from "@/lib/og";
 
 const hireDescription =
-  "Abdur Rahman Sayeed — applied AI engineer, forward deployed, client delivery. Agent systems and the machinery that proves they work: deploy gates, evidence ledgers, rollback paths.";
+  "Applied AI engineer, forward deployed, client delivery. Agent systems and the machinery that proves they work: deploy gates, evidence ledgers, rollback.";
 
 const hireShare = shareCard({
   title: "Hire me",

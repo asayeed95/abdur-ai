@@ -4,7 +4,8 @@ import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "/now",
-  description: "What Abdur is shipping this week. Updated weekly.",
+  description:
+    "What Abdur Rahman Sayeed is building right now — the agents in flight, what shipped last, and what is next across Northsun, HeyCLI and dockerfile.ai.",
 };
 
 export default function NowPage() {

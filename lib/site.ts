@@ -8,6 +8,13 @@ export const SITE = {
   tagline: "I ship AI things and write the TLDR.",
   description:
     "Abdur Rahman Sayeed — solo AI founder running a portfolio of vertical AI products on one memory spine, Northsun. One human on strategy, an agent team on execution. This is the logbook: what shipped, what broke, what I learned.",
+  /**
+   * Meta-description copy. Deliberately separate from `description`, which is
+   * the long identity blurb used in llms.txt and JSON-LD — Google truncates
+   * around 155 characters and the blurb is 228.
+   */
+  metaDescription:
+    "Solo AI founder. Vertical AI products on one memory spine, Northsun. The logbook: what shipped, what broke, what I learned.",
   url: "https://abdur.ai",
   location: "West New York, NJ · NYC metro",
   email: "hello@abdur.ai",
