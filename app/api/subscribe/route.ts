@@ -127,6 +127,12 @@ export async function POST(req: Request) {
 
   const properties = nonEmptyProperties(attribution);
 
+  // Whether this contact already existed must be decided BEFORE the create.
+  // Resend returns 201 for a duplicate create (same contact id), so the
+  // create response cannot distinguish new from returning — that is the
+  // AGE-1592 defect this GET closes.
+  const existed = await contactExists({ email, audienceId, apiKey });
+
   const res = await fetch(`https://api.resend.com/audiences/${audienceId}/contacts`, {
     method: "POST",
     headers: {
@@ -143,17 +149,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Could not subscribe right now" }, { status: 502 });
   }
 
-  // Existing contact: backfill attribution properties that are currently
-  // blank. Never overwrite a non-empty value — first non-empty wins, so
-  // existing subscribers are never corrupted. Best-effort, non-fatal.
-  if (res.status === 409 && Object.keys(properties).length > 0) {
+  // Backfill attribution properties that are currently blank. Never
+  // overwrite a non-empty value — first non-empty wins, so existing
+  // subscribers are never corrupted. Best-effort, non-fatal.
+  //
+  // Runs on create-success (201/200) as well as the classic 409: a duplicate
+  // create returns 201 with the existing contact and does NOT apply the
+  // properties in the request body, so gating this on 409 alone meant the
+  // backfill never ran in production (AGE-1592, Sentinel check 2b FAIL).
+  // On a genuinely new contact the PATCH is a no-op — the create already
+  // stored the properties, so nothing is empty to fill.
+  if (Object.keys(properties).length > 0) {
     await backfillAttribution({ email, audienceId, apiKey, properties });
   }
 
-  const isNewContact = res.ok;
-  // Welcome email for brand-new subscribers on the two lists that get one —
-  // restored from main; the attribution branch had dropped it.
-  if (isNewContact && (list === "tldr" || list === "mnemix-beta")) {
+  // Welcome email for brand-new subscribers on the two lists that get one.
+  // `existed === false` means the pre-create GET returned 404; `undefined`
+  // means the GET itself failed and we do not know. Unknown suppresses the
+  // send: skipping one welcome is a smaller harm than mailing a returning
+  // subscriber again, and it is logged.
+  if (existed === undefined) {
+    console.error(`[subscribe] welcome skipped: could not determine whether ${email} already existed`);
+  } else if (existed === false && (list === "tldr" || list === "mnemix-beta")) {
     await sendWelcomeEmail({ email, list, apiKey });
   }
 
@@ -219,6 +236,40 @@ function ensureAttributionProperties(apiKey: string): Promise<void> {
     });
   }
   return declarePropertiesPromise;
+}
+
+/**
+ * Does this contact already exist on the audience?
+ *
+ *   true      — GET found it (returning subscriber, no welcome)
+ *   false     — GET 404 (brand new, welcome)
+ *   undefined — the GET failed; we do not know, so we do not claim to
+ *
+ * Best-effort and non-fatal: a failed lookup never blocks subscribing.
+ */
+async function contactExists({
+  email,
+  audienceId,
+  apiKey,
+}: {
+  email: string;
+  audienceId: string;
+  apiKey: string;
+}): Promise<boolean | undefined> {
+  try {
+    const res = await fetch(
+      `https://api.resend.com/contacts/${encodeURIComponent(email)}?audience_id=${audienceId}`,
+      { headers: { Authorization: `Bearer ${apiKey}` }, cache: "no-store" },
+    );
+    if (res.ok) return true;
+    if (res.status === 404) return false;
+    const detail = await res.text().catch(() => "");
+    console.error(`[subscribe] existence GET ${res.status} for ${email}: ${detail}`);
+    return undefined;
+  } catch (err) {
+    console.error(`[subscribe] existence GET failed for ${email}: ${err instanceof Error ? err.message : String(err)}`);
+    return undefined;
+  }
 }
 
 /**
