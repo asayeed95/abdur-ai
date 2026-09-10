@@ -2,14 +2,20 @@ import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 
+/**
+ * Single source for the snapshot date: the page renders it and the meta
+ * description quotes it, so a search snippet can never claim freshness the
+ * page itself does not show.
+ */
+const UPDATED = "June 27, 2026";
+
 export const metadata: Metadata = {
   title: "/now",
-  description:
-    "What Abdur Rahman Sayeed is building right now — the agents in flight, what shipped last, and what is next across Northsun, HeyCLI and dockerfile.ai.",
+  description: `A dated snapshot of what Abdur Rahman Sayeed is building, shipping and planning next. Last updated ${UPDATED}.`,
 };
 
 export default function NowPage() {
-  const updated = "June 27, 2026";
+  const updated = UPDATED;
   return (
     <>
       <Nav />
