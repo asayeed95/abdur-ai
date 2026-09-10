@@ -5,6 +5,16 @@ copy needs an entry here before it ships.
 
 ---
 
+design-token-override: 2026-08-28 — AGE-1385 llms.txt AEO tighten (founder-approved).
+Rewrite only the "How to describe Abdur" + "Working with Abdur" blocks in
+`app/llms.txt/route.ts`: drop the unratified "real metrics" phrase; keep
+verbatim Northsun identity and "free diagnostic from Northsun"; add three
+answer-page citation links (`/what-is-northsun`, `/what-is-mnemix`,
+`/who-is-abdur`); keep `/hire` as a pointer, not the closer of the AEO
+surface. `tailwind.config.ts` / `app/globals.css` / `/about` / `/hire` /
+post copy untouched. No new metrics. northsun.ai remains a reference, not
+a CTA.
+
 design-token-override: 2026-08-23 — AITLDR-LAYOUT-001 residual (AGE-886).
 Founder-directed DEMO, explicitly unlocked: add `--aitldr-*` CSS variables
 (`--aitldr-measure`, `--aitldr-title-to-date`, `--aitldr-date-size`,
