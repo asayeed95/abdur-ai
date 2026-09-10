@@ -6,6 +6,7 @@
  * After this: commit, push, Vercel deploys. Human-only.
  */
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -132,3 +133,49 @@ fs.unlinkSync(src);
 console.log(`Published file: content/posts/${slug}.mdx`);
 console.log("Live URL after deploy: https://abdur.ai/writing/" + slug);
 console.log("Next (you): git add content/posts/" + slug + ".mdx && commit && push.");
+
+// GMP -> ledger (ops-spine plan §4): abdur.ai is the emitter for
+// content_publish receipts because this publish step is where a post crosses
+// from draft to live. One receipt per publish, keyed on the slug (the
+// platform post id), so a re-run collides on the idempotency key instead of
+// writing a second row. This is an emitter ONLY — it never writes Notion; the
+// ops projector is the sole Notion writer and consumes the ledger.
+// The file is already promoted above, so a receipt failure is reported loudly
+// (non-zero exit) rather than silently skipped or rolled back.
+if (process.env.MNEMIX_RECEIPT_EMIT === "0") {
+  console.warn("Receipt emit disabled (MNEMIX_RECEIPT_EMIT=0) — no content_publish receipt written.");
+} else {
+  const receiptScript = (process.env.MNEMIX_RECEIPT_SCRIPT || "~/Projects/Mnemix/scripts/ops/receipt.mjs")
+    .replace(/^~(?=$|\/)/, os.homedir());
+  const idempotencyKey = `abdurai:content_publish:writing:${slug}`;
+  if (!fs.existsSync(receiptScript)) {
+    console.error(`RECEIPT NOT EMITTED: receipt script not found at ${receiptScript} (set MNEMIX_RECEIPT_SCRIPT). The post IS published on disk.`);
+    process.exit(1);
+  }
+  if (!process.env.MNEMIX_OPS_INGEST_KEY) {
+    console.error("RECEIPT NOT EMITTED: MNEMIX_OPS_INGEST_KEY is not set. The post IS published on disk — emit manually with:");
+    console.error(`  node ${receiptScript} --kind content_publish --status success --key "${idempotencyKey}" --summary "Published /writing/${slug}" --channel manual`);
+    process.exit(1);
+  }
+  const emit = spawnSync(
+    process.execPath,
+    [
+      receiptScript,
+      "--kind", "content_publish",
+      "--status", "success",
+      "--key", idempotencyKey,
+      "--summary", `Published /writing/${slug}: ${String(data.title).replace(/\s+/g, " ").slice(0, 120)}`,
+      "--channel", "manual",
+      "--agent", "tldr-publish.mjs",
+      "--refs", JSON.stringify({ slug, url: `https://abdur.ai/writing/${slug}`, register: data.register }),
+    ],
+    { cwd: root, encoding: "utf8", env: process.env },
+  );
+  if (emit.stdout) process.stdout.write(emit.stdout);
+  if (emit.status !== 0) {
+    console.error(`RECEIPT NOT EMITTED (receipt script exit ${emit.status}): ${(emit.stderr || "").trim()}`);
+    console.error("The post IS published on disk — the ledger is missing its content_publish receipt. Re-emit with the command above.");
+    process.exit(1);
+  }
+  console.log(`Receipt emitted: ${idempotencyKey}`);
+}
