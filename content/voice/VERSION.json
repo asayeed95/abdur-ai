@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "updated": "2026-09-02",
+  "purpose": "Voice profile bundle for abdur.ai / Northsun / Mnemix (AGE-1216). Runtimes load the brand map first, verify its blob hash, then load these files, verify per-file sha256, and identify the bundle by bundle_sha256.",
+  "brand_map": {
+    "path": "content/brand/brand-map.json",
+    "git_blob_sha1": "4e8dbd5643bed2af47995add45032298dbac135a",
+    "sha256": "0ce3729c0830170bae3a010f44ccf061696a2c0ee3020972a77f2371a0e89b7f"
+  },
+  "load_order": [
+    "content/brand/brand-map.json",
+    "abdur-voice.md",
+    "northsun-voice.md",
+    "mnemix-voice.md",
+    "banned-phrases.md",
+    "examples-good.md",
+    "examples-bad.md"
+  ],
+  "files": {
+    "abdur-voice.md": "cf7076edb93adc9b40dc1a0f72cbb8aa13646e524995f6b501aa00a402e6bf5d",
+    "northsun-voice.md": "29f10a594ef2637c87153b84ff4b9121f2e936fa77c591102ff251a34a6f152f",
+    "mnemix-voice.md": "0c6adc15e8aa758724c6a3763a2bcbf68785a948ddae82d6511823f2b09b4479",
+    "banned-phrases.md": "30ae8f76155b034873af97f777d758caf5228051cdf95cbbe10df3c109cc535e",
+    "examples-good.md": "0874da97904cfde02d864f841021220b7180627bc1b69b0020e21762e0632d73",
+    "examples-bad.md": "83aa0477857db9035dbadd0fbd884f95db819c2684c4cdaaaf48e7d0d222eda7"
+  },
+  "bundle_sha256": "6e8663a9b85c915954f45ff6920f3cd496d86b2dad99c7d444cf098ace926854"
+}
