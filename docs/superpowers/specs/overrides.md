@@ -199,3 +199,57 @@ naming the rename, no body prose changed. Raised by review on #39.
   content-publish-override: content/posts/the-meter-that-counted-cache-hits-as-cash.mdx
   reason: Add main's verbatim Editor's note. No other change.
   approved-by: Abdur / "do all the work" live session / 2026-09-05
+
+## S-1 — SEO/AEO audit: meta descriptions and SERP titles
+
+A live audit of abdur.ai (2026-09-10) found 12 of 15 pages shipping meta
+descriptions past Google's ~155-character truncation (worst: 293) and four
+`<title>` values past ~60 (worst: 88). Every SERP snippet the site owns was
+being cut mid-sentence.
+
+These edits touch post frontmatter only — `description` (the meta tag) is
+rewritten as a complete thought within budget, and the previous longer copy is
+preserved verbatim as `dek` where a post had none, so index-card teasers are
+unchanged. Four posts gain an optional `seo_title`, used for `<title>` only;
+every article's h1 and body prose are untouched.
+
+- task-id: S-1
+  content-publish-override: content/posts/29-review-rounds-hardened-a-ci-gate-that-nothing-ran.mdx
+  reason: description 248 -> 150; seo_title added (SERP title was 64).
+  approved-by: Abdur / "go with your recommendation" live session / 2026-09-10
+- task-id: S-1
+  content-publish-override: content/posts/cross-video-retention-pattern-detection.mdx
+  reason: description 237 -> 149; seo_title added (SERP title was 78).
+  approved-by: Abdur / "go with your recommendation" live session / 2026-09-10
+- task-id: S-1
+  content-publish-override: content/posts/the-dashboard-query-rls-wouldnt-let-through.mdx
+  reason: description 271 -> 152.
+  approved-by: Abdur / "go with your recommendation" live session / 2026-09-10
+- task-id: S-1
+  content-publish-override: content/posts/the-health-check-that-became-a-retry-storm.mdx
+  reason: description 266 -> 146.
+  approved-by: Abdur / "go with your recommendation" live session / 2026-09-10
+- task-id: S-1
+  content-publish-override: content/posts/the-meter-that-counted-cache-hits-as-cash.mdx
+  reason: description 242 -> 148.
+  approved-by: Abdur / "go with your recommendation" live session / 2026-09-10
+- task-id: S-1
+  content-publish-override: content/posts/the-night-the-doctrine-failed.mdx
+  reason: description 164 -> 144.
+  approved-by: Abdur / "go with your recommendation" live session / 2026-09-10
+- task-id: S-1
+  content-publish-override: content/posts/the-number-is-not-the-person.mdx
+  reason: description 253 -> 148; prior copy preserved verbatim as the post's first dek.
+  approved-by: Abdur / "go with your recommendation" live session / 2026-09-10
+- task-id: S-1
+  content-publish-override: content/posts/voice-ai-memory-latency-is-a-dead-argument.mdx
+  reason: description 206 -> 141 with no latency figure; seo_title added (SERP title was 72).
+  approved-by: Abdur / "go with your recommendation" live session / 2026-09-10
+- task-id: S-1
+  content-publish-override: content/posts/who-owns-the-architecture-when-ai-writes-the-code.mdx
+  reason: description 217 -> 151; seo_title added (SERP title was 88, the worst on the site).
+  approved-by: Abdur / "go with your recommendation" live session / 2026-09-10
+- task-id: S-1
+  content-publish-override: content/posts/your-pager-is-not-your-customer.mdx
+  reason: description 194 -> 147.
+  approved-by: Abdur / "go with your recommendation" live session / 2026-09-10

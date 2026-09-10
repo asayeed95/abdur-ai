@@ -31,7 +31,9 @@ export async function generateMetadata({
     image: ogImageForPost(post),
   });
   return {
-    title: post.title,
+    title: post.seoTitle ?? post.title,
+    // seoTitle is the SERP title only — h1, OG and Twitter keep the full
+    // editorial title, which is often longer than Google will render.
     description: post.description,
     alternates: { canonical: url },
     openGraph: {

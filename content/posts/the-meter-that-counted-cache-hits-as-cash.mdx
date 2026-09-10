@@ -2,7 +2,7 @@
 slug: the-meter-that-counted-cache-hits-as-cash
 title: "The meter that counted cache hits as cash"
 subtitle: "Three bugs review caught in a ledger that charged no one"
-description: "Usage-based pricing needs a ledger you can trust before you attach Stripe. Mine survived a green test suite with three real bugs: a cache-hit double-count, an RLS hole over billing history, and an orphan table squatting on the canonical name."
+description: "A usage ledger that charges no one is the cheapest place to break billing code. Review found three bugs that a green test suite had missed entirely."
 dek: "The ledger charged no one, the flag was off, and the migration never touched prod. Review still found three bugs — one that would have billed tenants for free cache hits, one that let a tenant rewrite its own billing history, and a table in prod that no migration created."
 tldr: "I built Mnemix's usage ledger before charging anyone: append-only, RLS-scoped per tenant, integer micro-dollars, flag off by default. Review found three bugs before prod saw any of it. The enrichment meter counted cache hits as live vendor calls — it would have billed tenants for free lookups. The RLS policy had no FOR clause, so a tenant could update or delete its own billing history. And applying the migration hit a different usage_events table already living in prod: 12 rows, last write 2026-04-25, created by no migration, read by no code. Fixes: gate the meter on !cacheHit, INSERT/SELECT-only policies plus an append-only trigger, and rename the orphan to usage_events_legacy_20260425. Pattern P-019: count before you charge — a flag-off ledger is the cheapest place to break billing code."
 date: 2026-07-24T09:00:00-04:00

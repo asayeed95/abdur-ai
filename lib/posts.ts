@@ -30,6 +30,12 @@ export type PostMeta = {
   readingTime?: number; // minutes
   wordCount?: number;
   section?: string;
+  /**
+   * Optional SERP title. The `title` field is the editorial h1 and is often
+   * longer than Google will show (~60 chars including the site suffix), so a
+   * post may declare a shorter one for <title> only. Falls back to `title`.
+   */
+  seoTitle?: string;
   /** Which claim this post is making. Required on every published post. */
   register: Register;
   /** One-line status note near the top. Omitted for `reported`. */
@@ -137,6 +143,7 @@ export function getAllPosts(): PostMeta[] {
         tags: data.tags || [],
         readingTime: data.reading_time || Math.max(1, Math.round(words / 220)),
         wordCount: data.word_count || words,
+        seoTitle: data.seo_title,
         section: data.section,
         register: requireRegister(file, data.register),
         statusNote: resolveStatusNote(data.register, data.status_note),

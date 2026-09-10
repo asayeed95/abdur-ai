@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     default: homeTitle,
     template: `%s · ${SITE.brand}`,
   },
-  description: SITE.description,
+  description: SITE.metaDescription,
   applicationName: SITE.brand,
   authors: [{ name: SITE.author, url: SITE.url }],
   creator: SITE.author,
