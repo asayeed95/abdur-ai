@@ -37,3 +37,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Python tooling caches (content/workflows scripts)
+__pycache__/
+*.pyc

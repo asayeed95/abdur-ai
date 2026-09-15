@@ -67,3 +67,28 @@ Only the voice-notes file matches (it quotes the published corpus, which legitim
 1. Read the six essays; approve/reject per piece. Publish path is in `content/drafts/2026-09-14-ledger.md`.
 2. If the /now and /hire proposals are accepted, the edits are small and both proposals carry the exact receipts.
 3. Reconcile P-014; then `the-last-fifteen-percent` is one `register:` field and one rename away from publishable.
+
+---
+
+## 2026-09-15 — frontier work (continuation, same branch, task-id C-12)
+
+Instruction: continue with queue empty → work the frontier, then hunt what the frontier missed. Pre-checks: `git status` clean except an untracked `.pyc`; `git log origin/draft/glm-abdur-ai-content-2026-09-14..HEAD` empty (branch fully pushed as of `68e4cd5`).
+
+### Done (each with receipt)
+
+1. **Draft arithmetic fully reconciled — my "one draft NOT VERIFIED" is withdrawn.** At C-11's commit `0b9f490`, `_drafts/` held exactly six drafts (5 unpublished TLDR + launch postmortem): "six remain" was literally accurate. The five TLDR drafts vanished from main because `3f56e88` — the rebased C-10/C-11 commit that actually merged via #39 — carries a `_drafts/` tree of one file; pre-rebase `0b9f490` had all eight. They persist on `content/mistakes-tldr-batch-1`. Receipts: `git ls-tree` at `0b7a689`, `0b9f490`, `3f56e88`, `origin/main`. Caveat caught this pass: local `main` is two months stale (tip `5348125`, 2026-07-23) — early checks yesterday hit it; everything re-verified against `origin/main` (`49a1b12`).
+2. **`the-last-fifteen-percent` publish prep (in `_drafts/`, no publish).** Renamed `abdur-ai-launch-postmortem.md` → `the-last-fifteen-percent.mdx` (`git mv`, slug-matching), added `register: reported`, restored the `tldr:` field verbatim from the batch-branch revision (main's copy was older — C-1's "tldr added" only ever lived on `content/mistakes-tldr-batch-1`; verified by diff), moved the `/aitldr/…` link to canonical `/writing/…`. Remaining human items: frontmatter-date nit (editorial), P-014 reconciliation (needs mnemix-learning records, outside this repo). Build-plan C-1 row annotated (insertion verified: `git diff --stat` → 1 insertion, 1 deletion = the single-row edit).
+3. **Broken citation fixed.** Restored `content/posts/_drafts/CONTENT-ROUTING-RULE.md` (the AGENTS.md-cited routing law) and `the-last-fifteen-percent.REVIEW.md` (C-1's READY verdict) verbatim from `content/mistakes-tldr-batch-1` via `git show` — no checkout/switch. Both were rebase-dropped by `3f56e88`.
+4. **Frontier notes corrected** (`content/drafts/2026-09-14-frontier.md`): NOT-VERIFIED withdrawn with the reconciliation, stale-local-main caveat recorded, §3 marked resolved.
+5. **Hygiene:** `__pycache__/` + `*.pyc` added to `.gitignore` (the claims-checker run leaves a `.pyc` in `content/workflows/__pycache__/`; it appeared as untracked noise in every status this session).
+
+### Verified — commands from this turn
+
+- `./scripts/check-phase.sh` → all gates green, including `npm run build` (quote identical in shape to yesterday's; last line `==> All gates green.`). RETRO warning now 17 entries.
+- `diff <(batch-branch draft) <(prepped draft)` → only intended deltas (register, tldr, /writing link).
+
+### Not done / NOT VERIFIED
+
+- Publish of anything — human action.
+- P-014 reconciliation, postmortem date nit — human/external.
+- The five remaining TLDR drafts still live only on `content/mistakes-tldr-batch-1`; I did not port them onto this branch (they're another lane's batch — bringing them over is a publisher decision, noted as the natural next step).
