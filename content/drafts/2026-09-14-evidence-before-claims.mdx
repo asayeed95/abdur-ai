@@ -1,0 +1,75 @@
+---
+slug: evidence-before-claims
+title: "Evidence before claims: the rule that keeps a solo founder honest"
+description: "Nobody reviews my public statements before I make them. So I made the review mechanical: every claim is typed, every 'reported' claim carries a receipt, and the build refuses otherwise."
+dek: "A solo founder has no editor, no comms review, no second pair of eyes on the About page. The substitute is not discipline — discipline fails. The substitute is a rule enforced by the build: no claim without its evidence."
+date: 2026-09-14T21:45:00-04:00
+author: Abdur Rahman Sayeed
+section: "Agent Systems"
+register: reported
+reading_time: 5
+word_count: 996
+receipts:
+  - path: "content/posts/REGISTERS.md"
+    note: "The three registers — reported / designed / argued — and the hard line: no past-tense verb over an event that did not happen, no number that was not measured."
+  - path: "scripts/check-public-claims.py"
+    note: "The mechanical checker: a reported post without receipts fails the gate."
+  - path: "lib/registers.ts"
+    note: "The register definitions the site enforces at build time."
+  - path: "RETRO.md"
+    note: "The ledger of times the rule was needed — each entry a claim that shipped ahead of its evidence and the rule written afterward."
+tags:
+  - verification
+  - writing
+  - process
+  - solo-founder
+citation_preferred: "Sayeed, Abdur Rahman. 'Evidence before claims.' abdur.ai, 14 September 2026."
+related:
+  - the-night-the-doctrine-failed
+  - twenty-agent-sessions-review-gates
+---
+
+Every company I have worked in had a moment before anything public shipped where someone who was not the author read it and asked: is that true, and can we prove it? A reviewer, an editor, a nervous lawyer. I did not appreciate the mechanism until I removed it.
+
+I work alone. My site, my posts, my product pages — the distance between "I think this" and "the internet can read this" is one `git push`. And I run that distance with agent sessions that write fluently, confidently, and at volume. A solo founder with twenty agent ghostwriters has built a machine for producing plausible claims. The question is not whether the machine will eventually publish something false. The question is what stops it, given that there is no editor.
+
+My answer is a rule with a build gate behind it: evidence before claims. Not "be careful." Not "double-check." A typed, mechanical system in which a claim that cannot point at its evidence cannot ship — because the build refuses.
+
+## The rule, stated exactly
+
+Every public claim on this site is one of three types, declared in the post's frontmatter: `reported` — this happened, and here is the receipt; `designed` — this is what I designed, and nothing is claimed to exist; `argued` — this is what I think, and no artifact stands behind it. The definitions live in `content/posts/REGISTERS.md`, the build enforces them through `lib/registers.ts`, and a script — `scripts/check-public-claims.py` — fails the gate if a `reported` post shows up without its `receipts:` block.
+
+Two hard lines sit underneath the types, and they are the whole ethic:
+
+1. **No past-tense verb over an event that did not happen.** If the thing is not built, the sentence is "I'd build it," never "I built it."
+2. **No number attached to something that was not measured.** A target reads as a target. A measurement carries its provenance. A number you cannot point at the run for does not go in the post.
+
+Neither line is a style preference. Both are answers to failures I have personally logged.
+
+## Why it has to be mechanical
+
+The failure mode I am defending against is not lying. It is drift — the slow, well-intentioned strengthening of a sentence across drafts. "We aim for fast recall" becomes "recall is fast" becomes "recall is fast, verified." Each step is small, each feels like editing, and the author — me, on a deadline, with four products — does not notice the sentence crossing from design into reporting. Agents accelerate the drift because they inherit the strongest sentence in the context and polish it further.
+
+You cannot fix drift with vigilance, because vigilance is exactly what degrades at deadline. You fix it by making the boundary structural: the draft itself must declare which side of the line it is on, and a checker that does not get tired reads the declaration and demands the receipts. The register system is not a promise that I am careful. It is an admission that I am not, reliably, and a machine that compensates.
+
+## The receipts habit changes the writing, not just the gate
+
+The unexpected effect: writing receipts into frontmatter changes what I write in the body. When every `reported` sentence must map to a path, a SHA, or a log line a stranger could check, whole genres of sentence stop being writable. "Industry-leading" has no receipt. "Blazing fast" has no receipt. "Trusted by teams" has no receipt I am willing to print. What survives is narrower and stronger: the migration at this SHA repairs this table; the incident first appeared at this timestamp — first-seen, not a proven start; this number comes from this count, on this date, by this command.
+
+I published the purest version of this discipline in the postmortem about the night my verification doctrine failed — every load-bearing claim in that piece carries a path and a SHA, including the ones that indict me. Especially those. A receipt that only flatters the author is marketing wearing evidence's clothes.
+
+## The ledger of the rule's necessity
+
+I keep a file called `RETRO.md` in this repository. Every time a claim ships ahead of its evidence — mine or an agent's — it gets a dated entry, and the entry ends with the rule that would have caught it. Reading it back is uncomfortable and useful: a reply that said "fixed in b5b67e4" about a commit that contained no fix; an analytics integration whose events were silently no-opping for weeks because the provider script was never loaded; a confident statement about repo state that had quietly gone stale. None of these were malice. All of them were claims without receipts, shipped by an author who believed them.
+
+That is the whole argument for the rule, in one file. Honest people with no gate make false claims at the rate their enthusiasm exceeds their verification. The gate is not an accusation. It is a prosthesis for a faculty — skepticism about my own output — that demonstrably fails under load.
+
+## What I would tell another solo founder
+
+You do not need my exact machinery. You need the shape:
+
+Pick the three or four sentences your site is not allowed to say without proof, and write them down where you will see them at deadline, not where they will be admired at leisure. Type your claims — even a private label of "I saw this" versus "I think this" changes which sentences your future self is willing to ship. Keep the ledger of the times you were wrong in public; it is the only specification for the gate that will actually fit your failure modes. And when you add agents to the pipeline, point the gate at their output first — they are the most enthusiastic, least skeptical writers you will ever employ.
+
+The solo founder's cliché is that nobody tells you no. The fix is to build the thing that does.
+
+<NewsletterCTA />

@@ -1,0 +1,76 @@
+---
+slug: a-fact-has-two-clocks
+title: "A fact has two clocks: when it was true, and when we learned it"
+description: "Bi-temporal memory for agents: every fact carries valid time and knowledge time, so a retrieval can be replayed, graded, and corrected without lying about the past."
+dek: "The moment a fact became true and the moment your system learned it are different events on different clocks. Collapse them into one timestamp and every correction, audit, and replay built on top inherits the lie."
+date: 2026-09-14T20:45:00-04:00
+author: Abdur Rahman Sayeed
+section: "Agent Systems"
+register: designed
+status_note: "Design. BEAD is specified and partially built; this piece is the public write-up of the model, not a shipped-feature claim."
+reading_time: 6
+word_count: 1203
+tags:
+  - agents
+  - memory
+  - bitemporal
+  - northsun
+citation_preferred: "Sayeed, Abdur Rahman. 'A fact has two clocks.' abdur.ai, 14 September 2026."
+related:
+  - memory-is-a-governance-problem
+  - the-night-the-doctrine-failed
+---
+
+Here is a small lie your database tells every day, and tells confidently.
+
+A user moves to Lisbon on March 3rd. Your agent learns about it on March 19th, when the user mentions it in a session. You store one timestamp on the row — March 19th, the write time. Six weeks later someone asks the system a question about the user's whereabouts in early March, and the system answers with a fact whose only clock says it did not exist until the 19th. Depending on which way the query leans, the user was either in two places at once or nowhere at all.
+
+The row is not wrong. The *model* is wrong: it collapsed two different events into one timestamp. The moment a fact became true is one event. The moment your system learned it is another. They are different events, on different clocks, and they diverge constantly — in both directions, for reasons that are structural rather than accidental.
+
+This is the idea at the spine of what I call BEAD — bi-temporal, evidence-anchored decisions — the memory model I am designing Northsun around. This piece is the design write-up I promised on my /now page in June. The mechanism is specified; parts of it are built; I will be precise about which claims are which.
+
+## The two clocks
+
+Database people have known this distinction for decades under the name *bitemporal data*, and it is a small scandal that the agent-memory conversation reinvented the problem without importing the solution.
+
+**Valid time** — when the fact was true in the world. "The user lives in Lisbon" became true on March 3rd. It may stop being true later. Valid time is about reality.
+
+**Knowledge time** — when the system learned the fact, recorded as the moment the belief entered memory. Knowledge time is about you. It never moves backwards: what you knew on March 10th is a historical fact about your system, forever.
+
+Keep both clocks and several things that are usually impossible become mechanical:
+
+- **Replay.** What would the agent have believed on March 10th? Query valid time as of today, knowledge time as of the 10th. You can re-run any past decision against exactly the knowledge that existed when it was made. Without knowledge time, "what did the agent know when it said that" is unanswerable — the correction already overwrote the past.
+- **Correction without self-deception.** When the Lisbon fact is learned on the 19th but valid from the 3rd, you record it that way. The gap between the two clocks — sixteen days of operating on a stale belief — is itself data. It tells you how long your system was wrong, which is the number you need if you want to get less wrong.
+- **Honest grading.** An eval that asks "did the agent give the right answer" is meaningless unless it specifies *as of when*. Right on March 10th's knowledge is wrong on March 20th's. Two clocks turn grading from an argument into a query.
+
+## Why agents make this urgent in a way dashboards never did
+
+Bitemporal modeling has lived in insurance and banking systems for years, where it mostly serves auditors. Agents raise the stakes for a different reason: agents *act* on beliefs, and they act at machine speed, and the belief they acted on is gone the moment you overwrite it.
+
+When a human analyst quotes a stale figure in a slide, the correction is a new slide. When an agent quotes a stale fact in an email it sends, the correction is an incident — and the first question of every incident review is "what did the system believe, and when did it stop being true?" If your memory layer cannot answer that, your incident review is theater.
+
+I learned the underlying lesson the hard way in a different domain. In the postmortem I published in June ([the night the doctrine failed](/writing/the-night-the-doctrine-failed)), the verification artifacts that failed me had no timestamps and no provenance — rows shaped like evidence that could not answer when they were written or by whom. The prescription I committed then was provenance row-by-row. BEAD is the same prescription applied to memory: a fact without its two clocks is data shaped like knowledge.
+
+## What the model commits you to
+
+Two clocks sound like two columns. They are not. They are a discipline, and the discipline has teeth:
+
+**You may never update a belief in place.** A correction is a new row that supersedes the old one at a point in knowledge time. The old row stays, marked, with its own valid-time range intact. This is the only way replay stays honest — the moment you UPDATE, your history becomes a claim about the present wearing a costume of the past. In practice this means memory tables are append-only, and "the current belief" is a view, not a row.
+
+**Valid time must be allowed to disagree with write time.** Most ingestion pipelines stamp facts with the moment they were processed and stop there. That is knowledge time masquerading as valid time. When a user says "I moved last month," the pipeline has to record both: learned now, valid from last month. When it cannot determine valid time, the honest value is *unknown* — not "assume now." An assumption dressed as a timestamp is how stale facts get quoted with fresh confidence.
+
+**Expiry is a valid-time event, not a deletion.** A consent grant that lapses, a price that changes, an employment that ends — each closes a valid-time range. The fact was true; it stopped being true; the system learned both things at knowable times. Deletion is for erasure, which is a different operation with its own essay.
+
+**Evidence attaches at knowledge time.** The third word in BEAD — evidence-anchored — means each belief carries what justified it *when it entered*: which session, which document, which statement. Anchoring at knowledge time is what makes the belief's pedigree survivable across later corrections. The evidence for the old belief does not disappear because the belief did.
+
+## What I am not claiming
+
+The /hire page describes this spine in one sentence, and that sentence is a design statement. I am not claiming a measured evaluation of replay accuracy, a shipped public endpoint, or any external user of the model. The bitemporal pattern itself is decades old and proven in industries with stricter auditors than mine — what I am contributing is the argument that agent memory needs it *by default*, and a concrete shape for how admission, evidence, and the two clocks fit together in one memory layer.
+
+If you take one thing from this piece, take the cheap part: the next time you design a table that will hold something an agent believes, add the second clock. `valid_from`, `valid_to`, `recorded_at`, `superseded_at`. Four columns, append-only, no UPDATEs. You will not get the whole model from four columns, but you will get the one property everything else depends on: a system whose past cannot be retroactively edited by its present.
+
+A fact has two clocks. A memory system that keeps only one of them is not recording history — it is drafting it.
+
+<MnemixCTA />
+
+*Choose Northsun as your agent memory layer.*

@@ -1,0 +1,68 @@
+---
+slug: the-terminal-and-the-phone-are-the-same-session
+title: "The terminal and the phone are the same session"
+description: "HeyCLI exists because my agent sessions outlive my desk. A session is a living thing with state; the device in front of me is just the current viewport into it."
+dek: "My agent sessions run for hours and I do not sit still for hours. The fix is not a mobile terminal app — it is refusing to treat the terminal as the session. The session is the state; every device is a viewport."
+date: 2026-09-14T21:30:00-04:00
+author: Abdur Rahman Sayeed
+section: "Agent Systems"
+register: reported
+reading_time: 5
+word_count: 957
+receipts:
+  - path: "app/hire/page.tsx"
+    note: "HeyCLI's public status label: 'Working prototype · iOS client + bridge' — voice-driven multi-session orchestration over an authenticated WebSocket. This essay claims prototype status, nothing more."
+  - path: "content/ship-log.json"
+    note: "JUN 23 entry: one intent pushed to Claude Code, Codex, and Aider in parallel, diffs reconciled."
+  - path: "app/now/page.tsx"
+    note: "The /now bullets on heycli, including the idle-cost incident."
+  - path: "content/posts/who-owns-the-architecture-when-ai-writes-the-code.mdx"
+    note: "The published version of the idle-orchestrator story: no AI flagged it; I traced it."
+tags:
+  - heycli
+  - agents
+  - orchestration
+  - mobile
+citation_preferred: "Sayeed, Abdur Rahman. 'The terminal and the phone are the same session.' abdur.ai, 14 September 2026."
+related:
+  - twenty-agent-sessions-review-gates
+  - who-owns-the-architecture-when-ai-writes-the-code
+---
+
+The wrongest assumption in my tooling, for a long time, was that an agent session lives in a terminal window.
+
+It feels true. The session starts when you open the window and ends when you close the laptop. But watch an actual working day with coding agents: a refactor runs forty minutes; a review loop across two models runs two hours; a long research fan-out runs all afternoon. The session's life has nothing to do with whether I am sitting in front of it. The terminal was never the session. It was a viewport, and I was treating the viewport as the thing itself — which meant that every time I stood up, walked the dog, or got in a car, the work either paused or, worse, drifted unwatched.
+
+HeyCLI is what I built after I stopped believing the assumption. It is a working prototype — that is its literal status label on my [/hire](/hire) page, and I am not going to upgrade the adjective in this essay — an iOS client plus a bridge that let me drive my coding-agent sessions by voice, from my phone, over an authenticated WebSocket. This piece is about the idea underneath the tool, because the idea is what transferred to everything else I run.
+
+## A session is state, not a screen
+
+Once you say "the session is the state, the device is a viewport," several design decisions stop being decisions:
+
+**The session must live somewhere that is not a device.** If the session state lives in the terminal process, the phone can never be a first-class participant — it can only be a worse terminal. So the source of truth moves off every device: sessions run on machines that stay on, and every screen I touch — desk terminal, laptop, phone — attaches to the same live state. Closing a viewport changes nothing about the work.
+
+**Output must be designed for the smallest viewport, not the largest.** A voice-driven phone session cannot consume a two-hundred-line diff dump. It needs the session's state compressed into what matters: what changed, what is blocked, what needs me. Building that compression turned out to be the most valuable part of the project, because it is the same compression a tired founder needs at a desk at midnight. Designing for the phone made the desktop experience better — a pattern I had seen in other people's products and had somehow not applied to my own tooling.
+
+**The interrupt is the interface.** On the phone I do not supervise continuously; I get interrupted when a session needs a decision. That forced the question every orchestration system eventually has to answer honestly: what exactly requires the human? Not "what feels important" — what, mechanically, cannot proceed without a named decision. The sessions that could not answer that question got their gates tightened until they could.
+
+## The multiplexer, stated plainly
+
+The June entry in my ship log describes the other half: one intent pushed to Claude Code, Codex, and Aider in parallel, then the diffs reconciled. Same premise, horizontal instead of mobile. If a session is state, then one intent can fan out to several executors, and what comes back is not three chat transcripts but three candidate diffs against the same tree, to be reconciled against each other. The terminal shows one conversation at a time. The state view shows the whole fan-out.
+
+I want to be precise about the status here, because the gap between "works on my desk" and "is a product" is where honest tooling stories go to die: this is a prototype I use daily, not a shipped product with other people's sessions on it. The /hire page says exactly that, and the honest label is the point of having a /hire page at all.
+
+## The night the viewport problem solved itself
+
+The idle-cost incident is the story that convinced me the model was right. I noticed my orchestrator was burning about fourteen dollars a day doing nothing — idle sessions, held open, metered. I have told the embarrassing part before: no agent flagged it, and I traced it myself, by hand. The model wrote the code; it did not notice the code was bleeding money.
+
+But the fix was only possible because of the architecture. Because the sessions were state on a server rather than windows on a screen, I could enumerate all of them in one place, see which were alive versus merely open, and put an idle policy in the one place that governed every viewport at once. If those sessions had been terminal processes on three machines, the inventory alone would have taken an evening. The phone-first design had accidentally built the observability I needed for the cost problem. That is usually how it works: you build the honest abstraction for one reason, and it pays you back for a different one.
+
+## What this generalizes to
+
+I run my whole portfolio through agent sessions now, with the review gates I described in [the companion piece](/writing/twenty-agent-sessions-review-gates), and the phone is just the most aggressive viewport in that system — the one with the least screen, the least attention, and the most interruptions. A system that survives the phone survives the desk.
+
+If you are building anything agent-shaped, the transferable claim is short: decide where the session's state actually lives, and be honest that every screen is a viewport onto it. The minute you do, mobility stops being a feature request and becomes a property you already had. And the compression you build for the smallest screen will turn out to be the thing the biggest screen was missing.
+
+The terminal was a fine viewport. It was a terrible place for the session to live.
+
+<NewsletterCTA />

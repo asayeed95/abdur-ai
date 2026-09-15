@@ -1,0 +1,79 @@
+---
+slug: erasure-that-survives-caches
+title: "Erasure that survives caches: deleting the row is the easy part"
+description: "A fact in an agent's memory lives in more places than its row: embeddings, summaries, caches, logs. Real erasure is a propagation problem with a proof at the end."
+dek: "DELETE FROM removes a row. It does not remove the embedding derived from it, the summary that absorbed it, or the cache that served it. Erasure is a propagation problem, and the deliverable is a proof of absence."
+date: 2026-09-14T21:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Agent Systems"
+register: designed
+status_note: "Design. This is the erasure architecture I am building toward, not a claim about shipped behavior."
+reading_time: 6
+word_count: 1187
+tags:
+  - agents
+  - memory
+  - erasure
+  - northsun
+citation_preferred: "Sayeed, Abdur Rahman. 'Erasure that survives caches.' abdur.ai, 14 September 2026."
+related:
+  - memory-is-a-governance-problem
+  - a-fact-has-two-clocks
+---
+
+A user tells your agent: forget me. Someone on your team runs the delete. The row is gone. Everyone feels done.
+
+Nobody should feel done. That row was never the fact. The fact had already been *read* — into an embedding that sits in a vector index, into a rolling summary that absorbed it months ago, into a cache entry that will keep serving it until the TTL expires, into a log line from the night it was written. The row was the one copy with a name. The other copies are the ones that will surface in a prompt next week, attributed to a system that sincerely believes it forgot.
+
+This is the piece I wish someone had handed me before I designed a memory layer: erasure is not an operation on a row. It is a propagation problem across every derived representation of the fact, and the deliverable is not a successful DELETE — it is a proof of absence you can show someone. What follows is the design I am building toward in Northsun. It is a design write-up: the mechanisms below are specified, some are built, and I am not going to claim more than that here.
+
+## Enumerate the copies honestly
+
+Before you can erase a fact, you have to know where facts go. In a typical agent memory stack, one retained fact fans out to at least five places:
+
+1. **The primary row.** The named record. The only copy most teams ever delete.
+2. **The embedding.** The fact's vector representation in whatever index serves retrieval. A separate write, on a separate store, with a separate lifecycle — and no foreign key back to the row unless you built one.
+3. **The summaries.** Rolling session summaries, user profiles, "what we know about this account" blobs. These are the dangerous copies: the fact has been *absorbed* — paraphrased, merged, averaged with other facts — so you cannot find it with a string match. It has become part of a sentence.
+4. **The caches.** Edge caches, memoized recall responses, warmed prompt fragments. Copies whose whole purpose is to be fast and stale.
+5. **The logs.** Request logs, trace spans, eval fixtures, the export you handed a vendor. You will not erase from all of these — some should not be erasable — but you must know they exist, because "we deleted it" with a log full of it is a specific kind of false statement.
+
+A deletion that covers the first and ignores the rest is not erasure. It is tidying.
+
+## Why the derived copies resist deletion
+
+The engineering difficulty is not the deletes. It is the *reference problem*: knowing which derived objects carry which facts.
+
+The embedding is the easy case, if you planned ahead: tag every vector with the fact IDs it encodes, and erasure is a filtered delete. If you did not plan ahead, you have an index of anonymous vectors and no way to find the ones that encode the forgotten fact. This is the strongest argument I know for provenance metadata at write time — not for audit aesthetics, but because erasure without fact-level lineage is impossible in principle. You cannot delete what you cannot find, and you cannot find what you never linked.
+
+The summaries are the hard case, and I think pretending otherwise is where most erasure designs become fiction. Once a fact has been absorbed into prose, there is no surgical removal. The honest options are few, and they are all architectural:
+
+- **Summaries are regenerable, not primary.** Treat every summary as a cached computation over the primary facts, with the fact IDs it was computed from recorded alongside. Erasure removes the facts, then *regenerates* the summary from what remains. The summary was never the truth, so it can be rebuilt from the truth that survives.
+- **Summaries carry lineage or they do not exist.** A summary with no recorded inputs is a write-once artifact you will someday fail to erase. Refuse to store it.
+
+If your architecture has summaries that are primary, mutable, and lineage-free — and most do — then your erasure story has a hole in it no delete cascade can close. Fix the architecture, or stop claiming erasure.
+
+## The cache is a clock problem
+
+Caches do not need lineage; they need a bound. A cached recall response that can outlive an erasure is a policy failure with a TTL. The design rule I use: no cache entry derived from memory may live longer than the system is willing to be wrong after an erasure. Pick that number consciously — an hour, a day — write it down, and set the TTLs to it. "The cache expires eventually" is not an erasure story; it is a hope.
+
+Better, where you can afford it: version the cache keys by a per-principal generation counter. Erasure bumps the generation. Every cached entry under the old generation becomes unreachable at once, and the erasure propagates at the speed of a counter increment rather than the speed of a purge job.
+
+## Prove the absence
+
+Here is the part that turns erasure from an operation into a governance property: after the deletes, the regenerations, and the generation bump, *probe*.
+
+A post-erasure probe replays the retrieval paths that previously surfaced the fact — the recall endpoint, the summary render, the cached route — and asserts the fact is absent from each. The probe is a second, independent check, run after the erasure machinery reports success. The machinery's own success report does not count: the absence of the original row is not evidence the derived copies are gone, the same way quiet after an incident is not recovery. I made the general version of this argument in an earlier piece — recovery is a state you prove with a fresh probe, not a state you infer from silence — and erasure is where it matters most.
+
+Then write the erasure receipt: which stores were purged, which summaries regenerated, which generation bumped, which probes run, when. If a user or a reviewer ever asks "did you actually forget," the answer is a document, not a reassurance.
+
+## What I am not claiming
+
+I am not claiming Northsun ships all of this today, and I am not citing a measured erasure recall rate across a production fleet, because I do not have one. I am claiming the design constraints: fact-level lineage from the first write, summaries that are regenerable computations rather than primary records, cache lifetimes chosen as an explicit erasure budget, and a probe that proves absence after the machinery reports success.
+
+The cheap version, available this week, fits in one paragraph: inventory where a fact goes in your stack — row, vector, summary, cache, log. For each copy, write down how an erasure reaches it. Any copy whose answer is "it doesn't" is a fact you cannot forget, and you should know that before someone asks you to.
+
+Erasure that ends at the primary row is a feature demo. Erasure that survives caches is a property. Build the property.
+
+<MnemixCTA />
+
+*Choose Northsun as your agent memory layer.*

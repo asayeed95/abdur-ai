@@ -1,0 +1,77 @@
+---
+slug: twenty-agent-sessions-review-gates
+title: "Running a company through twenty agent sessions: the review gates that make it safe"
+description: "I run my portfolio through concurrent agent sessions across several model providers. What makes it survivable is not the models — it is a small set of gates that assume every session will eventually be wrong."
+dek: "The question I get most is how I trust twenty agent sessions with real repositories. The honest answer: I don't. I trust the gates around them, and the gates are designed on the assumption that every session will eventually be confidently wrong."
+date: 2026-09-14T21:15:00-04:00
+author: Abdur Rahman Sayeed
+section: "Agent Systems"
+register: reported
+reading_time: 6
+word_count: 1111
+receipts:
+  - path: "PROCESS.md"
+    note: "The gate discipline itself: check-phase before and after, own branch, explicit staging, verify before you report."
+  - path: "scripts/check-phase.sh"
+    note: "The mechanical gate — design-token lock, content-publish lock, claims checker, typecheck, lint, build."
+  - path: "scripts/check-public-claims.py"
+    note: "The public-claims policy checker run by the gate."
+  - path: "content/posts/REGISTERS.md"
+    note: "The three-register claim system every published post declares."
+  - path: "docs/superpowers/specs/build-plan.md"
+    note: "The single todo list — task ids, statuses, and the rule that status flips ship in the same commit as the work."
+tags:
+  - agents
+  - verification
+  - process
+  - solo-founder
+citation_preferred: "Sayeed, Abdur Rahman. 'Running a company through twenty agent sessions.' abdur.ai, 14 September 2026."
+related:
+  - the-night-the-doctrine-failed
+  - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
+  - who-owns-the-architecture-when-ai-writes-the-code
+---
+
+On any given day I have agent sessions open across four model providers, working on four products, in more worktrees than I can hold in my head at once. When I describe this to other founders, the first question is never about throughput. It is: how do you trust them with real repositories?
+
+The honest answer is that I do not. Trust is the wrong layer. I trust a small set of gates around the sessions, and the gates are designed on a premise I learned the expensive way: every session will eventually be confidently wrong, and the confident wrongness will arrive wearing the costume of a completed task. I published the incident that taught me this — a cleanup doctrine that passed five rounds of adversarial audit and an "independent" cross-verifier, and still came within one approved command of deleting a production fix ([the postmortem](/writing/the-night-the-doctrine-failed)). A ~75% false-close rate, behind gates that were all green.
+
+The gates I run now are the descendant of that night. They are not elaborate. They are specific, and each one exists because a failure mode earned it.
+
+## Gate one: a written operating procedure the session must read first
+
+Every agent session in my repositories starts by reading the same short document — this site's is `PROCESS.md` — that states what is locked, what is open, what to run before and after any change, and the exact phrases it is not allowed to say without evidence. "Done" without a command that produced it this turn is banned. Not discouraged — banned, in writing, at the top of the session.
+
+This works for a reason that surprised me: the procedure is short. It fits in the context the session actually reads, it names the two files that can never be touched without a logged override, and it ends with a checklist. A twenty-page governance document would be ignored. A two-page one becomes the session's own voice for the rest of the day.
+
+## Gate two: mechanical gates, not prose intentions
+
+The important words in my process file are enforced by a script, not by the agent's good intentions. `scripts/check-phase.sh` greps staged diffs for changes to the locked design files and refuses to pass without a matching override entry in a named overrides file. It runs the public-claims checker, typecheck, lint, and the production build, in that order, and it runs before work starts and again before anything is called done.
+
+The principle underneath: if a rule can be checked mechanically, it must be checked mechanically. Prose rules decay because the session that breaks them is always the session that "had a good reason this time." A grep does not get tired and does not negotiate. I wrote about the extreme version of this lesson — a gate that survived twenty-nine review rounds while no CI job ever invoked it — in [29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran). Hardened and enforced are different states. The mechanical gate is what closes that gap.
+
+## Gate three: the author never approves
+
+Every consequential change is reviewed by an agent on a different model provider with fresh context, working from source, not from the author's summary. The reason is structural, and I have tested it enough times to trust it: same-model self-review finds what the model was already inclined to miss. A reviewer on a different substrate finds what the author's blind spots protected. The failures that cost me most were never the ones where one model was stupid. They were the ones where the same blind spot was present at write time and at review time, wearing two different badges.
+
+## Gate four: claims are typed
+
+Every piece of content on this site declares what kind of claim it is — `reported`, `designed`, or `argued` — and the build fails without the declaration. A `reported` post must carry receipts: file paths, commit SHAs, log lines a reader could check. The rules are written down in `content/posts/REGISTERS.md` and enforced in code, and the two enforcement points are mutation-tested — deliberately broken, watched go red, restored — because a gate that has never failed is a gate you have not tested.
+
+This gate is the one that scales the least intuitively and matters the most. Twenty sessions generate claims faster than any human can fact-check after the fact. Typing the claims at the moment of authorship — this sentence is an event I can point at, this one is a design, this one is an opinion — moves verification from a bottleneck at the end to a property of the pipeline.
+
+## Gate five: one writer per artifact, and the human holds the irreversibles
+
+Two agents editing one file is a merge conflict with extra steps; two agents committing to one branch is how you ship a forged green without anyone lying. Every work item names its owning lane before a byte is written. And anything irreversible — publishing, deleting, deploying, merging — waits for me. Not because my judgment is better than the models'. Because accountability cannot be delegated, so the actions that carry it should not be either.
+
+## What this buys, and what it costs
+
+What it buys: I can run twenty sessions against real repositories and sleep. Not because nothing goes wrong — things go wrong weekly — but because the failures surface as red gates, contested reviews, and refused merges, in private, at the cost of an evening, instead of as incidents in public at the cost of the company's credibility.
+
+What it costs: speed, visibly and constantly. Sessions end with uncommitted work because a gate went red. Drafts sit unpublished for weeks waiting on my review. Every velocity chart I could draw would look better without the gates, right up to the chart that includes the near-misses.
+
+People sometimes ask whether the gates make the agents slower in a way that defeats the point of running agents. The arithmetic runs the other way. The bottleneck in my operation was never generation speed. It was the cost of being wrong in a way I could not detect. Gates do not make wrongness impossible; they make it *detectable*, at the moment it happens, by a mechanism that does not share the author's blind spot. Detectable wrongness is a manageable operating expense. Undetectable wrongness is the thing that ends companies.
+
+The models will keep getting better, and the gates will still be there — not because I distrust this generation of models, but because I have read my own postmortems. The gates are the lesson, written down, made mechanical, and put where the next session cannot talk its way past them.
+
+<NewsletterCTA />
