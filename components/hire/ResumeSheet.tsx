@@ -19,25 +19,25 @@ const EXPERIENCE = [
     title: "Applied AI Products",
     dates: "Sep 2025 – Present",
     bullets: [
-      "Lead governed-context product strategy, workflow and interface design, system decisions, and implementation on Northsun.",
-      "Build HeyCLI — voice-oriented multi-session coding-agent orchestration; iOS-first client, authenticated WebSocket, Node/TS bridge.",
-      "Design BrowseFlow's agent-agnostic browser automation and shape Dockerfile.ai's container-workflow intelligence.",
+      "Lead Northsun's governed AI-agent context: product strategy, workflow design, architecture, and implementation.",
+      "Build HeyCLI's voice-driven coding-agent orchestration with a Node/TS bridge, authenticated WebSocket, and iOS client.",
+      "Design BrowseFlow's browser automation with accessibility-tree perception, CDP, approvals, and run evidence.",
     ],
   },
   {
     title: "Enterprise Retail IT Delivery",
     dates: "Apr 2024 – Jul 2025",
     bullets: [
-      "Retail IT subcontract for Vox Elements supporting ETRO Fashion US — 200+ users, 14 sites, 500+ tracked assets.",
-      "Identity and endpoint policy across Active Directory, Entra ID, and Intune; Lansweeper, Cisco/RingCentral, Jira triage, cross-site escalation.",
+      "Delivered Vox Elements retail IT subcontract for ETRO Fashion US: 200+ users, 14 sites, 500+ tracked assets.",
+      "Administered AD, Entra ID, and Intune; supported IBM AS/400 workflows, Lansweeper assets, telephony, and Jira triage.",
     ],
   },
   {
     title: "Automotive Business Systems & Growth",
     dates: "2020 – 2024",
     bullets: [
-      "Built and operated the business and technology foundations for three automotive-service businesses through their growth stages.",
-      "QuickBooks, Excel, and Power BI reporting for pricing, profitability, and cash flow; reconciliation automated with Python and SQL.",
+      "Built finance and business systems for three automotive-service businesses: multi-user QuickBooks, Excel, and Power BI.",
+      "Reported pricing, profitability, and cash flow; automated reconciliation with Python and SQL.",
     ],
   },
 ];
@@ -63,10 +63,10 @@ const SHIPPED = [
 ];
 
 const SKILLS = [
-  ["Applied AI —", "AI system design, prompt engineering, agent orchestration, workflow & tool design, browser automation, AI-assisted development"],
-  ["Client delivery —", "customer discovery, requirements translation, technical delivery, product judgment, operator empathy"],
-  ["Engineering —", "TypeScript, React/Next.js, Node.js, Python, SQL, Git, API integration, UX/product design"],
-  ["Operations —", "Microsoft 365, Active Directory, Entra ID, Intune, Jira SM, Power BI"],
+  ["Applied AI —", "AI workflow architecture, prompt engineering, agent orchestration, browser automation, AI-assisted development"],
+  ["Financial systems —", "reconciliation, budgeting, cash-flow reporting, KPI dashboards, QuickBooks, Excel, Power BI"],
+  ["Engineering —", "Python, SQL, TypeScript, Node.js, React/Next.js, REST APIs, PostgreSQL, Git, product and UX design"],
+  ["Delivery & IT —", "requirements discovery, business-system implementation, Microsoft 365, Entra ID, Intune, Jira, Lansweeper"],
 ];
 
 const QR_PATH =
@@ -113,7 +113,7 @@ export function ResumeSheet() {
         <div className="flex flex-col md:flex-row justify-between items-start gap-5 md:gap-6">
           <div>
             <p className="font-mono text-[10px] tracking-[0.22em] uppercase text-[#B4563A] mb-2">
-              Applied AI Engineer · Client Delivery &amp; AI Workflow Architecture
+              Applied AI Engineer · Financial &amp; Business Systems
             </p>
             <h2 className="font-display font-extrabold text-[30px] md:text-[38px] leading-none tracking-tight text-[#1F1A14]">
               Abdur Rahman M. Sayeed
@@ -144,10 +144,10 @@ export function ResumeSheet() {
         </div>
 
         <p className="text-[13px] leading-relaxed text-[#464036] text-pretty">
-          Applied AI engineer and client-delivery systems builder. I enter real businesses, learn the
-          operator constraints, and build the systems underneath them — agent orchestration, prompt and
-          system design, browser automation, and AI-assisted development, on a practical enterprise-IT
-          foundation.
+          Applied AI engineer with a B.S. in Financial Mathematics &amp; Economics and experience in
+          financial operations, business automation, and enterprise IT. I build agent workflows and
+          AI-assisted software through One Asec, grounded in reconciliation, cash-flow reporting, and
+          business-system implementation.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-[1fr_252px] gap-6 md:gap-8 flex-1">
@@ -197,8 +197,8 @@ export function ResumeSheet() {
                   ·
                 </span>
                 <span>
-                  Owned bookkeeping, budgeting, KPI, CRM, invoicing, and monthly reporting while expanding
-                  the company&apos;s marketing and IT foundation.
+                  Owned bookkeeping, budgeting, invoicing, and monthly financial reporting; maintained
+                  KPI and CRM workflows while expanding marketing and IT operations.
                 </span>
               </div>
             </div>
