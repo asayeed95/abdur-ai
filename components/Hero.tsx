@@ -18,7 +18,7 @@ export function Hero() {
 
       <p className="eyebrow mb-8">
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-clay animate-pulse-clay mr-2 -translate-y-px align-middle" />
-        Solo AI founder · West New York, NJ · NYC metro
+        Solo AI founder · Prospect Park, NJ · NYC metro
       </p>
 
       <h1

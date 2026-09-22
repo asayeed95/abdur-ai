@@ -6,7 +6,7 @@ import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "/whoami",
-  description: "Abdur Rahman Sayeed — AI-native builder from NJ/NY. No degree, no team, production AI systems. The story, the stack, and what I'm aiming at.",
+  description: "Abdur Rahman Sayeed — AI-native builder from NJ/NY. No CS degree, no team, production AI systems. The story, the stack, and what I'm aiming at.",
 };
 
 export default function AboutPage() {
