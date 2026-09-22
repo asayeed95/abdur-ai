@@ -171,6 +171,7 @@ const PAGE_STYLE = `
 .poppy-root .poppy-project-muted a { color: #176f70; }
 .poppy-root .poppy-project-muted a:hover { color: #0f4747; }
 .poppy-root .poppy-hypothesis { background: #fffdf8; border-color: rgba(23,111,112,.2); }
+.poppy-root .poppy-resume-placeholder { background: rgba(245,242,255,.54); border-color: rgba(137,142,205,.45); }
 @media (prefers-reduced-motion: reduce) {
   .poppy-root * { transition: none !important; }
 }
@@ -225,6 +226,17 @@ export default function PoppyPage() {
               <Link href="/hire" className="rounded-sm border border-[#b7dfd4]/50 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#f4eddf] transition-colors hover:border-white hover:bg-white/10">
                 View full portfolio
               </Link>
+            </div>
+            <div className="mt-12 max-w-[48rem] rounded-md border border-white/20 bg-white/[0.045] p-4 md:p-5">
+              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#b8dcd5]">A creator&apos;s goal, made legible</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em]">
+                <span className="rounded-sm border border-[#f5d686]/55 bg-[#f5d686]/10 px-2.5 py-1.5 text-[#fff0bd]">Find</span>
+                <span className="h-px w-6 border-t border-dashed border-[#b7dfd4]/60" aria-hidden />
+                <span className="rounded-sm border border-[#b9c3ff]/55 bg-[#b9c3ff]/10 px-2.5 py-1.5 text-[#e1e4ff]">Understand</span>
+                <span className="h-px w-6 border-t border-dashed border-[#b7dfd4]/60" aria-hidden />
+                <span className="rounded-sm border border-[#a6e6b8]/55 bg-[#a6e6b8]/10 px-2.5 py-1.5 text-[#d8f5dc]">Create</span>
+              </div>
+              <p className="mt-3 text-[12px] leading-relaxed text-[#c9dcd6]">Poppy&apos;s public workflow; the harness coordinates the setup and judgment between each step.</p>
             </div>
             <p className="mt-14 font-mono text-[10px] uppercase tracking-[0.17em] text-[#a7ded4]">
               Prospect Park, NJ · AI products · candidate brief
@@ -304,7 +316,7 @@ export default function PoppyPage() {
 
         <section id="evidence" className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// Evidence</p>
-          <div className="mt-7 grid gap-4 md:grid-cols-3">
+          <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <a href="https://github.com/asayeed95" className="poppy-card rounded-md border p-6 transition-colors hover:border-[#176f70]/70">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">GitHub</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">github.com/asayeed95 ↗</p>
@@ -315,6 +327,11 @@ export default function PoppyPage() {
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">Open full portfolio →</p>
               <p className="mt-2 text-sm leading-relaxed text-[#526460]">The broader recruiter-facing portfolio and résumé surface.</p>
             </Link>
+            <div className="poppy-resume-placeholder rounded-md border border-dashed p-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#555c9a]">Designed résumé</p>
+              <p className="mt-4 font-display text-[24px] text-[#123e3d]">Forthcoming after final edit</p>
+              <p className="mt-2 text-sm leading-relaxed text-[#526460]">A curated visual résumé will be included with application materials. The ATS résumé remains unchanged.</p>
+            </div>
             <div className="border-l-2 border-[#176f70] pl-5">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Walkthrough · 2–3 min</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">Walkthrough available with application materials</p>
