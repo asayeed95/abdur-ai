@@ -100,16 +100,19 @@ const PAGE_STYLE = `
 .poppy-root .poppy-resume-placeholder { background: rgba(244,237,223,.72); border-color: #9bb7ba; }
 .poppy-root .poppy-highlight-lavender { background: linear-gradient(transparent 60%, #dcd5f2 60%, #dcd5f2 94%, transparent 94%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .poppy-root .poppy-highlight-green { background: linear-gradient(transparent 60%, #d5ebdd 60%, #d5ebdd 94%, transparent 94%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.poppy-root :focus-visible { outline: 2px solid var(--poppy-teal); outline-offset: 3px; }
+.poppy-root .poppy-project :focus-visible, .poppy-root .poppy-footer :focus-visible { outline-color: #d5eee5; }
 @media (prefers-reduced-motion: reduce) {
   .poppy-root * { transition: none !important; }
 }
 `;
 
+const CARD_LINK = "font-mono text-[10px] uppercase tracking-[0.12em] underline decoration-[#6aac9f]/70 underline-offset-4";
+
 function StatusPill({ status, tone }: { status: string; tone: ProjectStatus }) {
   const classes: Record<ProjectStatus, string> = {
     live: "border-[#5bb499]/70 bg-[#5bb499]/15 text-[#d9f0e8]",
     progress: "border-[#e0b14a]/70 bg-[#e0b14a]/15 text-[#fff0bd]",
-    source: "border-[#80cfc1]/70 bg-[#80cfc1]/15 text-[#d9f7f1]",
     internal: "border-[#176f70]/35 bg-[#176f70]/[0.08] text-[#315856]",
     parked: "border-[#69706b]/40 bg-[#69706b]/[0.08] text-[#505b56]",
   };
@@ -121,7 +124,7 @@ export default function PoppyPage() {
   return (
     <div className="poppy-root min-h-screen font-body">
       <style dangerouslySetInnerHTML={{ __html: PAGE_STYLE }} />
-      <div className="poppy-nav fixed inset-x-0 top-0 z-50 border-b">
+      <nav aria-label="Site" className="poppy-nav fixed inset-x-0 top-0 z-50 border-b">
         <div className="mx-auto flex h-14 max-w-content items-center justify-between gap-4 px-6 md:px-10">
           <Link href="/" className="flex items-center gap-2 font-display text-lg tracking-tight">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#d97757]" aria-hidden />
@@ -131,10 +134,10 @@ export default function PoppyPage() {
             {DISCLAIMER}
           </span>
           <Link href="/hire" className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#176f70]">
-            Full portfolio →
+            Full portfolio <span aria-hidden>→</span>
           </Link>
         </div>
-      </div>
+      </nav>
 
       <main>
         <section className="poppy-hero pb-16 pt-32 text-[#123e3d] md:pb-24 md:pt-40">
@@ -156,7 +159,7 @@ export default function PoppyPage() {
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <a href="#projects" className="rounded-sm bg-[#123e3d] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#f4eddf] transition-colors hover:bg-[#176f70]">
-                Explore the evidence ↓
+                Explore the evidence <span aria-hidden>↓</span>
               </a>
               <Link href="/hire" className="rounded-sm border border-[#123e3d]/30 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#123e3d] transition-colors hover:border-[#123e3d] hover:bg-[#123e3d]/5">
                 View full portfolio
@@ -184,7 +187,7 @@ export default function PoppyPage() {
                 <span className="h-5 self-center border-l border-dashed border-[#176f70]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
                 <span className="self-center rounded-full border border-[#9bb7ba] px-3 py-2 text-center text-[#123e3d] md:shrink-0">Finished campaign</span>
               </div>
-              <p className="mt-3 text-[12px] leading-relaxed text-[#526460]">Poppy&apos;s public workflow; the harness coordinates the setup and judgment between each step.</p>
+              <p className="mt-3 text-[12px] leading-relaxed text-[#526460]">Poppy&apos;s public workflow; the harness I would build coordinates the setup and judgment between each step.</p>
             </div>
           </div>
         </section>
@@ -209,7 +212,7 @@ export default function PoppyPage() {
         <section id="projects" className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// What I&apos;ve built and am building</p>
           <div className="mt-5 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-            <h2 className="max-w-[16ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Eight projects, one honest status system.</h2>
+            <h2 className="max-w-[16ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Seven projects, one honest status system.</h2>
             <p className="max-w-[39ch] text-[15px] leading-relaxed text-[#526460]">Honest labels. No theater. Each card says exactly where the project stands.</p>
           </div>
           <div className="mt-12 grid gap-4 lg:grid-cols-2">
@@ -225,14 +228,20 @@ export default function PoppyPage() {
                 <p className={`mt-5 text-[14px] leading-relaxed ${mutedCard ? "text-[#435653]" : "text-[#d2e0db]"}`}>{project.body}</p>
                 <p className={`mt-4 border-l pl-3 text-[13px] leading-relaxed ${mutedCard ? "border-[#176f70]/45 text-[#315856]" : "border-[#76c0b4]/55 text-[#b9dcd4]"}`}><span className={`font-mono text-[10px] uppercase tracking-[0.12em] ${mutedCard ? "text-[#176f70]" : "text-[#8bcdbf]"}`}>For Poppy: </span>{project.poppy}</p>
                 <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <Link href={`/poppy/projects#${project.slug}`} className="font-mono text-[10px] uppercase tracking-[0.12em] underline decoration-[#6aac9f]/70 underline-offset-4">
-                    Project notes →
+                  <Link href={`/poppy/projects#${project.slug}`} className={CARD_LINK}>
+                    Project notes<span className="sr-only"> for {project.name}</span> <span aria-hidden>→</span>
                   </Link>
-                  {project.links?.map((link) => (
-                    <a key={link.label} href={link.href} className="font-mono text-[10px] uppercase tracking-[0.12em] underline decoration-[#6aac9f]/70 underline-offset-4">
-                      {link.label} {link.external ? "↗" : "→"}
-                    </a>
-                  ))}
+                  {project.links?.map((link) =>
+                    link.external ? (
+                      <a key={link.label} href={link.href} className={CARD_LINK}>
+                        {link.label} <span aria-hidden>↗</span>
+                      </a>
+                    ) : (
+                      <Link key={link.label} href={link.href} className={CARD_LINK}>
+                        {link.label} <span aria-hidden>→</span>
+                      </Link>
+                    ),
+                  )}
                 </div>
               </article>
               );
@@ -261,15 +270,16 @@ export default function PoppyPage() {
 
         <section id="evidence" className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// Evidence</p>
+          <h2 className="sr-only">Evidence and portfolio links</h2>
           <div className="mt-7 grid gap-4 md:grid-cols-3">
-            <a href="https://github.com/asayeed95" className="poppy-card rounded-md border p-6 transition-colors hover:border-[#176f70]/70">
+            <a href={SITE.handles.github} className="poppy-card rounded-md border p-6 transition-colors hover:border-[#176f70]/70">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">GitHub</p>
-              <p className="mt-4 font-display text-[24px] text-[#123e3d]">github.com/asayeed95 ↗</p>
-              <p className="mt-2 text-sm leading-relaxed text-[#526460]">Public profile. Access to individual project repositories may vary.</p>
+              <p className="mt-4 font-display text-[24px] text-[#123e3d]">github.com/asayeed95 <span aria-hidden>↗</span></p>
+              <p className="mt-2 text-sm leading-relaxed text-[#526460]">Public profile. Most of the product work above lives in private repositories.</p>
             </a>
             <Link href="/hire" className="poppy-card rounded-md border p-6 transition-colors hover:border-[#176f70]/70">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Full portfolio</p>
-              <p className="mt-4 font-display text-[24px] text-[#123e3d]">Open full portfolio →</p>
+              <p className="mt-4 font-display text-[24px] text-[#123e3d]">Open full portfolio <span aria-hidden>→</span></p>
               <p className="mt-2 text-sm leading-relaxed text-[#526460]">The broader recruiter-facing portfolio and résumé surface.</p>
             </Link>
             <div className="border-l-2 border-[#176f70] pl-5">

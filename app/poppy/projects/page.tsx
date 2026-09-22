@@ -1,36 +1,69 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { absoluteOgUrl, buildOgPath, shareCard } from "@/lib/og";
+import { SITE } from "@/lib/site";
 import { PROJECTS, type ProjectStatus } from "../projects-data";
 
+const title = "Poppy candidate project notes";
+const description = "Status-aware project notes for Abdur Rahman Sayeed's Poppy AI candidate brief.";
+
+const notesImageUrl = absoluteOgUrl(
+  buildOgPath({
+    title,
+    excerpt: "Where each project stands today.",
+    path: "abdur.ai/poppy/projects",
+    tag: "CANDIDATE BRIEF",
+  }),
+);
+
+const notesShare = shareCard({
+  title,
+  description,
+  url: `${SITE.url}/poppy/projects`,
+  type: "website",
+  image: {
+    url: notesImageUrl,
+    secureUrl: notesImageUrl,
+    type: "image/png",
+    width: 1200,
+    height: 630,
+    alt: "abdur.ai/poppy/projects — project notes for an independent Poppy AI candidate brief.",
+  },
+});
+
 export const metadata: Metadata = {
-  title: "Poppy candidate project notes",
-  description: "Status-aware project notes for Abdur Rahman Sayeed's Poppy AI candidate brief.",
-  alternates: { canonical: "/poppy/projects" },
+  title,
+  description,
+  alternates: { canonical: `${SITE.url}/poppy/projects` },
   robots: { index: false, follow: true },
+  openGraph: { ...notesShare.openGraph, siteName: SITE.brand },
+  twitter: notesShare.twitter,
 };
 
+/** Light-card variants of the /poppy route palette (the brief's pills sit on dark cards). */
 function StatusPill({ status, tone }: { status: string; tone: ProjectStatus }) {
   const classes: Record<ProjectStatus, string> = {
-    live: "border-emerald-700/30 bg-emerald-50 text-emerald-950",
-    progress: "border-amber-700/30 bg-amber-50 text-amber-950",
-    source: "border-cyan-700/30 bg-cyan-50 text-cyan-950",
-    internal: "border-slate-500/30 bg-slate-100 text-slate-700",
-    parked: "border-stone-500/30 bg-stone-100 text-stone-700",
+    live: "border-[#176f70]/45 bg-[#176f70]/10 text-[#123e3d]",
+    progress: "border-[#b8862b]/55 bg-[#e0b14a]/15 text-[#5a4210]",
+    internal: "border-[#176f70]/35 bg-[#176f70]/[0.08] text-[#315856]",
+    parked: "border-[#69706b]/40 bg-[#69706b]/[0.08] text-[#505b56]",
   };
 
   return <span className={`inline-flex rounded-sm border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] ${classes[tone]}`}>{status}</span>;
 }
+
+const LINK_CLASS = "font-mono text-[10px] uppercase tracking-[0.12em] text-[#176f70] underline decoration-[#176f70]/50 underline-offset-4";
 
 export default function PoppyProjectNotesPage() {
   return (
     <main className="min-h-screen bg-[#f4eddf] px-6 py-16 text-[#123e3d] md:px-10 md:py-24">
       <div className="mx-auto max-w-content">
         <Link href="/poppy#projects" className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#176f70] underline decoration-[#176f70]/50 underline-offset-4">
-          ← Back to candidate brief
+          <span aria-hidden>← </span>Back to candidate brief
         </Link>
         <p className="mt-12 font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// Project notes</p>
-        <h1 className="mt-5 max-w-[16ch] font-display text-[42px] leading-[0.98] tracking-tight md:text-[64px]">Where to explore the work—without pretending it is all public.</h1>
-        <p className="mt-7 max-w-[62ch] text-[16px] leading-relaxed text-[#435653]">These notes extend the Poppy candidate brief. Every project keeps its current status; an external link appears only when this update verified a useful public destination.</p>
+        <h1 className="mt-5 max-w-[16ch] font-display text-[42px] leading-[0.98] tracking-tight md:text-[64px]">Where each project stands today.</h1>
+        <p className="mt-7 max-w-[62ch] text-[16px] leading-relaxed text-[#435653]">These notes extend the Poppy candidate brief with each project&apos;s current status and scope. External links appear only where a public destination exists.</p>
 
         <div className="mt-14 grid gap-5">
           {PROJECTS.map((project) => (
@@ -43,11 +76,17 @@ export default function PoppyProjectNotesPage() {
               <p className="mt-5 max-w-[72ch] text-[15px] leading-relaxed text-[#435653]">{project.explainer}</p>
               {project.links && (
                 <div className="mt-5 flex flex-wrap gap-4">
-                  {project.links.map((link) => (
-                    <a key={link.label} href={link.href} className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#176f70] underline decoration-[#176f70]/50 underline-offset-4">
-                      {link.label} {link.external ? "↗" : "→"}
-                    </a>
-                  ))}
+                  {project.links.map((link) =>
+                    link.external ? (
+                      <a key={link.label} href={link.href} className={LINK_CLASS}>
+                        {link.label} <span aria-hidden>↗</span>
+                      </a>
+                    ) : (
+                      <Link key={link.label} href={link.href} className={LINK_CLASS}>
+                        {link.label} <span aria-hidden>→</span>
+                      </Link>
+                    ),
+                  )}
                 </div>
               )}
             </article>
