@@ -253,3 +253,7 @@ every article's h1 and body prose are untouched.
   content-publish-override: content/posts/your-pager-is-not-your-customer.mdx
   reason: description 194 -> 147.
   approved-by: Abdur / "go with your recommendation" live session / 2026-09-10
+- task-id: P-1 (AGE-2394)
+  copy-override: components/Hero.tsx, components/About.tsx, app/about/page.tsx (meta description), lib/site.ts (SITE.location)
+  reason: current address is Prospect Park, NJ (West New York is the old address); /about meta said "No degree" while the University of Ottawa B.S. Financial Mathematics & Economics is correct, so it now reads "No CS degree" to match the body and the résumé.
+  approved-by: Abdur / live session ("ship it, West New York is old address, current address is Prospect Park NJ, and Ottawa B.S ... degree is correct") / 2026-09-22
