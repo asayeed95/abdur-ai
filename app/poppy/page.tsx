@@ -35,6 +35,7 @@ export const metadata: Metadata = {
   title: "Poppy candidate brief",
   description,
   alternates: { canonical: `${SITE.url}/poppy` },
+  robots: { index: false, follow: true },
   openGraph: { ...poppyShare.openGraph, siteName: SITE.brand },
   twitter: poppyShare.twitter,
 };
@@ -95,6 +96,8 @@ const PAGE_STYLE = `
 .poppy-root .poppy-project-muted a:hover { color: #0f4747; }
 .poppy-root .poppy-hypothesis { background: #fffdf8; border-color: rgba(23,111,112,.2); }
 .poppy-root .poppy-resume-placeholder { background: rgba(245,242,255,.54); border-color: rgba(137,142,205,.45); }
+.poppy-root .poppy-highlight-lavender { background: linear-gradient(transparent 60%, rgba(185,195,255,.45) 60%, rgba(185,195,255,.45) 92%, transparent 92%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.poppy-root .poppy-highlight-green { background: linear-gradient(transparent 60%, rgba(166,230,184,.42) 60%, rgba(166,230,184,.42) 92%, transparent 92%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 @media (prefers-reduced-motion: reduce) {
   .poppy-root * { transition: none !important; }
 }
@@ -137,10 +140,13 @@ export default function PoppyPage() {
               Candidate brief / Poppy AI / AI Engineer — founder-level
             </p>
             <h1 className="max-w-[15ch] font-display text-[46px] font-semibold leading-[0.96] tracking-tight md:text-[76px]">
-              I build the harness between an agent&apos;s plan and a creator&apos;s finished campaign.
+              I build the <span className="poppy-highlight-lavender">harness</span> between an agent&apos;s plan and a creator&apos;s <span className="poppy-highlight-green">finished campaign</span>.
             </h1>
             <p className="mt-8 max-w-[58ch] text-[17px] leading-relaxed text-[#d2e4df] md:text-[19px]">
               I build the operating layer that turns an agent&apos;s plan into decisive creative progress: tool calling, model routing, retrieval, and human judgment with clear scope, status labels, and evidence behind the work.
+            </p>
+            <p className="mt-6 max-w-[58ch] border-l border-[#b7dfd4]/60 pl-4 text-[13px] leading-relaxed text-[#b8dcd5]">
+              I bought lifetime access to Poppy a couple of months after launch, during its first year.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <a href="#projects" className="rounded-sm bg-[#d5eee5] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#123e3d] transition-colors hover:bg-white">
@@ -150,20 +156,30 @@ export default function PoppyPage() {
                 View full portfolio
               </Link>
             </div>
-            <div className="mt-12 max-w-[48rem] rounded-md border border-white/20 bg-white/[0.045] p-4 md:p-5">
+            <div className="mt-12 max-w-[62rem] rounded-md border border-white/20 bg-white/[0.045] p-4 md:p-5">
               <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#b8dcd5]">A creator&apos;s goal, made legible</p>
-              <div className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em]">
-                <span className="rounded-sm border border-[#f5d686]/55 bg-[#f5d686]/10 px-2.5 py-1.5 text-[#fff0bd]">Find</span>
-                <span className="h-px w-6 border-t border-dashed border-[#b7dfd4]/60" aria-hidden />
-                <span className="rounded-sm border border-[#b9c3ff]/55 bg-[#b9c3ff]/10 px-2.5 py-1.5 text-[#e1e4ff]">Understand</span>
-                <span className="h-px w-6 border-t border-dashed border-[#b7dfd4]/60" aria-hidden />
-                <span className="rounded-sm border border-[#a6e6b8]/55 bg-[#a6e6b8]/10 px-2.5 py-1.5 text-[#d8f5dc]">Create</span>
+              <div className="mt-4 flex flex-col items-stretch gap-2 font-mono text-[10px] uppercase tracking-[0.11em] md:flex-row md:items-center md:gap-1.5">
+                <span className="self-center rounded-full border border-[#b7dfd4]/50 px-3 py-2 text-center text-[#e2f1ec] md:shrink-0">A goal</span>
+                <span className="h-5 self-center border-l border-dashed border-[#8ccdc2]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
+                <span className="min-w-0 overflow-hidden rounded-sm border border-white/45 bg-[#fffdf8] text-center text-[#123e3d] md:flex-1">
+                  <span className="block h-1 bg-[#f5d686]" aria-hidden />
+                  <span className="block px-3 py-3">Find</span>
+                </span>
+                <span className="h-5 self-center border-l border-dashed border-[#8ccdc2]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
+                <span className="min-w-0 overflow-hidden rounded-sm border border-white/45 bg-[#fffdf8] text-center text-[#123e3d] md:flex-1">
+                  <span className="block h-1 bg-[#b9c3ff]" aria-hidden />
+                  <span className="block px-3 py-3">Understand</span>
+                </span>
+                <span className="h-5 self-center border-l border-dashed border-[#8ccdc2]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
+                <span className="min-w-0 overflow-hidden rounded-sm border border-white/45 bg-[#fffdf8] text-center text-[#123e3d] md:flex-1">
+                  <span className="block h-1 bg-[#a6e6b8]" aria-hidden />
+                  <span className="block px-3 py-3">Create</span>
+                </span>
+                <span className="h-5 self-center border-l border-dashed border-[#8ccdc2]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
+                <span className="self-center rounded-full border border-[#b7dfd4]/50 px-3 py-2 text-center text-[#e2f1ec] md:shrink-0">Finished campaign</span>
               </div>
               <p className="mt-3 text-[12px] leading-relaxed text-[#c9dcd6]">Poppy&apos;s public workflow; the harness coordinates the setup and judgment between each step.</p>
             </div>
-            <p className="mt-14 font-mono text-[10px] uppercase tracking-[0.17em] text-[#a7ded4]">
-              Prospect Park, NJ · AI products · candidate brief
-            </p>
           </div>
         </section>
 
@@ -240,31 +256,50 @@ export default function PoppyPage() {
 
         <section id="evidence" className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// Evidence</p>
-          <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
             <a href="https://github.com/asayeed95" className="poppy-card rounded-md border p-6 transition-colors hover:border-[#176f70]/70">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">GitHub</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">github.com/asayeed95 ↗</p>
-              <p className="mt-2 text-sm leading-relaxed text-[#526460]">The repositories behind the project cards above.</p>
+              <p className="mt-2 text-sm leading-relaxed text-[#526460]">Public profile. Access to individual project repositories may vary.</p>
             </a>
             <Link href="/hire" className="poppy-card rounded-md border p-6 transition-colors hover:border-[#176f70]/70">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Full portfolio</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">Open full portfolio →</p>
               <p className="mt-2 text-sm leading-relaxed text-[#526460]">The broader recruiter-facing portfolio and résumé surface.</p>
             </Link>
-            <div className="poppy-resume-placeholder rounded-md border border-dashed p-6">
-              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#555c9a]">Designed résumé</p>
-              <p className="mt-4 font-display text-[24px] text-[#123e3d]">Forthcoming after final edit</p>
-              <p className="mt-2 text-sm leading-relaxed text-[#526460]">A curated visual résumé will be included with application materials. The ATS résumé remains unchanged.</p>
-            </div>
             <div className="border-l-2 border-[#176f70] pl-5">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Walkthrough · 2–3 min</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">Walkthrough available with application materials</p>
               <p className="mt-2 text-sm leading-relaxed text-[#526460]">A short screen-share can walk through this page and the evidence behind it.</p>
             </div>
           </div>
-          <div className="mt-16 max-w-[68ch] border-l-2 border-[#176f70] pl-5">
-            <p className="font-display text-[23px] leading-snug text-[#123e3d]">Abdur Rahman Sayeed — solo founder, One Asec LLC (NJ). Degree in Financial Mathematics & Economics, University of Ottawa (no CS degree). ~6 years building/operating systems with code; ~1 year of focused AI-product engineering since Sep 2025.</p>
-            <p className="mt-4 font-mono text-[11px] leading-relaxed text-[#596965]">Stack: TypeScript, Node.js, Python, SQL, React/Next.js, WebSockets, API integration.</p>
+        </section>
+
+        <section id="about" className="border-t border-[#176f70]/15 bg-[#fffdf8] py-20 md:py-28">
+          <div className="mx-auto grid max-w-content gap-10 px-6 md:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] md:items-center md:gap-16 md:px-10">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// About</p>
+              <h2 className="mt-5 font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Abdur Rahman Sayeed</h2>
+              <p className="mt-6 max-w-[68ch] text-[16px] leading-relaxed text-[#435653]">Solo founder, One Asec LLC (NJ). Degree in Financial Mathematics &amp; Economics, University of Ottawa (no CS degree). ~6 years building and operating systems with code; ~1 year of focused AI-product engineering since September 2025.</p>
+              <p className="mt-4 max-w-[68ch] text-[14px] leading-relaxed text-[#526460]">TypeScript, Node.js, Python, SQL, React/Next.js, WebSockets, API integration.</p>
+            </div>
+            <div className="poppy-resume-placeholder flex items-center gap-5 rounded-md border border-dashed p-5 md:block md:p-6">
+              <div aria-hidden className="aspect-[8.5/11] w-20 shrink-0 rounded-sm border border-[#989bd0]/55 bg-white p-2 shadow-[0_12px_30px_-18px_rgba(74,76,137,.7)] sm:w-28 md:mx-auto md:w-44 md:p-4">
+                <span className="block h-1.5 w-3/4 rounded-full bg-[#555c9a]/35" />
+                <span className="mt-2 block h-1 w-1/2 rounded-full bg-[#555c9a]/20" />
+                <span className="mt-4 block h-px w-full bg-[#989bd0]/45" />
+                <span className="mt-3 block h-1 w-full rounded-full bg-[#555c9a]/20" />
+                <span className="mt-2 block h-1 w-5/6 rounded-full bg-[#555c9a]/20" />
+                <span className="mt-4 block h-px w-full bg-[#989bd0]/45" />
+                <span className="mt-3 block h-1 w-full rounded-full bg-[#555c9a]/20" />
+                <span className="mt-2 block h-1 w-4/5 rounded-full bg-[#555c9a]/20" />
+              </div>
+              <div className="min-w-0 md:mt-5">
+                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#555c9a]">Designed résumé</p>
+                <p className="mt-2 font-display text-[21px] leading-tight text-[#123e3d]">Forthcoming after final edit</p>
+                <p className="mt-2 text-[12px] leading-relaxed text-[#526460]">Separate from the ATS résumé. No download is available yet.</p>
+              </div>
+            </div>
           </div>
         </section>
       </main>
@@ -272,7 +307,7 @@ export default function PoppyPage() {
       <footer className="poppy-footer py-10">
         <div className="mx-auto flex max-w-content flex-col justify-between gap-4 px-6 md:flex-row md:items-center md:px-10">
           <p className="font-display text-xl">Independent candidate brief — not affiliated with Poppy AI.</p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.15em]">Built as a curated companion to the AI Engineer application. abdur.ai</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.15em]">Prospect Park, NJ · AI products · candidate brief</p>
         </div>
       </footer>
     </div>

@@ -63,7 +63,7 @@ export const PROJECTS: PoppyProject[] = [
     detail: "free for users",
     body: "Agent-agnostic browser automation with accessibility-tree perception, a CDP-first hybrid engine, approval queues, and a run journal.",
     poppy: "A design posture for agentic work: explicit approval points and an inspectable journal when a person needs to understand or redirect a run.",
-    explainer: "BrowseFlow is presented here as open-source work and a product-design example: browser automation is paired with approval queues and a run journal so human direction remains legible.",
+    explainer: "BrowseFlow is open-source work at a working-prototype stage. Its browser automation pairs approval queues with a run journal so human direction remains legible.",
   },
   {
     slug: "relay",
@@ -81,7 +81,7 @@ export const PROJECTS: PoppyProject[] = [
     tone: "progress",
     body: "An AI tool around Dockerfiles — applied AI on a concrete developer workflow.",
     poppy: "Applied AI with a tight feedback loop: one workflow, done well, judged by output quality.",
-    explainer: "Dockerfile.ai is an in-progress applied-AI project focused on a concrete developer workflow. Its public site is available for further exploration; this candidate brief does not use that availability to overstate the project status.",
+    explainer: "Dockerfile.ai has a public site and shipped work, while the product remains in progress. This brief focuses on its applied-AI developer workflow without implying that every planned capability is available.",
     links: [{ label: "Visit product site", href: "https://dockerfile.ai", external: true }],
   },
   {
