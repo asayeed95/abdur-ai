@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { absoluteOgUrl, buildOgPath, shareCard } from "@/lib/og";
 import { SITE } from "@/lib/site";
+import { PROJECTS, type ProjectStatus } from "./projects-data";
 
 const description =
   "A Poppy AI candidate brief from Abdur Rahman Sayeed: agent systems, evidence, and an honest project portfolio.";
@@ -37,84 +38,6 @@ export const metadata: Metadata = {
   openGraph: { ...poppyShare.openGraph, siteName: SITE.brand },
   twitter: poppyShare.twitter,
 };
-
-type ProjectStatus = "live" | "progress" | "source" | "internal" | "parked";
-
-const PROJECTS: Array<{
-  name: string;
-  status: string;
-  tone: ProjectStatus;
-  detail?: string;
-  body: string;
-  poppy: string;
-  links?: Array<{ label: string; href: string; external?: boolean }>;
-}> = [
-  {
-    name: "Northsun",
-    status: "In progress",
-    tone: "progress",
-    detail: "AI product · #1 priority",
-    body: "My main AI product. An applied-AI system with retrieval and memory plumbing; Mnemix is its free diagnostic tool for users (the mnemix-engine package — Mnemix is the tool, not the product).",
-    poppy: "The closest thing to their stack — AI harnesses, context/retrieval/memory, product UX over complex AI.",
-    links: [{ label: "GitHub", href: "https://github.com/asayeed95/mnemix", external: true }],
-  },
-  {
-    name: "HeyCLI",
-    status: "In progress",
-    tone: "progress",
-    body: "An AI CLI harness — the agent lives where the developer already works.",
-    poppy: "A harness around an agent, not a chat box around a model. Same design instinct Poppy needs: meet the user in their workflow.",
-    links: [{ label: "GitHub", href: "https://github.com/asayeed95/remotecli", external: true }],
-  },
-  {
-    name: "abdur.ai",
-    status: "Live",
-    tone: "live",
-    body: "My personal site and portfolio, including the hire page this brief is adapted from.",
-    poppy: "The UI craft on display — and this very page is the proof of it.",
-    links: [
-      { label: "abdur.ai", href: "https://abdur.ai", external: true },
-      { label: "Full portfolio", href: "/hire" },
-    ],
-  },
-  {
-    name: "BrowseFlow",
-    status: "Open source",
-    tone: "source",
-    detail: "free for users",
-    body: "Agent-agnostic browser automation with accessibility-tree perception, a CDP-first hybrid engine, approval queues, and a run journal.",
-    poppy: "A design posture for agentic work: explicit approval points and an inspectable journal when a person needs to understand or redirect a run.",
-  },
-  {
-    name: "Relay",
-    status: "Internal — not public",
-    tone: "internal",
-    body: "Internal infrastructure under One Asec — not a public product, and presented as exactly that.",
-    poppy: "Evidence of systems thinking: the unglamorous plumbing that keeps products running.",
-  },
-  {
-    name: "Dockerfile.ai",
-    status: "In progress",
-    tone: "progress",
-    body: "An AI tool around Dockerfiles — applied AI on a concrete developer workflow.",
-    poppy: "Applied AI with a tight feedback loop: one workflow, done well, judged by output quality.",
-  },
-  {
-    name: "Halo",
-    status: "Parked concept",
-    tone: "parked",
-    body: "A concept on the shelf — kept honest as a concept, not dressed up as a launch.",
-    poppy: "I scope honestly. Parked means parked.",
-  },
-  {
-    name: "Baylio",
-    status: "Parked concept",
-    tone: "parked",
-    detail: "early prototype exists",
-    body: "AI call-assistant SaaS concept for auto repair shops (ElevenLabs + Twilio + Claude + Stripe) — a repo exists and work started, but it is parked, not launched.",
-    poppy: "Voice AI + integrations (telephony, payments) — the connector/integration muscle the role asks for.",
-  },
-];
 
 const WHY = [
   {
@@ -279,15 +202,16 @@ export default function PoppyPage() {
                 <h3 className="mt-5 font-display text-[31px] leading-none tracking-tight">{project.name}</h3>
                 <p className={`mt-5 text-[14px] leading-relaxed ${mutedCard ? "text-[#435653]" : "text-[#d2e0db]"}`}>{project.body}</p>
                 <p className={`mt-4 border-l pl-3 text-[13px] leading-relaxed ${mutedCard ? "border-[#176f70]/45 text-[#315856]" : "border-[#76c0b4]/55 text-[#b9dcd4]"}`}><span className={`font-mono text-[10px] uppercase tracking-[0.12em] ${mutedCard ? "text-[#176f70]" : "text-[#8bcdbf]"}`}>For Poppy: </span>{project.poppy}</p>
-                {project.links && (
-                  <div className="mt-5 flex flex-wrap items-center gap-3">
-                    {project.links?.map((link) => (
-                      <a key={link.label} href={link.href} className="font-mono text-[10px] uppercase tracking-[0.12em] underline decoration-[#6aac9f]/70 underline-offset-4">
-                        {link.label} {link.external ? "↗" : "→"}
-                      </a>
-                    ))}
-                  </div>
-                )}
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <Link href={`/poppy/projects#${project.slug}`} className="font-mono text-[10px] uppercase tracking-[0.12em] underline decoration-[#6aac9f]/70 underline-offset-4">
+                    Project notes →
+                  </Link>
+                  {project.links?.map((link) => (
+                    <a key={link.label} href={link.href} className="font-mono text-[10px] uppercase tracking-[0.12em] underline decoration-[#6aac9f]/70 underline-offset-4">
+                      {link.label} {link.external ? "↗" : "→"}
+                    </a>
+                  ))}
+                </div>
               </article>
               );
             })}
