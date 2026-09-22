@@ -87,7 +87,7 @@ const PAGE_STYLE = `
 .poppy-root .poppy-nav a:hover { color: var(--poppy-teal); }
 .poppy-root .poppy-footer { background: var(--poppy-dark); }
 .poppy-root .poppy-footer * { color: #e6eee9; }
-.poppy-root .poppy-hero { background: radial-gradient(circle at 80% 22%, rgba(62,143,137,.38), transparent 31%), linear-gradient(125deg, #071c1b 0%, #123e3d 51%, #174d4c 100%); }
+.poppy-root .poppy-hero { background: var(--poppy-paper); border-bottom: 1px solid rgba(18,62,61,.12); }
 .poppy-root .poppy-rule { background: linear-gradient(90deg, transparent, rgba(23,111,112,.6), transparent); }
 .poppy-root .poppy-card { background: rgba(255,253,247,.74); border-color: rgba(18,62,61,.16); box-shadow: 0 18px 38px -32px rgba(10,40,39,.8); }
 .poppy-root .poppy-project { background: #143e3d; border-color: rgba(231,241,236,.18); box-shadow: 0 20px 40px -30px rgba(5,25,24,.9); }
@@ -96,10 +96,10 @@ const PAGE_STYLE = `
 .poppy-root .poppy-project-muted { background: rgba(255,253,247,.46); border-color: rgba(23,111,112,.34); }
 .poppy-root .poppy-project-muted a { color: #176f70; }
 .poppy-root .poppy-project-muted a:hover { color: #0f4747; }
-.poppy-root .poppy-hypothesis { background: #fffdf8; border-color: rgba(23,111,112,.2); }
-.poppy-root .poppy-resume-placeholder { background: rgba(244,237,223,.72); border-color: rgba(23,111,112,.32); }
-.poppy-root .poppy-highlight-lavender { background: linear-gradient(transparent 60%, rgba(185,195,255,.45) 60%, rgba(185,195,255,.45) 92%, transparent 92%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
-.poppy-root .poppy-highlight-green { background: linear-gradient(transparent 60%, rgba(166,230,184,.42) 60%, rgba(166,230,184,.42) 92%, transparent 92%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.poppy-root .poppy-hypothesis { background: #fffdf8; border-color: #c98a6b; }
+.poppy-root .poppy-resume-placeholder { background: rgba(244,237,223,.72); border-color: #9bb7ba; }
+.poppy-root .poppy-highlight-lavender { background: linear-gradient(transparent 60%, #dcd5f2 60%, #dcd5f2 94%, transparent 94%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.poppy-root .poppy-highlight-green { background: linear-gradient(transparent 60%, #d5ebdd 60%, #d5ebdd 94%, transparent 94%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 @media (prefers-reduced-motion: reduce) {
   .poppy-root * { transition: none !important; }
 }
@@ -123,7 +123,8 @@ export default function PoppyPage() {
       <style dangerouslySetInnerHTML={{ __html: PAGE_STYLE }} />
       <div className="poppy-nav fixed inset-x-0 top-0 z-50 border-b">
         <div className="mx-auto flex h-14 max-w-content items-center justify-between gap-4 px-6 md:px-10">
-          <Link href="/" className="font-display text-lg tracking-tight">
+          <Link href="/" className="flex items-center gap-2 font-display text-lg tracking-tight">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#d97757]" aria-hidden />
             abdur.ai
           </Link>
           <span className="hidden rounded-full border border-[#176f70]/30 px-3 py-1 text-center font-mono text-[9px] uppercase tracking-[0.11em] text-[#176f70] sm:block">
@@ -136,54 +137,54 @@ export default function PoppyPage() {
       </div>
 
       <main>
-        <section className="poppy-hero pb-16 pt-32 text-[#f4eddf] md:pb-24 md:pt-40">
+        <section className="poppy-hero pb-16 pt-32 text-[#123e3d] md:pb-24 md:pt-40">
           <div className="mx-auto max-w-content px-6 md:px-10">
-            <span className="mb-5 inline-block max-w-full rounded-full border border-[#b7dfd4]/50 px-3 py-1.5 text-center font-mono text-[9px] uppercase tracking-[0.11em] text-[#b8dcd5] [text-wrap:balance] sm:hidden">
+            <span className="mb-5 inline-block max-w-full rounded-full border border-[#176f70]/30 px-3 py-1.5 text-center font-mono text-[9px] uppercase tracking-[0.11em] text-[#176f70] [text-wrap:balance] sm:hidden">
               {DISCLAIMER}
             </span>
-            <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-[#a7ded4]">
+            <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-[#176f70]">
               Candidate brief / Poppy AI / AI Engineer — founder-level
             </p>
             <h1 className="max-w-[15ch] font-display text-[46px] font-semibold leading-[0.96] tracking-tight md:text-[76px]">
               I build the <span className="poppy-highlight-lavender">harness</span> between an agent&apos;s plan and a creator&apos;s <span className="poppy-highlight-green">finished campaign</span>.
             </h1>
-            <p className="mt-8 max-w-[58ch] text-[17px] leading-relaxed text-[#d2e4df] md:text-[19px]">
+            <p className="mt-8 max-w-[58ch] text-[17px] leading-relaxed text-[#435653] md:text-[19px]">
               I build the operating layer that turns an agent&apos;s plan into decisive creative progress: tool calling, model routing, retrieval, and human judgment with clear scope, status labels, and evidence behind the work.
             </p>
-            <p className="mt-6 max-w-[58ch] border-l border-[#b7dfd4]/60 pl-4 text-[13px] leading-relaxed text-[#b8dcd5]">
+            <p className="mt-6 max-w-[58ch] border-l border-[#176f70]/45 pl-4 text-[13px] leading-relaxed text-[#526460]">
               I bought lifetime access to Poppy a couple of months after launch, during its first year.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
-              <a href="#projects" className="rounded-sm bg-[#d5eee5] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#123e3d] transition-colors hover:bg-white">
+              <a href="#projects" className="rounded-sm bg-[#123e3d] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#f4eddf] transition-colors hover:bg-[#176f70]">
                 Explore the evidence ↓
               </a>
-              <Link href="/hire" className="rounded-sm border border-[#b7dfd4]/50 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#f4eddf] transition-colors hover:border-white hover:bg-white/10">
+              <Link href="/hire" className="rounded-sm border border-[#123e3d]/30 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#123e3d] transition-colors hover:border-[#123e3d] hover:bg-[#123e3d]/5">
                 View full portfolio
               </Link>
             </div>
-            <div className="mt-12 max-w-[62rem] rounded-md border border-white/20 bg-white/[0.045] p-4 md:p-5">
-              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#b8dcd5]">A creator&apos;s goal, made legible</p>
+            <div className="mt-12 max-w-[62rem] rounded-md border border-[#123e3d]/15 bg-[#fffdf8]/60 p-4 md:p-5">
+              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#176f70]">A creator&apos;s goal, made legible</p>
               <div className="mt-4 flex flex-col items-stretch gap-2 font-mono text-[10px] uppercase tracking-[0.11em] md:flex-row md:items-center md:gap-1.5">
-                <span className="self-center rounded-full border border-[#b7dfd4]/50 px-3 py-2 text-center text-[#e2f1ec] md:shrink-0">A goal</span>
-                <span className="h-5 self-center border-l border-dashed border-[#8ccdc2]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
-                <span className="min-w-0 overflow-hidden rounded-sm border border-white/45 bg-[#fffdf8] text-center text-[#123e3d] md:flex-1">
-                  <span className="block h-1 bg-[#f5d686]" aria-hidden />
+                <span className="self-center rounded-full border border-[#9bb7ba] px-3 py-2 text-center text-[#123e3d] md:shrink-0">A goal</span>
+                <span className="h-5 self-center border-l border-dashed border-[#176f70]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
+                <span className="min-w-0 overflow-hidden rounded-sm border border-[#e7e0d2] bg-white text-center text-[#123e3d] md:flex-1">
+                  <span className="block h-1.5 bg-[#dcd5f2]" aria-hidden />
                   <span className="block px-3 py-3">Find</span>
                 </span>
-                <span className="h-5 self-center border-l border-dashed border-[#8ccdc2]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
-                <span className="min-w-0 overflow-hidden rounded-sm border border-white/45 bg-[#fffdf8] text-center text-[#123e3d] md:flex-1">
-                  <span className="block h-1 bg-[#b9c3ff]" aria-hidden />
+                <span className="h-5 self-center border-l border-dashed border-[#176f70]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
+                <span className="min-w-0 overflow-hidden rounded-sm border border-[#e7e0d2] bg-white text-center text-[#123e3d] md:flex-1">
+                  <span className="block h-1.5 bg-[#d6e4f5]" aria-hidden />
                   <span className="block px-3 py-3">Understand</span>
                 </span>
-                <span className="h-5 self-center border-l border-dashed border-[#8ccdc2]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
-                <span className="min-w-0 overflow-hidden rounded-sm border border-white/45 bg-[#fffdf8] text-center text-[#123e3d] md:flex-1">
-                  <span className="block h-1 bg-[#a6e6b8]" aria-hidden />
+                <span className="h-5 self-center border-l border-dashed border-[#176f70]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
+                <span className="min-w-0 overflow-hidden rounded-sm border border-[#e7e0d2] bg-white text-center text-[#123e3d] md:flex-1">
+                  <span className="block h-1.5 bg-[#d5ebdd]" aria-hidden />
                   <span className="block px-3 py-3">Create</span>
                 </span>
-                <span className="h-5 self-center border-l border-dashed border-[#8ccdc2]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
-                <span className="self-center rounded-full border border-[#b7dfd4]/50 px-3 py-2 text-center text-[#e2f1ec] md:shrink-0">Finished campaign</span>
+                <span className="h-5 self-center border-l border-dashed border-[#176f70]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
+                <span className="self-center rounded-full border border-[#9bb7ba] px-3 py-2 text-center text-[#123e3d] md:shrink-0">Finished campaign</span>
               </div>
-              <p className="mt-3 text-[12px] leading-relaxed text-[#c9dcd6]">Poppy&apos;s public workflow; the harness coordinates the setup and judgment between each step.</p>
+              <p className="mt-3 text-[12px] leading-relaxed text-[#526460]">Poppy&apos;s public workflow; the harness coordinates the setup and judgment between each step.</p>
             </div>
           </div>
         </section>
@@ -249,8 +250,7 @@ export default function PoppyPage() {
             <div className="mt-12 grid gap-4 md:grid-cols-3">
               {HYPOTHESES.map((item, index) => (
                 <article key={item.title} className="poppy-hypothesis relative overflow-hidden rounded-md border border-dashed p-6">
-                  <span className="absolute inset-x-0 top-0 h-1 bg-[#176f70]" aria-hidden />
-                  <p className="font-mono text-[10px] uppercase tracking-[0.17em] text-[#176f70]">Hypothesis 0{index + 1}</p>
+                                    <p className="font-mono text-[10px] uppercase tracking-[0.17em] text-[#176f70]">Hypothesis 0{index + 1}</p>
                   <h3 className="mt-5 font-display text-[25px] leading-tight text-[#123e3d]">{item.title}</h3>
                   <p className="mt-4 text-[14px] leading-relaxed text-[#435653]">{item.body}</p>
                 </article>
@@ -289,8 +289,7 @@ export default function PoppyPage() {
               <p className="mt-4 max-w-[68ch] text-[14px] leading-relaxed text-[#526460]">TypeScript, Node.js, Python, SQL, React/Next.js, WebSockets, API integration.</p>
             </div>
             <div className="poppy-resume-placeholder relative flex items-center gap-5 overflow-hidden rounded-md border border-dashed p-5 md:block md:p-6">
-              <span className="absolute inset-x-0 top-0 h-1 bg-[#176f70]" aria-hidden />
-              <div aria-hidden className="aspect-[8.5/11] w-20 shrink-0 rounded-sm border border-[#176f70]/30 bg-white p-2 shadow-[0_12px_30px_-18px_rgba(16,40,39,.45)] sm:w-28 md:mx-auto md:w-44 md:p-4">
+                            <div aria-hidden className="aspect-[8.5/11] w-20 shrink-0 rounded-sm border border-[#176f70]/30 bg-white p-2 shadow-[0_12px_30px_-18px_rgba(16,40,39,.45)] sm:w-28 md:mx-auto md:w-44 md:p-4">
                 <span className="block h-1.5 w-3/4 rounded-full bg-[#176f70]/35" />
                 <span className="mt-2 block h-1 w-1/2 rounded-full bg-[#176f70]/18" />
                 <span className="mt-4 block h-px w-full bg-[#176f70]/30" />
