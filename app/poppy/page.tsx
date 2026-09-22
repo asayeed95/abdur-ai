@@ -47,7 +47,7 @@ const PROJECTS: Array<{
   detail?: string;
   body: string;
   poppy: string;
-  links?: Array<{ label: string; href: string }>;
+  links?: Array<{ label: string; href: string; external?: boolean }>;
 }> = [
   {
     name: "Northsun",
@@ -56,7 +56,7 @@ const PROJECTS: Array<{
     detail: "AI product · #1 priority",
     body: "My main AI product. An applied-AI system with retrieval and memory plumbing; Mnemix is its free diagnostic tool for users (the mnemix-engine package — Mnemix is the tool, not the product).",
     poppy: "The closest thing to their stack — AI harnesses, context/retrieval/memory, product UX over complex AI.",
-    links: [{ label: "GitHub", href: "https://github.com/asayeed95/mnemix" }],
+    links: [{ label: "GitHub", href: "https://github.com/asayeed95/mnemix", external: true }],
   },
   {
     name: "HeyCLI",
@@ -64,7 +64,7 @@ const PROJECTS: Array<{
     tone: "progress",
     body: "An AI CLI harness — the agent lives where the developer already works.",
     poppy: "A harness around an agent, not a chat box around a model. Same design instinct Poppy needs: meet the user in their workflow.",
-    links: [{ label: "GitHub", href: "https://github.com/asayeed95/remotecli" }],
+    links: [{ label: "GitHub", href: "https://github.com/asayeed95/remotecli", external: true }],
   },
   {
     name: "abdur.ai",
@@ -73,7 +73,7 @@ const PROJECTS: Array<{
     body: "My personal site and portfolio, including the hire page this brief is adapted from.",
     poppy: "The UI craft on display — and this very page is the proof of it.",
     links: [
-      { label: "abdur.ai", href: "https://abdur.ai" },
+      { label: "abdur.ai", href: "https://abdur.ai", external: true },
       { label: "Full portfolio", href: "/hire" },
     ],
   },
@@ -164,26 +164,25 @@ const PAGE_STYLE = `
 .poppy-root .poppy-hero { background: radial-gradient(circle at 80% 22%, rgba(62,143,137,.38), transparent 31%), linear-gradient(125deg, #071c1b 0%, #123e3d 51%, #174d4c 100%); }
 .poppy-root .poppy-rule { background: linear-gradient(90deg, transparent, rgba(23,111,112,.6), transparent); }
 .poppy-root .poppy-card { background: rgba(255,253,247,.74); border-color: rgba(18,62,61,.16); box-shadow: 0 18px 38px -32px rgba(10,40,39,.8); }
-.poppy-root .poppy-card:hover { border-color: rgba(23,111,112,.7); transform: translateY(-2px); }
 .poppy-root .poppy-project { background: #143e3d; border-color: rgba(231,241,236,.18); box-shadow: 0 20px 40px -30px rgba(5,25,24,.9); }
-.poppy-root .poppy-project:hover { border-color: rgba(138,209,196,.62); transform: translateY(-2px); }
 .poppy-root .poppy-project a { color: #bceae0; }
 .poppy-root .poppy-project a:hover { color: white; }
+.poppy-root .poppy-project-muted { background: rgba(255,253,247,.46); border-color: rgba(23,111,112,.34); }
+.poppy-root .poppy-project-muted a { color: #176f70; }
+.poppy-root .poppy-project-muted a:hover { color: #0f4747; }
 .poppy-root .poppy-hypothesis { background: #fffdf8; border-color: rgba(23,111,112,.2); }
-.poppy-root .poppy-hypothesis::before { background: var(--poppy-teal); }
 @media (prefers-reduced-motion: reduce) {
-  .poppy-root .poppy-card, .poppy-root .poppy-project { transition: none !important; }
-  .poppy-root .poppy-card:hover, .poppy-root .poppy-project:hover { transform: none; }
+  .poppy-root * { transition: none !important; }
 }
 `;
 
 function StatusPill({ status, tone }: { status: string; tone: ProjectStatus }) {
   const classes: Record<ProjectStatus, string> = {
-    live: "border-emerald-300/60 bg-emerald-300/15 text-emerald-100",
-    progress: "border-amber-300/60 bg-amber-300/15 text-amber-100",
-    source: "border-teal-200/60 bg-teal-200/15 text-teal-100",
-    internal: "border-slate-300/40 bg-slate-300/10 text-slate-200",
-    parked: "border-stone-300/35 bg-stone-300/10 text-stone-200",
+    live: "border-[#5bb499]/70 bg-[#5bb499]/15 text-[#d9f0e8]",
+    progress: "border-[#e0b14a]/70 bg-[#e0b14a]/15 text-[#fff0bd]",
+    source: "border-[#80cfc1]/70 bg-[#80cfc1]/15 text-[#d9f7f1]",
+    internal: "border-[#176f70]/35 bg-[#176f70]/[0.08] text-[#315856]",
+    parked: "border-[#69706b]/40 bg-[#69706b]/[0.08] text-[#505b56]",
   };
 
   return <span className={`inline-flex rounded-sm border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] ${classes[tone]}`}>{status}</span>;
@@ -202,14 +201,14 @@ export default function PoppyPage() {
             Independent candidate brief — not affiliated with Poppy AI
           </span>
           <Link href="/hire" className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#176f70]">
-            Full portfolio ↗
+            Full portfolio →
           </Link>
         </div>
       </div>
 
       <main>
-        <section className="poppy-hero px-6 pb-16 pt-32 text-[#f4eddf] md:px-10 md:pb-24 md:pt-40">
-          <div className="mx-auto max-w-content">
+        <section className="poppy-hero pb-16 pt-32 text-[#f4eddf] md:pb-24 md:pt-40">
+          <div className="mx-auto max-w-content px-6 md:px-10">
             <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-[#a7ded4]">
               Candidate brief / Poppy AI / AI Engineer — founder-level
             </p>
@@ -220,7 +219,7 @@ export default function PoppyPage() {
               I build the operating layer that turns an agent&apos;s plan into decisive creative progress: tool calling, model routing, retrieval, and human judgment with clear scope, status labels, and evidence behind the work.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
-              <a href="#evidence" className="rounded-sm bg-[#d5eee5] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#123e3d] transition-colors hover:bg-white">
+              <a href="#projects" className="rounded-sm bg-[#d5eee5] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#123e3d] transition-colors hover:bg-white">
                 Explore the evidence ↓
               </a>
               <Link href="/hire" className="rounded-sm border border-[#b7dfd4]/50 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#f4eddf] transition-colors hover:border-white hover:bg-white/10">
@@ -239,69 +238,61 @@ export default function PoppyPage() {
             The system around the model is where the work gets real.
           </h2>
           <div className="mt-12 grid gap-4 md:grid-cols-3">
-            {WHY.map((item, index) => (
-              <article key={item.title} className="poppy-card rounded-md border p-6 transition-all duration-300">
-                <p className="font-mono text-[10px] uppercase tracking-[0.17em] text-[#176f70]">0{index + 1}</p>
-                <h3 className="mt-5 font-display text-[25px] leading-tight text-[#123e3d]">{item.title}</h3>
+            {WHY.map((item) => (
+              <article key={item.title} className="poppy-card rounded-md border p-6">
+                <h3 className="font-display text-[25px] leading-tight text-[#123e3d]">{item.title}</h3>
                 <p className="mt-4 text-[14px] leading-relaxed text-[#435653]">{item.body}</p>
               </article>
-            ))}
-          </div>
-          <div className="mt-8 flex flex-wrap gap-2">
-            {["Agentic systems", "Tool calling", "Model routing", "Retrieval & memory", "MCP & connectors", "Applied AI delivery"].map((tag) => (
-              <span key={tag} className="rounded-full border border-[#176f70]/20 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[#176f70]">
-                {tag}
-              </span>
             ))}
           </div>
         </section>
 
         <div className="poppy-rule mx-auto h-px max-w-content" />
 
-        <section className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
+        <section id="projects" className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// What I&apos;ve built and am building</p>
           <div className="mt-5 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <h2 className="max-w-[16ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Eight projects, one honest status system.</h2>
             <p className="max-w-[39ch] text-[15px] leading-relaxed text-[#526460]">Honest labels. No theater. Each card says exactly where the project stands.</p>
           </div>
           <div className="mt-12 grid gap-4 lg:grid-cols-2">
-            {PROJECTS.map((project, index) => (
-              <article key={project.name} className="poppy-project rounded-md border p-6 text-[#e8f0ec] transition-all duration-300">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.17em] text-[#9cd8cc]">0{index + 1}</p>
-                    <h3 className="mt-3 font-display text-[31px] leading-none tracking-tight">{project.name}</h3>
-                  </div>
+            {PROJECTS.map((project) => {
+              const mutedCard = project.tone === "internal" || project.tone === "parked";
+              return (
+              <article key={project.name} className={`${mutedCard ? "poppy-project-muted" : "poppy-project"} rounded-md border p-6 ${mutedCard ? "text-[#123e3d]" : "text-[#e8f0ec]"}`}>
+                <div className="flex flex-wrap items-center gap-3">
                   <StatusPill status={project.status} tone={project.tone} />
+                  {project.detail && <p className={`font-mono text-[10px] uppercase tracking-[0.1em] ${mutedCard ? "text-[#596965]" : "text-[#b2c6c0]"}`}>{project.detail}</p>}
                 </div>
-                {project.detail && <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.1em] text-[#b2c6c0]">{project.detail}</p>}
-                <p className="mt-5 text-[14px] leading-relaxed text-[#d2e0db]">{project.body}</p>
-                <p className="mt-4 border-l border-[#76c0b4]/55 pl-3 text-[13px] leading-relaxed text-[#b9dcd4]"><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#8bcdbf]">For Poppy: </span>{project.poppy}</p>
+                <h3 className="mt-5 font-display text-[31px] leading-none tracking-tight">{project.name}</h3>
+                <p className={`mt-5 text-[14px] leading-relaxed ${mutedCard ? "text-[#435653]" : "text-[#d2e0db]"}`}>{project.body}</p>
+                <p className={`mt-4 border-l pl-3 text-[13px] leading-relaxed ${mutedCard ? "border-[#176f70]/45 text-[#315856]" : "border-[#76c0b4]/55 text-[#b9dcd4]"}`}><span className={`font-mono text-[10px] uppercase tracking-[0.12em] ${mutedCard ? "text-[#176f70]" : "text-[#8bcdbf]"}`}>For Poppy: </span>{project.poppy}</p>
                 {project.links && (
                   <div className="mt-5 flex flex-wrap items-center gap-3">
                     {project.links?.map((link) => (
                       <a key={link.label} href={link.href} className="font-mono text-[10px] uppercase tracking-[0.12em] underline decoration-[#6aac9f]/70 underline-offset-4">
-                        {link.label} ↗
+                        {link.label} {link.external ? "↗" : "→"}
                       </a>
                     ))}
                   </div>
                 )}
               </article>
-            ))}
+              );
+            })}
           </div>
         </section>
 
-        <section className="border-y border-[#176f70]/15 bg-[#e9e1d1] px-6 py-20 md:px-10 md:py-28">
-          <div className="mx-auto max-w-content">
+        <section className="border-y border-[#176f70]/15 bg-[#e9e1d1] py-20 md:py-28">
+          <div className="mx-auto max-w-content px-6 md:px-10">
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// What I would start with, if hired</p>
-            <div className="mt-5 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div className="mt-5">
               <h2 className="max-w-[17ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Three hypotheses to test with the team.</h2>
-              <p className="max-w-[41ch] font-mono text-[10px] uppercase leading-relaxed tracking-[0.13em] text-[#596965]">A candidate&apos;s hypotheses — not commitments, not insider knowledge</p>
             </div>
+            <p className="mt-6 max-w-[62ch] text-[14px] leading-relaxed text-[#435653]">These are candidate hypotheses, not commitments or insider knowledge. They describe the product work I would propose to test with the team.</p>
             <div className="mt-12 grid gap-4 md:grid-cols-3">
               {HYPOTHESES.map((item, index) => (
-                <article key={item.title} className="poppy-hypothesis relative overflow-hidden rounded-md border p-6">
-                  <span className="absolute inset-x-0 top-0 h-1" aria-hidden />
+                <article key={item.title} className="poppy-hypothesis relative overflow-hidden rounded-md border border-dashed p-6">
+                  <span className="absolute inset-x-0 top-0 h-1 bg-[#176f70]" aria-hidden />
                   <p className="font-mono text-[10px] uppercase tracking-[0.17em] text-[#176f70]">Hypothesis 0{index + 1}</p>
                   <h3 className="mt-5 font-display text-[25px] leading-tight text-[#123e3d]">{item.title}</h3>
                   <p className="mt-4 text-[14px] leading-relaxed text-[#435653]">{item.body}</p>
@@ -314,17 +305,17 @@ export default function PoppyPage() {
         <section id="evidence" className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// Evidence</p>
           <div className="mt-7 grid gap-4 md:grid-cols-3">
-            <a href="https://github.com/asayeed95" className="poppy-card rounded-md border p-6 transition-all duration-300">
+            <a href="https://github.com/asayeed95" className="poppy-card rounded-md border p-6 transition-colors hover:border-[#176f70]/70">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">GitHub</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">github.com/asayeed95 ↗</p>
               <p className="mt-2 text-sm leading-relaxed text-[#526460]">The repositories behind the project cards above.</p>
             </a>
-            <Link href="/hire" className="poppy-card rounded-md border p-6 transition-all duration-300">
+            <Link href="/hire" className="poppy-card rounded-md border p-6 transition-colors hover:border-[#176f70]/70">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Full portfolio</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">Open full portfolio →</p>
               <p className="mt-2 text-sm leading-relaxed text-[#526460]">The broader recruiter-facing portfolio and résumé surface.</p>
             </Link>
-            <div className="poppy-card rounded-md border p-6">
+            <div className="border-l-2 border-[#176f70] pl-5">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Walkthrough · 2–3 min</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">Walkthrough available with application materials</p>
               <p className="mt-2 text-sm leading-relaxed text-[#526460]">A short screen-share can walk through this page and the evidence behind it.</p>
@@ -337,8 +328,8 @@ export default function PoppyPage() {
         </section>
       </main>
 
-      <footer className="poppy-footer px-6 py-10 md:px-10">
-        <div className="mx-auto flex max-w-content flex-col justify-between gap-4 md:flex-row md:items-center">
+      <footer className="poppy-footer py-10">
+        <div className="mx-auto flex max-w-content flex-col justify-between gap-4 px-6 md:flex-row md:items-center md:px-10">
           <p className="font-display text-xl">Independent candidate brief — not affiliated with Poppy AI.</p>
           <p className="font-mono text-[10px] uppercase tracking-[0.15em]">Built as a curated companion to the AI Engineer application. abdur.ai</p>
         </div>
