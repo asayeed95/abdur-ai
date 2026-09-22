@@ -23,7 +23,7 @@ export function About() {
 
         <div className="space-y-5 text-text-soft text-lg leading-relaxed max-w-[68ch]">
           <p>
-            I&apos;m Abdur — a solo founder in the NYC metro (West New York, NJ),
+            I&apos;m Abdur — a solo founder in the NYC metro (Prospect Park, NJ),
             running a portfolio of vertical AI products like a compressed team:
             one human on strategy and sign-off, a set of high-agency AI agents
             on execution, research, and ops.
