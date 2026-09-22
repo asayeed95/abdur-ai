@@ -29,7 +29,7 @@ const EXPERIENCE = [
     dates: "Apr 2024 – Jul 2025",
     bullets: [
       "Delivered Vox Elements retail IT subcontract for ETRO Fashion US: 200+ users, 14 sites, 500+ tracked assets.",
-      "Managed AD, Entra ID, Intune, IBM AS/400, Lansweeper, Cisco/RingCentral, Jira triage, and cross-site escalation.",
+      "Administered AD, Entra ID, and Intune; supported IBM AS/400 workflows, Lansweeper assets, telephony, and Jira triage.",
     ],
   },
   {
