@@ -40,6 +40,8 @@ export const metadata: Metadata = {
   twitter: poppyShare.twitter,
 };
 
+const DISCLAIMER = "Independent candidate brief — not affiliated with Poppy AI";
+
 const WHY = [
   {
     title: "Agentic systems are my main surface",
@@ -95,7 +97,7 @@ const PAGE_STYLE = `
 .poppy-root .poppy-project-muted a { color: #176f70; }
 .poppy-root .poppy-project-muted a:hover { color: #0f4747; }
 .poppy-root .poppy-hypothesis { background: #fffdf8; border-color: rgba(23,111,112,.2); }
-.poppy-root .poppy-resume-placeholder { background: rgba(245,242,255,.54); border-color: rgba(137,142,205,.45); }
+.poppy-root .poppy-resume-placeholder { background: rgba(244,237,223,.72); border-color: rgba(23,111,112,.32); }
 .poppy-root .poppy-highlight-lavender { background: linear-gradient(transparent 60%, rgba(185,195,255,.45) 60%, rgba(185,195,255,.45) 92%, transparent 92%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .poppy-root .poppy-highlight-green { background: linear-gradient(transparent 60%, rgba(166,230,184,.42) 60%, rgba(166,230,184,.42) 92%, transparent 92%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 @media (prefers-reduced-motion: reduce) {
@@ -125,7 +127,7 @@ export default function PoppyPage() {
             abdur.ai
           </Link>
           <span className="hidden rounded-full border border-[#176f70]/30 px-3 py-1 text-center font-mono text-[9px] uppercase tracking-[0.11em] text-[#176f70] sm:block">
-            Independent candidate brief — not affiliated with Poppy AI
+            {DISCLAIMER}
           </span>
           <Link href="/hire" className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#176f70]">
             Full portfolio →
@@ -136,6 +138,9 @@ export default function PoppyPage() {
       <main>
         <section className="poppy-hero pb-16 pt-32 text-[#f4eddf] md:pb-24 md:pt-40">
           <div className="mx-auto max-w-content px-6 md:px-10">
+            <span className="mb-5 inline-block max-w-full rounded-full border border-[#b7dfd4]/50 px-3 py-1.5 text-center font-mono text-[9px] uppercase tracking-[0.11em] text-[#b8dcd5] [text-wrap:balance] sm:hidden">
+              {DISCLAIMER}
+            </span>
             <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-[#a7ded4]">
               Candidate brief / Poppy AI / AI Engineer — founder-level
             </p>
@@ -283,19 +288,20 @@ export default function PoppyPage() {
               <p className="mt-6 max-w-[68ch] text-[16px] leading-relaxed text-[#435653]">Solo founder, One Asec LLC (NJ). Degree in Financial Mathematics &amp; Economics, University of Ottawa (no CS degree). ~6 years building and operating systems with code; ~1 year of focused AI-product engineering since September 2025.</p>
               <p className="mt-4 max-w-[68ch] text-[14px] leading-relaxed text-[#526460]">TypeScript, Node.js, Python, SQL, React/Next.js, WebSockets, API integration.</p>
             </div>
-            <div className="poppy-resume-placeholder flex items-center gap-5 rounded-md border border-dashed p-5 md:block md:p-6">
-              <div aria-hidden className="aspect-[8.5/11] w-20 shrink-0 rounded-sm border border-[#989bd0]/55 bg-white p-2 shadow-[0_12px_30px_-18px_rgba(74,76,137,.7)] sm:w-28 md:mx-auto md:w-44 md:p-4">
-                <span className="block h-1.5 w-3/4 rounded-full bg-[#555c9a]/35" />
-                <span className="mt-2 block h-1 w-1/2 rounded-full bg-[#555c9a]/20" />
-                <span className="mt-4 block h-px w-full bg-[#989bd0]/45" />
-                <span className="mt-3 block h-1 w-full rounded-full bg-[#555c9a]/20" />
-                <span className="mt-2 block h-1 w-5/6 rounded-full bg-[#555c9a]/20" />
-                <span className="mt-4 block h-px w-full bg-[#989bd0]/45" />
-                <span className="mt-3 block h-1 w-full rounded-full bg-[#555c9a]/20" />
-                <span className="mt-2 block h-1 w-4/5 rounded-full bg-[#555c9a]/20" />
+            <div className="poppy-resume-placeholder relative flex items-center gap-5 overflow-hidden rounded-md border border-dashed p-5 md:block md:p-6">
+              <span className="absolute inset-x-0 top-0 h-1 bg-[#176f70]" aria-hidden />
+              <div aria-hidden className="aspect-[8.5/11] w-20 shrink-0 rounded-sm border border-[#176f70]/30 bg-white p-2 shadow-[0_12px_30px_-18px_rgba(16,40,39,.45)] sm:w-28 md:mx-auto md:w-44 md:p-4">
+                <span className="block h-1.5 w-3/4 rounded-full bg-[#176f70]/35" />
+                <span className="mt-2 block h-1 w-1/2 rounded-full bg-[#176f70]/18" />
+                <span className="mt-4 block h-px w-full bg-[#176f70]/30" />
+                <span className="mt-3 block h-1 w-full rounded-full bg-[#176f70]/18" />
+                <span className="mt-2 block h-1 w-5/6 rounded-full bg-[#176f70]/18" />
+                <span className="mt-4 block h-px w-full bg-[#176f70]/30" />
+                <span className="mt-3 block h-1 w-full rounded-full bg-[#176f70]/18" />
+                <span className="mt-2 block h-1 w-4/5 rounded-full bg-[#176f70]/18" />
               </div>
               <div className="min-w-0 md:mt-5">
-                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#555c9a]">Designed résumé</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Designed résumé</p>
                 <p className="mt-2 font-display text-[21px] leading-tight text-[#123e3d]">Forthcoming after final edit</p>
                 <p className="mt-2 text-[12px] leading-relaxed text-[#526460]">Separate from the ATS résumé. No download is available yet.</p>
               </div>
