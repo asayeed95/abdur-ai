@@ -48,7 +48,6 @@ const PROJECTS: Array<{
   body: string;
   poppy: string;
   links?: Array<{ label: string; href: string }>;
-  todo?: string;
 }> = [
   {
     name: "Northsun",
@@ -63,8 +62,7 @@ const PROJECTS: Array<{
     name: "HeyCLI",
     status: "In progress",
     tone: "progress",
-    detail: "ships first",
-    body: "An AI CLI harness — the agent lives where the developer already works. Ships before Northsun.",
+    body: "An AI CLI harness — the agent lives where the developer already works.",
     poppy: "A harness around an agent, not a chat box around a model. Same design instinct Poppy needs: meet the user in their workflow.",
     links: [{ label: "GitHub", href: "https://github.com/asayeed95/remotecli" }],
   },
@@ -84,9 +82,8 @@ const PROJECTS: Array<{
     status: "Open source",
     tone: "source",
     detail: "free for users",
-    body: "Agent-agnostic browser-automation system: accessibility-tree perception, explicit approval points, inspectable run evidence. Every run leaves evidence; when an agent fails a task, the trace shows where it failed, why, and what a human should decide next.",
-    poppy: "“Failure must be inspectable” — the exact reliability posture an agentic creative tool needs before creators trust it with their campaigns.",
-    todo: "TODO: BrowseFlow repo URL — confirm, don’t guess",
+    body: "Agent-agnostic browser automation with accessibility-tree perception, a CDP-first hybrid engine, approval queues, and a run journal.",
+    poppy: "A design posture for agentic work: explicit approval points and an inspectable journal when a person needs to understand or redirect a run.",
   },
   {
     name: "Relay",
@@ -101,7 +98,6 @@ const PROJECTS: Array<{
     tone: "progress",
     body: "An AI tool around Dockerfiles — applied AI on a concrete developer workflow.",
     poppy: "Applied AI with a tight feedback loop: one workflow, done well, judged by output quality.",
-    todo: "TODO: Dockerfile.ai repo URL — confirm, don’t guess",
   },
   {
     name: "Halo",
@@ -109,7 +105,6 @@ const PROJECTS: Array<{
     tone: "parked",
     body: "A concept on the shelf — kept honest as a concept, not dressed up as a launch.",
     poppy: "I scope honestly. Parked means parked.",
-    todo: "TODO: Halo URL — no public repository confirmed",
   },
   {
     name: "Baylio",
@@ -118,37 +113,36 @@ const PROJECTS: Array<{
     detail: "early prototype exists",
     body: "AI call-assistant SaaS concept for auto repair shops (ElevenLabs + Twilio + Claude + Stripe) — a repo exists and work started, but it is parked, not launched.",
     poppy: "Voice AI + integrations (telephony, payments) — the connector/integration muscle the role asks for.",
-    todo: "TODO: Baylio repo URL — confirm exact slug, don’t guess",
   },
 ];
 
 const WHY = [
   {
     title: "Agentic systems are my main surface",
-    body: "The Poppy posting says the next billion-dollar version is the harness: understand the goal, pull together the right context, use the right tools, get the work done. That’s the layer I’ve been building on for a year — agent-agnostic browser automation (BrowseFlow), a CLI agent harness (HeyCLI), retrieval and memory plumbing in Northsun. I don’t call a model API and call it done; I build the system around the model.",
+    body: "The Poppy posting says the next version is the harness: understand the goal, pull together the right context, use the right tools, get the work done. That’s the layer I’ve been building since September 2025 — agent-agnostic browser automation (BrowseFlow), a CLI agent harness (HeyCLI), retrieval and memory plumbing in Northsun. The work goes beyond a model API: it includes the surrounding system and its operator-facing evidence.",
   },
   {
     title: "Cost, speed, and reliability are product features",
-    body: "An agentic creative tool dies on sloppy model economics: wrong model for the step, no caching, no eval on voice fidelity, failures nobody can inspect. I build with the post-launch mindset your posting asks for — customers use things in weird ways, features break, and small choices decide whether someone opens the tool again tomorrow. My products are built around run evidence and inspectable failure.",
+    body: "In an agentic creative tool, model choice, caching, voice-fidelity evaluation, and observable failures are product decisions. I focus on the operating boundary around the model: what the system did, what it could not do, and where a person should decide next.",
   },
   {
-    title: "Founder-level means shipped, not ticketed",
-    body: "I’m a solo founder running One Asec LLC — ~6 years building and operating systems with code, ~1 year of focused AI-product engineering since Sep 2025. Nobody hands me tickets. I find the problem, talk to the user, ship the fix, and live with what happens after launch. That post-launch reality — the weird usage, the broken features, the small choices that make people love a tool — is the operating system I run on.",
+    title: "One Asec delivery experience",
+    body: "At One Asec LLC, I work across business systems, IT delivery, and applied-AI product development. That includes finance/reporting, CRM and invoicing, marketing-support workflows, IT systems, and process design, alongside product strategy, UX, architecture, implementation, and operator-facing proof for AI-native products. I prefer direct operating evidence: clear scope, status labels, and a record of what is actually built.",
   },
 ];
 
 const HYPOTHESES = [
   {
     title: "From goal to campaign, one harness",
-    body: "The posting’s own example: a creator says “help me plan content for my next launch” and Poppy should understand the goal, read the board, find what’s missing, and drive the work. I’d prototype the harness over the existing Find → Understand → Create spine: parse the goal, inventory the board, identify gaps (no voice profile? no competitor examples?), fetch or ask for them, then plan and execute the creation pipeline with explicit approval points where a creator’s judgment matters. One loop, inspectable at every step.",
+    body: "I’d make this the first ambitious but bounded build: a harness over the existing Find → Understand → Create spine. A creator sets the campaign goal; the harness uses the board plus its Vault, Creator Profile, and selected Brand context, finds any missing inputs, then drives a visible creation plan. The goal is to reduce the remaining setup and orchestration burden between research and a campaign-ready draft, with explicit creator approval at the moments that matter.",
   },
   {
-    title: "Voice fidelity as an eval, not a vibe",
-    body: "The whole product promise is “sounds like you.” I’d build the eval harness that makes that measurable: reference voice profile vs. generated output, scored per draft, with a cheap-model draft pass and a stronger-model final pass behind model routing — so quality goes up while cost per campaign goes down. What gets measured gets cheaper and better.",
+    title: "Brand fidelity as an eval, not a vibe",
+    body: "I’d add a visible quality layer around Poppy’s existing Brands: compare each draft against the selected Brand and creator reference, score the result, and use the outcome to route work between an efficient draft model and a stronger finishing model. That creates a focused path toward better creative fidelity and clearer model-economics decisions as the product learns.",
   },
   {
-    title: "Boards get memory",
-    body: "Voice profiles and “previous winners” are already a memory primitive. I’d extend boards into working memory: the agent resumes campaign context across sessions — what was tried, what the creator rejected, what performed — so the harness compounds instead of starting cold every chat. Memory is the difference between a tool and a teammate.",
+    title: "Context becomes campaign momentum",
+    body: "I’d use Poppy’s existing Vault, Creator Profiles, and Brand context as the starting point for an agent that can resume campaign planning: carry forward the goal, creative constraints, rejected directions, and the next best question when a creator returns. The ambition is a harness that makes the existing context more actionable over time instead of making the creator reconstruct it from scratch.",
   },
 ];
 
@@ -175,7 +169,6 @@ const PAGE_STYLE = `
 .poppy-root .poppy-project:hover { border-color: rgba(138,209,196,.62); transform: translateY(-2px); }
 .poppy-root .poppy-project a { color: #bceae0; }
 .poppy-root .poppy-project a:hover { color: white; }
-.poppy-root .poppy-todo { border-color: rgba(188,234,224,.26); color: #c7d7d1; background: rgba(5,25,24,.2); }
 .poppy-root .poppy-hypothesis { background: #fffdf8; border-color: rgba(23,111,112,.2); }
 .poppy-root .poppy-hypothesis::before { background: var(--poppy-teal); }
 @media (prefers-reduced-motion: reduce) {
@@ -224,7 +217,7 @@ export default function PoppyPage() {
               I build the harness between an agent&apos;s plan and a creator&apos;s finished campaign.
             </h1>
             <p className="mt-8 max-w-[58ch] text-[17px] leading-relaxed text-[#d2e4df] md:text-[19px]">
-              Agentic systems where tool calling, model routing, retrieval, and human judgment meet — built in public, with the evidence to show for it.
+              I build the operating layer that turns an agent&apos;s plan into decisive creative progress: tool calling, model routing, retrieval, and human judgment with clear scope, status labels, and evidence behind the work.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <a href="#evidence" className="rounded-sm bg-[#d5eee5] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#123e3d] transition-colors hover:bg-white">
@@ -255,7 +248,7 @@ export default function PoppyPage() {
             ))}
           </div>
           <div className="mt-8 flex flex-wrap gap-2">
-            {["Agentic systems", "Tool calling", "Model routing", "Retrieval & memory", "MCP & connectors", "Shipped SaaS"].map((tag) => (
+            {["Agentic systems", "Tool calling", "Model routing", "Retrieval & memory", "MCP & connectors", "Applied AI delivery"].map((tag) => (
               <span key={tag} className="rounded-full border border-[#176f70]/20 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[#176f70]">
                 {tag}
               </span>
@@ -266,7 +259,7 @@ export default function PoppyPage() {
         <div className="poppy-rule mx-auto h-px max-w-content" />
 
         <section className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// Everything I&apos;ve shipped (or am shipping)</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// What I&apos;ve built and am building</p>
           <div className="mt-5 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <h2 className="max-w-[16ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Eight projects, one honest status system.</h2>
             <p className="max-w-[39ch] text-[15px] leading-relaxed text-[#526460]">Honest labels. No theater. Each card says exactly where the project stands.</p>
@@ -284,14 +277,13 @@ export default function PoppyPage() {
                 {project.detail && <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.1em] text-[#b2c6c0]">{project.detail}</p>}
                 <p className="mt-5 text-[14px] leading-relaxed text-[#d2e0db]">{project.body}</p>
                 <p className="mt-4 border-l border-[#76c0b4]/55 pl-3 text-[13px] leading-relaxed text-[#b9dcd4]"><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#8bcdbf]">For Poppy: </span>{project.poppy}</p>
-                {(project.links || project.todo) && (
+                {project.links && (
                   <div className="mt-5 flex flex-wrap items-center gap-3">
                     {project.links?.map((link) => (
                       <a key={link.label} href={link.href} className="font-mono text-[10px] uppercase tracking-[0.12em] underline decoration-[#6aac9f]/70 underline-offset-4">
                         {link.label} ↗
                       </a>
                     ))}
-                    {project.todo && <span className="poppy-todo rounded-sm border px-2 py-1 font-mono text-[9px] leading-relaxed uppercase tracking-[0.08em]">{project.todo}</span>}
                   </div>
                 )}
               </article>
@@ -329,13 +321,13 @@ export default function PoppyPage() {
             </a>
             <Link href="/hire" className="poppy-card rounded-md border p-6 transition-all duration-300">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Full portfolio</p>
-              <p className="mt-4 font-display text-[24px] text-[#123e3d]">abdur.ai/hire →</p>
+              <p className="mt-4 font-display text-[24px] text-[#123e3d]">Open full portfolio →</p>
               <p className="mt-2 text-sm leading-relaxed text-[#526460]">The broader recruiter-facing portfolio and résumé surface.</p>
             </Link>
             <div className="poppy-card rounded-md border p-6">
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Walkthrough · 2–3 min</p>
-              <p className="mt-4 font-display text-[24px] text-[#123e3d]">Coming with the Loom</p>
-              <p className="mt-2 text-sm leading-relaxed text-[#526460]">TODO: Loom URL — a screen-share walking through this page and the evidence behind it.</p>
+              <p className="mt-4 font-display text-[24px] text-[#123e3d]">Walkthrough available with application materials</p>
+              <p className="mt-2 text-sm leading-relaxed text-[#526460]">A short screen-share can walk through this page and the evidence behind it.</p>
             </div>
           </div>
           <div className="mt-16 max-w-[68ch] border-l-2 border-[#176f70] pl-5">
