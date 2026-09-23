@@ -99,7 +99,7 @@ const PAGE_STYLE = `
 .poppy-root .poppy-hypothesis { background: #fffdf8; border-color: #c98a6b; }
 .poppy-root .poppy-resume { background: rgba(244,237,223,.72); border-color: rgba(23,111,112,.3); }
 .poppy-root .font-mono { font-weight: 500; }
-.poppy-root p, .poppy-root li { font-weight: 450; }
+.poppy-root p:not(.font-display), .poppy-root li { font-weight: 450; }
 .poppy-root .poppy-highlight-lavender { background: linear-gradient(transparent 60%, #dcd5f2 60%, #dcd5f2 94%, transparent 94%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .poppy-root .poppy-highlight-green { background: linear-gradient(transparent 60%, #d5ebdd 60%, #d5ebdd 94%, transparent 94%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .poppy-root :focus-visible { outline: 2px solid var(--poppy-teal); outline-offset: 3px; }
