@@ -97,7 +97,9 @@ const PAGE_STYLE = `
 .poppy-root .poppy-project-muted a { color: #176f70; }
 .poppy-root .poppy-project-muted a:hover { color: #0f4747; }
 .poppy-root .poppy-hypothesis { background: #fffdf8; border-color: #c98a6b; }
-.poppy-root .poppy-resume-placeholder { background: rgba(244,237,223,.72); border-color: #9bb7ba; }
+.poppy-root .poppy-resume { background: rgba(244,237,223,.72); border-color: rgba(23,111,112,.3); }
+.poppy-root .font-mono { font-weight: 500; }
+.poppy-root p, .poppy-root li { font-weight: 450; }
 .poppy-root .poppy-highlight-lavender { background: linear-gradient(transparent 60%, #dcd5f2 60%, #dcd5f2 94%, transparent 94%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .poppy-root .poppy-highlight-green { background: linear-gradient(transparent 60%, #d5ebdd 60%, #d5ebdd 94%, transparent 94%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .poppy-root :focus-visible { outline: 2px solid var(--poppy-teal); outline-offset: 3px; }
@@ -107,7 +109,9 @@ const PAGE_STYLE = `
 }
 `;
 
-const CARD_LINK = "font-mono text-[10px] uppercase tracking-[0.12em] underline decoration-[#6aac9f]/70 underline-offset-4";
+const RESUME_LINK = "inline-block py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-[#176f70] underline decoration-[#176f70]/50 underline-offset-4";
+
+const CARD_LINK = "inline-block py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] underline decoration-[#6aac9f]/70 underline-offset-4";
 
 function StatusPill({ status, tone }: { status: string; tone: ProjectStatus }) {
   const classes: Record<ProjectStatus, string> = {
@@ -117,7 +121,7 @@ function StatusPill({ status, tone }: { status: string; tone: ProjectStatus }) {
     parked: "border-[#69706b]/40 bg-[#69706b]/[0.08] text-[#505b56]",
   };
 
-  return <span className={`inline-flex rounded-sm border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] ${classes[tone]}`}>{status}</span>;
+  return <span className={`inline-flex rounded-sm border px-2 py-1 font-mono text-[11px] uppercase tracking-[0.12em] ${classes[tone]}`}>{status}</span>;
 }
 
 export default function PoppyPage() {
@@ -130,10 +134,10 @@ export default function PoppyPage() {
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#d97757]" aria-hidden />
             abdur.ai
           </Link>
-          <span className="hidden rounded-full border border-[#176f70]/30 px-3 py-1 text-center font-mono text-[9px] uppercase tracking-[0.11em] text-[#176f70] sm:block">
+          <span className="hidden rounded-full border border-[#176f70]/30 px-3 py-1 text-center font-mono text-[10px] uppercase tracking-[0.11em] text-[#176f70] sm:block">
             {DISCLAIMER}
           </span>
-          <Link href="/hire" className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#176f70]">
+          <Link href="/hire" className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#176f70]">
             Full portfolio <span aria-hidden>→</span>
           </Link>
         </div>
@@ -142,32 +146,32 @@ export default function PoppyPage() {
       <main>
         <section className="poppy-hero pb-16 pt-32 text-[#123e3d] md:pb-24 md:pt-40">
           <div className="mx-auto max-w-content px-6 md:px-10">
-            <span className="mb-5 inline-block max-w-full rounded-full border border-[#176f70]/30 px-3 py-1.5 text-center font-mono text-[9px] uppercase tracking-[0.11em] text-[#176f70] [text-wrap:balance] sm:hidden">
+            <span className="mb-5 inline-block max-w-full rounded-full border border-[#176f70]/30 px-3 py-1.5 text-center font-mono text-[10px] uppercase tracking-[0.11em] text-[#176f70] [text-wrap:balance] sm:hidden">
               {DISCLAIMER}
             </span>
-            <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-[#176f70]">
+            <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">
               Candidate brief / Poppy AI / AI Engineer — founder-level
             </p>
             <h1 className="max-w-[15ch] font-display text-[46px] font-semibold leading-[0.96] tracking-tight md:text-[76px]">
               I build the <span className="poppy-highlight-lavender">harness</span> between an agent&apos;s plan and a creator&apos;s <span className="poppy-highlight-green">finished campaign</span>.
             </h1>
-            <p className="mt-8 max-w-[58ch] text-[17px] leading-relaxed text-[#435653] md:text-[19px]">
+            <p className="mt-8 max-w-[58ch] text-[18px] leading-relaxed text-[#435653] md:text-[20px]">
               I build the operating layer that turns an agent&apos;s plan into decisive creative progress: tool calling, model routing, retrieval, and human judgment with clear scope, status labels, and evidence behind the work.
             </p>
-            <p className="mt-6 max-w-[58ch] border-l border-[#176f70]/45 pl-4 text-[13px] leading-relaxed text-[#526460]">
+            <p className="mt-6 max-w-[58ch] border-l border-[#176f70]/45 pl-4 text-[14px] leading-relaxed text-[#526460]">
               I bought lifetime access to Poppy a couple of months after launch, during its first year.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
-              <a href="#projects" className="rounded-sm bg-[#123e3d] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#f4eddf] transition-colors hover:bg-[#176f70]">
+              <a href="#projects" className="rounded-sm bg-[#123e3d] px-5 py-3 font-mono text-[12px] uppercase tracking-[0.14em] text-[#f4eddf] transition-colors hover:bg-[#176f70]">
                 Explore the evidence <span aria-hidden>↓</span>
               </a>
-              <Link href="/hire" className="rounded-sm border border-[#123e3d]/30 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#123e3d] transition-colors hover:border-[#123e3d] hover:bg-[#123e3d]/5">
+              <Link href="/hire" className="rounded-sm border border-[#123e3d]/30 px-5 py-3 font-mono text-[12px] uppercase tracking-[0.14em] text-[#123e3d] transition-colors hover:border-[#123e3d] hover:bg-[#123e3d]/5">
                 View full portfolio
               </Link>
             </div>
             <div className="mt-12 max-w-[62rem] rounded-md border border-[#123e3d]/15 bg-[#fffdf8]/60 p-4 md:p-5">
-              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#176f70]">A creator&apos;s goal, made legible</p>
-              <div className="mt-4 flex flex-col items-stretch gap-2 font-mono text-[10px] uppercase tracking-[0.11em] md:flex-row md:items-center md:gap-1.5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#176f70]">A creator&apos;s goal, made legible</p>
+              <div className="mt-4 flex flex-col items-stretch gap-2 font-mono text-[11px] uppercase tracking-[0.11em] md:flex-row md:items-center md:gap-1.5">
                 <span className="self-center rounded-full border border-[#9bb7ba] px-3 py-2 text-center text-[#123e3d] md:shrink-0">A goal</span>
                 <span className="h-5 self-center border-l border-dashed border-[#176f70]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
                 <span className="min-w-0 overflow-hidden rounded-sm border border-[#e7e0d2] bg-white text-center text-[#123e3d] md:flex-1">
@@ -187,13 +191,13 @@ export default function PoppyPage() {
                 <span className="h-5 self-center border-l border-dashed border-[#176f70]/70 md:h-px md:min-w-3 md:flex-1 md:border-l-0 md:border-t" aria-hidden />
                 <span className="self-center rounded-full border border-[#9bb7ba] px-3 py-2 text-center text-[#123e3d] md:shrink-0">Finished campaign</span>
               </div>
-              <p className="mt-3 text-[12px] leading-relaxed text-[#526460]">Poppy&apos;s public workflow; the harness I would build coordinates the setup and judgment between each step.</p>
+              <p className="mt-3 text-[13px] leading-relaxed text-[#526460]">Poppy&apos;s public workflow; the harness I would build coordinates the setup and judgment between each step.</p>
             </div>
           </div>
         </section>
 
         <section className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// Why this role</p>
+          <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-[#176f70]">/// Why this role</p>
           <h2 className="mt-5 max-w-[17ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">
             The system around the model is where the work gets real.
           </h2>
@@ -201,7 +205,7 @@ export default function PoppyPage() {
             {WHY.map((item) => (
               <article key={item.title} className="poppy-card rounded-md border p-6">
                 <h3 className="font-display text-[25px] leading-tight text-[#123e3d]">{item.title}</h3>
-                <p className="mt-4 text-[14px] leading-relaxed text-[#435653]">{item.body}</p>
+                <p className="mt-4 text-[15px] leading-relaxed text-[#435653]">{item.body}</p>
               </article>
             ))}
           </div>
@@ -210,10 +214,10 @@ export default function PoppyPage() {
         <div className="poppy-rule mx-auto h-px max-w-content" />
 
         <section id="projects" className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// What I&apos;ve built and am building</p>
+          <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-[#176f70]">/// What I&apos;ve built and am building</p>
           <div className="mt-5 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <h2 className="max-w-[16ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Seven projects, one honest status system.</h2>
-            <p className="max-w-[39ch] text-[15px] leading-relaxed text-[#526460]">Honest labels. No theater. Each card says exactly where the project stands.</p>
+            <p className="max-w-[39ch] text-[16px] leading-relaxed text-[#526460]">Honest labels. No theater. Each card says exactly where the project stands.</p>
           </div>
           <div className="mt-12 grid gap-4 lg:grid-cols-2">
             {PROJECTS.map((project) => {
@@ -222,11 +226,11 @@ export default function PoppyPage() {
               <article key={project.name} className={`${mutedCard ? "poppy-project-muted" : "poppy-project"} rounded-md border p-6 ${mutedCard ? "text-[#123e3d]" : "text-[#e8f0ec]"}`}>
                 <div className="flex flex-wrap items-center gap-3">
                   <StatusPill status={project.status} tone={project.tone} />
-                  {project.detail && <p className={`font-mono text-[10px] uppercase tracking-[0.1em] ${mutedCard ? "text-[#596965]" : "text-[#b2c6c0]"}`}>{project.detail}</p>}
+                  {project.detail && <p className={`font-mono text-[11px] uppercase tracking-[0.1em] ${mutedCard ? "text-[#596965]" : "text-[#b2c6c0]"}`}>{project.detail}</p>}
                 </div>
                 <h3 className="mt-5 font-display text-[31px] leading-none tracking-tight">{project.name}</h3>
-                <p className={`mt-5 text-[14px] leading-relaxed ${mutedCard ? "text-[#435653]" : "text-[#d2e0db]"}`}>{project.body}</p>
-                <p className={`mt-4 border-l pl-3 text-[13px] leading-relaxed ${mutedCard ? "border-[#176f70]/45 text-[#315856]" : "border-[#76c0b4]/55 text-[#b9dcd4]"}`}><span className={`font-mono text-[10px] uppercase tracking-[0.12em] ${mutedCard ? "text-[#176f70]" : "text-[#8bcdbf]"}`}>For Poppy: </span>{project.poppy}</p>
+                <p className={`mt-5 text-[15px] leading-relaxed ${mutedCard ? "text-[#435653]" : "text-[#d2e0db]"}`}>{project.body}</p>
+                <p className={`mt-4 border-l pl-3 text-[14px] leading-relaxed ${mutedCard ? "border-[#176f70]/45 text-[#315856]" : "border-[#76c0b4]/55 text-[#b9dcd4]"}`}><span className={`font-mono text-[11px] uppercase tracking-[0.12em] ${mutedCard ? "text-[#176f70]" : "text-[#8bcdbf]"}`}>For Poppy: </span>{project.poppy}</p>
                 <div className="mt-5 flex flex-wrap items-center gap-3">
                   <Link href={`/poppy/projects#${project.slug}`} className={CARD_LINK}>
                     Project notes<span className="sr-only"> for {project.name}</span> <span aria-hidden>→</span>
@@ -251,17 +255,17 @@ export default function PoppyPage() {
 
         <section className="border-y border-[#176f70]/15 bg-[#e9e1d1] py-20 md:py-28">
           <div className="mx-auto max-w-content px-6 md:px-10">
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// What I would start with, if hired</p>
+            <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-[#176f70]">/// What I would start with, if hired</p>
             <div className="mt-5">
               <h2 className="max-w-[17ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Three hypotheses to test with the team.</h2>
             </div>
-            <p className="mt-6 max-w-[62ch] text-[14px] leading-relaxed text-[#435653]">These are candidate hypotheses, not commitments or insider knowledge. They describe the product work I would propose to test with the team.</p>
+            <p className="mt-6 max-w-[62ch] text-[15px] leading-relaxed text-[#435653]">These are candidate hypotheses, not commitments or insider knowledge. They describe the product work I would propose to test with the team.</p>
             <div className="mt-12 grid gap-4 md:grid-cols-3">
               {HYPOTHESES.map((item, index) => (
                 <article key={item.title} className="poppy-hypothesis relative overflow-hidden rounded-md border border-dashed p-6">
-                                    <p className="font-mono text-[10px] uppercase tracking-[0.17em] text-[#176f70]">Hypothesis 0{index + 1}</p>
+                                    <p className="font-mono text-[11px] uppercase tracking-[0.17em] text-[#176f70]">Hypothesis 0{index + 1}</p>
                   <h3 className="mt-5 font-display text-[25px] leading-tight text-[#123e3d]">{item.title}</h3>
-                  <p className="mt-4 text-[14px] leading-relaxed text-[#435653]">{item.body}</p>
+                  <p className="mt-4 text-[15px] leading-relaxed text-[#435653]">{item.body}</p>
                 </article>
               ))}
             </div>
@@ -269,23 +273,23 @@ export default function PoppyPage() {
         </section>
 
         <section id="evidence" className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// Evidence</p>
+          <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-[#176f70]">/// Evidence</p>
           <h2 className="sr-only">Evidence and portfolio links</h2>
           <div className="mt-7 grid gap-4 md:grid-cols-3">
             <a href={SITE.handles.github} className="poppy-card rounded-md border p-6 transition-colors hover:border-[#176f70]/70">
-              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">GitHub</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-[#176f70]">GitHub</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">github.com/asayeed95 <span aria-hidden>↗</span></p>
-              <p className="mt-2 text-sm leading-relaxed text-[#526460]">Public profile. Most of the product work above lives in private repositories.</p>
+              <p className="mt-2 text-[15px] leading-relaxed text-[#526460]">Public profile. Most of the product work above lives in private repositories.</p>
             </a>
             <Link href="/hire" className="poppy-card rounded-md border p-6 transition-colors hover:border-[#176f70]/70">
-              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Full portfolio</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-[#176f70]">Full portfolio</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">Open full portfolio <span aria-hidden>→</span></p>
-              <p className="mt-2 text-sm leading-relaxed text-[#526460]">The broader recruiter-facing portfolio and résumé surface.</p>
+              <p className="mt-2 text-[15px] leading-relaxed text-[#526460]">The broader recruiter-facing portfolio and résumé surface.</p>
             </Link>
             <div className="border-l-2 border-[#176f70] pl-5">
-              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Walkthrough · 2–3 min</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-[#176f70]">Walkthrough · 2–3 min</p>
               <p className="mt-4 font-display text-[24px] text-[#123e3d]">Walkthrough available with application materials</p>
-              <p className="mt-2 text-sm leading-relaxed text-[#526460]">A short screen-share can walk through this page and the evidence behind it.</p>
+              <p className="mt-2 text-[15px] leading-relaxed text-[#526460]">A short screen-share can walk through this page and the evidence behind it.</p>
             </div>
           </div>
         </section>
@@ -293,26 +297,40 @@ export default function PoppyPage() {
         <section id="about" className="border-t border-[#176f70]/15 bg-[#fffdf8] py-20 md:py-28">
           <div className="mx-auto grid max-w-content gap-10 px-6 md:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] md:items-center md:gap-16 md:px-10">
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#176f70]">/// About</p>
+              <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-[#176f70]">/// About</p>
               <h2 className="mt-5 font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Abdur Rahman Sayeed</h2>
-              <p className="mt-6 max-w-[68ch] text-[16px] leading-relaxed text-[#435653]">Solo founder, One Asec LLC (NJ). Degree in Financial Mathematics &amp; Economics, University of Ottawa (no CS degree). ~6 years building and operating systems with code; ~1 year of focused AI-product engineering since September 2025.</p>
-              <p className="mt-4 max-w-[68ch] text-[14px] leading-relaxed text-[#526460]">TypeScript, Node.js, Python, SQL, React/Next.js, WebSockets, API integration.</p>
+              <p className="mt-6 max-w-[68ch] text-[17px] leading-relaxed text-[#435653]">Solo founder, One Asec LLC (NJ). Degree in Financial Mathematics &amp; Economics, University of Ottawa (no CS degree). ~6 years building and operating systems with code; ~1 year of focused AI-product engineering since September 2025.</p>
+              <p className="mt-4 max-w-[68ch] text-[15px] leading-relaxed text-[#526460]">TypeScript, Node.js, Python, SQL, React/Next.js, WebSockets, API integration.</p>
             </div>
-            <div className="poppy-resume-placeholder relative flex items-center gap-5 overflow-hidden rounded-md border border-dashed p-5 md:block md:p-6">
-                            <div aria-hidden className="aspect-[8.5/11] w-20 shrink-0 rounded-sm border border-[#176f70]/30 bg-white p-2 shadow-[0_12px_30px_-18px_rgba(16,40,39,.45)] sm:w-28 md:mx-auto md:w-44 md:p-4">
-                <span className="block h-1.5 w-3/4 rounded-full bg-[#176f70]/35" />
-                <span className="mt-2 block h-1 w-1/2 rounded-full bg-[#176f70]/18" />
-                <span className="mt-4 block h-px w-full bg-[#176f70]/30" />
-                <span className="mt-3 block h-1 w-full rounded-full bg-[#176f70]/18" />
-                <span className="mt-2 block h-1 w-5/6 rounded-full bg-[#176f70]/18" />
-                <span className="mt-4 block h-px w-full bg-[#176f70]/30" />
-                <span className="mt-3 block h-1 w-full rounded-full bg-[#176f70]/18" />
-                <span className="mt-2 block h-1 w-4/5 rounded-full bg-[#176f70]/18" />
-              </div>
-              <div className="min-w-0 md:mt-5">
-                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#176f70]">Designed résumé</p>
-                <p className="mt-2 font-display text-[21px] leading-tight text-[#123e3d]">Forthcoming after final edit</p>
-                <p className="mt-2 text-[12px] leading-relaxed text-[#526460]">Separate from the ATS résumé. No download is available yet.</p>
+            <div className="poppy-resume relative rounded-md border p-5 md:p-6">
+              <div className="flex items-center gap-5 md:block">
+                <div aria-hidden className="aspect-[8.5/11] w-20 shrink-0 rounded-sm border border-[#176f70]/30 bg-white p-2 shadow-[0_12px_30px_-18px_rgba(16,40,39,.45)] sm:w-28 md:mx-auto md:w-44 md:p-4">
+                  <span className="block h-1.5 w-3/4 rounded-full bg-[#176f70]/35" />
+                  <span className="mt-2 block h-1 w-1/2 rounded-full bg-[#176f70]/18" />
+                  <span className="mt-4 block h-px w-full bg-[#176f70]/30" />
+                  <span className="mt-3 block h-1 w-full rounded-full bg-[#176f70]/18" />
+                  <span className="mt-2 block h-1 w-5/6 rounded-full bg-[#176f70]/18" />
+                  <span className="mt-4 block h-px w-full bg-[#176f70]/30" />
+                  <span className="mt-3 block h-1 w-full rounded-full bg-[#176f70]/18" />
+                  <span className="mt-2 block h-1 w-4/5 rounded-full bg-[#176f70]/18" />
+                </div>
+                <div className="min-w-0 md:mt-5">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-[#176f70]">Résumé</p>
+                  <p className="mt-2 font-display text-[21px] leading-tight text-[#123e3d]">The same files as the hire page.</p>
+                  <ul className="mt-3 space-y-2">
+                    <li>
+                      <a href="/resume-ats.pdf" className={RESUME_LINK}>ATS résumé — 1 page <span aria-hidden>↓</span></a>
+                      <span className="mt-0.5 block text-[13px] leading-relaxed text-[#526460]">Single column, machine-parseable</span>
+                    </li>
+                    <li>
+                      <a href="/resume-master-career.pdf" className={RESUME_LINK}>Master career résumé — 2 pages <span aria-hidden>↓</span></a>
+                      <span className="mt-0.5 block text-[13px] leading-relaxed text-[#526460]">Full detail, same parseable format</span>
+                    </li>
+                    <li>
+                      <Link href="/hire#sheet" className={RESUME_LINK}>Read it on the hire page <span aria-hidden>→</span></Link>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -322,7 +340,7 @@ export default function PoppyPage() {
       <footer className="poppy-footer py-10">
         <div className="mx-auto flex max-w-content flex-col justify-between gap-4 px-6 md:flex-row md:items-center md:px-10">
           <p className="font-display text-xl">Independent candidate brief — not affiliated with Poppy AI.</p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.15em]">Prospect Park, NJ · AI products · candidate brief</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.15em]">Prospect Park, NJ · AI products · candidate brief</p>
         </div>
       </footer>
     </div>
