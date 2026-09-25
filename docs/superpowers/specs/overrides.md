@@ -261,3 +261,7 @@ every article's h1 and body prose are untouched.
   copy-override: app/poppy/page.tsx (About résumé placeholder: "Designed résumé / Forthcoming after final edit / Separate from the ATS résumé. No download is available yet." replaced by a résumé block linking /resume-ats.pdf, /resume-master-career.pdf and /hire#sheet)
   reason: founder asked where the résumé is on /poppy "like I have it on the hire page"; the placeholder promised a forthcoming asset with no download, the hire page already serves the Sept-21 ATS PDF and the 2-page master. Type sizes on the route raised one step across the board (mono 9–11 → 10–12px, captions and bodies 12–16 → 13–17px, hero body 17/19 → 18/20px) and mono/body weight to 500/450 for readability (Playfair lines excluded, that face has no 450); no other copy changed.
   approved-by: Abdur / live session ("fonts are not easy to read … slightly bolder … slightly bigger"; "where is the placeholder for my resume like i have it on hire page?") / 2026-09-22 20:59 EDT
+- task-id: AGE-2493
+  content-publish-override: content/posts/the-analytics-call-that-couldnt-fail.mdx
+  reason: publish the 2026-09-25 Mistakes TLDR draft (reported; receipts 82c5c59, e8c24ac, 6c284f7 re-verified against git history before promotion).
+  approved-by: Abdur / Slack ("Can you please approve it for me and proceed publishing this") / 2026-09-25 10:34 EDT
