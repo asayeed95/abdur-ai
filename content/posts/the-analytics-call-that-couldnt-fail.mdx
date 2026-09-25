@@ -1,0 +1,129 @@
+---
+slug: the-analytics-call-that-couldnt-fail
+title: "The analytics call that couldn't fail"
+seo_title: "Why analytics events silently don't fire"
+subtitle: "Optional chaining plus @ts-expect-error: how a tracking call became a guaranteed no-op"
+description: "My CTA tracking called window.plausible?.() with no analytics script loaded. Optional chaining made every event a silent no-op for nearly ten weeks."
+dek: "Every CTA on this site fired an analytics event from the first commit. None of them went anywhere. No provider was installed, optional chaining swallowed the miss, and a type-checker directive kept the compiler quiet about it."
+tldr: "From the first commit on 2026-06-28, abdur.ai's in-post CTAs called window.plausible?.(name) and window.va?.('event', { name }) behind two @ts-expect-error comments. No analytics package was installed and no provider script was loaded, so neither global ever existed. Optional chaining turned every call into undefined instead of an error, and @ts-expect-error told TypeScript to stay quiet about the missing declarations. Every build passed. The fix (e8c24ac, 2026-09-04) installed @vercel/analytics, mounted <Analytics /> in the root layout, and routed every event through one typed wrapper, so a missing provider now fails the build instead of doing nothing. A follow-up (6c284f7) typed event names against a catalog and documented that Vercel custom events need a Pro plan: on Hobby they are dropped silently. Whether events land in the dashboard is still unverified. The rule: no analytics call site ships until the provider is proven to load."
+date: 2026-09-25T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+register: reported
+series: "Mistakes TLDR"
+flagship: false
+pinned: false
+featured: false
+tags:
+  - analytics
+  - nextjs
+  - typescript
+  - vercel
+  - verification
+  - postmortem
+receipts:
+  - path: "components/post/LeadMagnets.tsx"
+    sha: "82c5c59"
+    note: "Initial commit (2026-06-28). track() calls window.plausible?.(name) and window.va?.('event', { name }), each behind a @ts-expect-error comment."
+  - path: ".env.example"
+    sha: "82c5c59"
+    note: "Sets NEXT_PUBLIC_PLAUSIBLE_DOMAIN under 'Plausible or Vercel Analytics, pick one'. package.json has no analytics dependency and app/layout.tsx loads no provider script at this commit or at e8c24ac~1."
+  - path: "lib/analytics.ts"
+    sha: "e8c24ac"
+    note: "Fix (A-1, 2026-09-04). @vercel/analytics installed, <Analytics /> mounted in app/layout.tsx, one trackEvent() wrapper; the window.* calls removed."
+  - path: "README.md"
+    sha: "6c284f7"
+    note: "Follow-up (2026-09-05). Event names typed against the ANALYTICS_EVENTS catalog; documents that custom events need Pro or higher and are dropped silently on Hobby."
+  - path: "RETRO.md"
+    note: "2026-09-04 entry: no analytics call site without the provider script verified loading."
+  - path: "docs/superpowers/specs/build-plan.md"
+    note: "Row A-1: done 2026-09-04, with dashboard verification still pending after deploy."
+citation_preferred: "Sayeed, Abdur Rahman. 'The analytics call that couldn't fail.' abdur.ai, 25 September 2026."
+related:
+  - your-pager-is-not-your-customer
+  - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
+---
+
+**Short answer:** if your analytics events never show up and nothing ever errors, check whether the call site is written as `window.someProvider?.(event)`. Optional chaining on a global that was never defined doesn't throw. It returns `undefined` and moves on. If no provider script is loaded, every event is a silent no-op, and a green build tells you nothing.
+
+That was this site for nearly ten weeks.
+
+## What happened
+
+The in-post CTAs on abdur.ai shipped in the first commit, `82c5c59`, on June 28. Each one called a small helper on click:
+
+```tsx
+function track(name: string) {
+  if (typeof window !== "undefined") {
+    // @ts-expect-error -- plausible global
+    window.plausible?.(name);
+    // @ts-expect-error -- vercel analytics
+    window.va?.("event", { name });
+  }
+}
+```
+
+It looks like tracking wired to two providers. It was wired to neither. `package.json` had no analytics dependency. The root layout's only inline scripts were JSON-LD structured data and, later, a theme bootstrap. Nothing on the page ever defined `window.plausible` or `window.va`. The setup looked finished in two places: `.env.example` set `NEXT_PUBLIC_PLAUSIBLE_DOMAIN=abdur.ai` under a comment reading "Plausible or Vercel Analytics — pick one", and the file's doc comment said to "wire to Plausible/Vercel Analytics in lib/analytics.ts". That file didn't exist yet.
+
+The code stayed like that until September 4. I can't tell you how many clicks it lost. That's the point: nothing recorded them.
+
+## Why nothing complained
+
+Three layers each did their job exactly as written, and together they made the failure invisible.
+
+**Optional chaining swallowed the runtime miss.** `window.plausible?.(name)` means "call this if it exists." When it doesn't exist, the expression evaluates to `undefined`. No exception, no console warning, nothing for an error tracker to catch. A missing provider looks the same as a working one that returned nothing.
+
+**`@ts-expect-error` silenced the compiler, which had it right.** TypeScript knew `plausible` and `va` weren't declared on `Window`, and it would have said so on every build. The directive tells the compiler to expect an error on the next line and keep quiet about it. It even fails the build if that error ever goes away. So on every build, the type checker was confirming that nothing declared these globals, and the comment kept that confirmation out of sight.
+
+**The config looked done.** An env var named for a provider, a comment pointing at a wrapper file. Both read as "this is set up." Neither was checked by anything.
+
+## Who this bites
+
+Anyone who adds analytics call sites before the provider exists, which is a normal order to build in. You write the CTA, add a `track()` call so it's ready, and plan to wire the provider later. It also bites code you inherit or generate: a `?.()` on a vendor global plus a type suppression is a very plausible-looking pattern, and it passes lint, typecheck, and build.
+
+## What I changed
+
+The fix is commit `e8c24ac` (task A-1, September 4):
+
+1. **Installed a real provider.** `@vercel/analytics` went into `package.json`, and `<Analytics />` went into `app/layout.tsx`.
+2. **One typed wrapper, no globals.** `lib/analytics.ts` exports `trackEvent()`, which imports `track` from the SDK. No call site touches `window.*` anymore. That moves the failure: if the package goes missing, the import fails the build instead of quietly doing nothing.
+3. **Checked success before counting it.** One waitlist form marked itself done on any response. `fetch` doesn't reject on a 4xx or 5xx, only on a network failure, so a failed signup showed the success state. It now checks `res.ok`, and its conversion event fires only after a 2xx.
+
+A day later, `6c284f7` added two more things. Event names are now typed against a catalog (`ANALYTICS_EVENTS`), so a misspelled event is a compile error instead of a new, empty series in the dashboard. And the README now documents a second silent drop I would otherwise have walked into: Vercel custom events need a Pro plan or higher. On Hobby, `track()` calls are accepted and dropped, and the dashboard shows pageviews and nothing else. That reads as "no conversions," not "not recorded."
+
+## What I haven't proven yet
+
+The fix is code-side. The build-plan row for A-1 says dashboard verification happens after deploy: enable Analytics in the Vercel project and confirm events land. Until one known event shows up in the dashboard, "tracking works" is the same unproven claim the old code was making. The wrapper also can't see an ad blocker. The SDK's `track` is a no-op when its script is blocked, so counts will under-report. The README says to treat them as directional.
+
+## How to check your own site
+
+1. **Open the production page and ask the global directly.** In the browser console, run `typeof window.plausible` (or whichever global your call sites use). If it says `"undefined"`, every call to it does nothing.
+2. **Search for the pattern.** Grep for `window.` followed by `?.(`, and for `@ts-expect-error` or `as any` next to analytics calls. Each hit is a place where a missing provider turns into silence.
+3. **Import the SDK; don't reach for a global.** A module import fails the build when the package is missing. A `window` lookup never fails.
+4. **Type your event names.** A const list and a union type make a typo a compile error.
+5. **Check the plan and the dashboard setting.** Custom events can be gated by plan or switched off in the project, and both fail quietly.
+6. **Fire one known event and find it in the dashboard.** An empty events chart is only data after you've seen a test event arrive.
+
+## FAQ
+
+### Why are my analytics events not showing up when there are no errors?
+
+The most common silent cause is that the provider's script never loaded, and the call site is written so a missing function doesn't throw. `window.provider?.()` and `if (window.provider) window.provider()` both do nothing when the global is undefined. Check the global in the console on the live page first.
+
+### Does optional chaining hide errors?
+
+It hides exactly one: calling something that doesn't exist. `a?.()` returns `undefined` when `a` is `null` or `undefined`, without calling anything. That's right for optional features. It's wrong for a call you expect to always run, because it turns "misconfigured" into "fine."
+
+### Why didn't TypeScript catch it?
+
+It did. The `@ts-expect-error` comment told it to suppress the error. Declaring the global with `declare global` or casting with `as any` would hide it the same way. If you need a vendor global, declare its type in one place and check at runtime that it exists. Better still, use the vendor's package.
+
+### Why don't my Vercel Analytics custom events appear?
+
+Check three things. Is Web Analytics enabled for the project? Is the team on a plan that includes custom events? This repo's README records that they need Pro or higher and are dropped silently on Hobby. And is the script being blocked in your own browser? Pageviews appearing while events stay empty points at the plan or the call site, not the script.
+
+### Does `fetch` throw on a 404 or 500?
+
+No. `fetch` resolves for any HTTP response and rejects only on network failure. Check `res.ok` (or `res.status`) before you treat a request as a success, and before you fire a conversion event for it.
+
+The broader lesson is the one from [the CI gate nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran): a check that can't fail looks exactly like a check that passes. This call couldn't fail, so for nearly ten weeks it passed.
