@@ -1,11 +1,11 @@
 ---
 slug: meta-description-length-truncated-snippets
-title: "Every search snippet on my site was cut mid-sentence"
-seo_title: "Meta description length: fix truncated snippets"
-subtitle: "What a metadata audit found, the fix I shipped, and the robots.txt change I recommended and was wrong about"
-description: "An audit found 12 of 15 pages with meta descriptions over budget and cut mid-sentence. How I set length budgets, split SEO titles from h1s, and fixed it."
-dek: "An audit of this site found meta descriptions running past ~155 characters on 12 of 15 pages and four titles past ~60. Every snippet I owned ended in an ellipsis. Here is the budget, the fix, and the one change I got wrong."
-tldr: "A live audit of abdur.ai on 2026-09-10 found 12 of 15 pages with meta descriptions past a ~155-character budget (worst: 293) and four <title> values past ~60 (worst: 88). All ten posts were over, between 164 and 271 characters. Google sets no hard limit on description length but truncates snippets to fit the device width, so every snippet was being cut mid-sentence. The fix (c57a046, PR #49) rewrote each description as one complete thought within budget, moved the old copy into the dek on the one post that had none so its index teaser didn't change, and added an optional seo_title field used for <title> only, so the h1 and share cards keep the full editorial title. The home page got its own meta description, separate from the identity blurb that llms.txt and JSON-LD use. I had also recommended disallowing the duplicate /aitldr/ URLs in robots.txt. That would have stopped Google reading their rel=canonical, and Google's docs say not to use robots.txt for canonicalization. I didn't ship it. Afterwards: 28 rendered pages, 0 over budget."
+title: "12 of my 15 meta descriptions were too long for search"
+seo_title: "Meta description length: how I fixed mine"
+subtitle: "What a metadata audit found, the fix that shipped, and the robots.txt change the audit recommended and got wrong"
+description: "An audit found 12 of 15 pages with meta descriptions past a 155-character budget. How I set length budgets, split SEO titles from h1s, and fixed it."
+dek: "An audit of this site found meta descriptions running past ~155 characters on 12 of 15 pages and four titles past ~60. All ten post descriptions were written to be read in full, not to survive a cut. Here is the budget, the fix, and the one change the audit got wrong."
+tldr: "A live audit of abdur.ai on 2026-09-10 found 12 of 15 pages with meta descriptions past a ~155-character budget (worst: 271 characters) and four <title> values past ~60 (worst: 87). All ten posts were over, between 164 and 271 characters. Google sets no hard limit on description length but truncates snippets as needed to fit the device width, so any of those descriptions Google chose to show was likely to be cut before the sentence finished. The fix (c57a046, PR #49) rewrote each description as one complete thought within budget, moved the old copy into the dek on the one post that had none so its index teaser didn't change, and added an optional seo_title field used for <title> only, so the h1 and share cards keep the full editorial title. The home page got its own meta description, separate from the identity blurb that llms.txt and JSON-LD use. The audit had also recommended disallowing the duplicate /aitldr/ URLs in robots.txt. That would have stopped Google reading their rel=canonical, and Google's docs say not to use robots.txt for canonicalization. It didn't ship. Afterwards: 28 rendered pages, 0 over budget."
 date: 2026-09-26T09:00:00-04:00
 author: Abdur Rahman Sayeed
 section: "Mistakes TLDR"
@@ -24,7 +24,7 @@ tags:
 receipts:
   - path: "c57a046 (PR #49, S-1)"
     sha: "c57a046"
-    note: "Fix commit, 2026-09-10. Records the audit (12 of 15 descriptions past ~155, worst 293; four titles past ~60, worst 88), the deliberately-not-done Disallow: /aitldr/, and the post-fix check: 28 rendered pages, 0 over budget, h1 identical to frontmatter title on 10/10 posts."
+    note: "Fix commit, 2026-09-10. Records the audit (12 of 15 descriptions past ~155, four titles past ~60; the commit's worst-case figures 293, 88 and /hire 182 are raw-HTML byte counts, which the post corrects to characters: 271, 87 and 180), the deliberately-not-done Disallow: /aitldr/, and the post-fix check: 28 rendered pages, 0 over budget, h1 identical to frontmatter title on 10/10 posts."
   - path: "content/posts/*.mdx"
     sha: "c57a046"
     note: "Post descriptions measured from frontmatter at c57a046^ (164 to 271 characters, all ten over budget) and at c57a046 (141 to 152)."
@@ -36,9 +36,12 @@ receipts:
   - path: "lib/site.ts"
     sha: "c57a046"
     note: "SITE.metaDescription added for the home meta tag, separate from SITE.description (used by llms.txt and JSON-LD)."
+  - path: "app/now/page.tsx"
+    sha: "b9be16a"
+    note: "PR #49 follow-up: /now description derived from the rendered UPDATED date after CodeRabbit flagged 'right now'."
   - path: "app/aitldr/[slug]/page.tsx"
     note: "Legacy surface declares alternates.canonical at /writing/<slug>. app/robots.ts does not disallow /aitldr/."
-citation_preferred: "Sayeed, Abdur Rahman. 'Every search snippet on my site was cut mid-sentence.' abdur.ai, 26 September 2026."
+citation_preferred: "Sayeed, Abdur Rahman. '12 of my 15 meta descriptions were too long for search.' abdur.ai, 26 September 2026."
 related:
   - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
   - your-pager-is-not-your-customer
@@ -46,15 +49,15 @@ related:
 
 **Short answer:** Google doesn't set a character limit on meta descriptions. It truncates the snippet to fit the device width. So pick a budget, around 155 characters for descriptions and around 60 for titles, write each description as one complete thought inside it, and measure the rendered HTML rather than your source files. My site was over budget on 12 of 15 pages before I did that.
 
-## What I found
+## What the audit found
 
-On September 10 I audited abdur.ai's metadata. The numbers are in the fix commit, `c57a046`:
+On September 10 a Claude Code session audited abdur.ai's metadata, and I approved its fixes. The numbers are in the fix commit, `c57a046`:
 
-- **12 of 15 pages** had meta descriptions past about 155 characters. The worst was 293.
-- **Four `<title>` values** ran past about 60 characters. The worst was 88.
+- **12 of 15 pages** had meta descriptions past about 155 characters. The worst was 271 characters. (The commit says 293: that was a byte count of the raw HTML, not a character count.)
+- **Four `<title>` values** ran past about 60 characters. The worst was 87.
 - **All ten posts were over.** Measured from the frontmatter before the fix, their descriptions ran from 164 to 271 characters.
 
-The descriptions weren't wrong. They were long: written to be read in full, not to survive a cut. So every result I owned in search was cut off before the sentence finished.
+The descriptions weren't wrong. They were long: written to be read in full, not to survive a cut. So wherever Google used one of those descriptions, it was likely to be cut before the sentence finished. I never checked a live results page: Search Console had never been set up for the domain, which the same commit started fixing.
 
 Two smaller findings came out of the same pass. `/now` had a 49-character description, short rather than long, that said "Updated weekly," while the page's own date read June 27. That's a claim the page didn't back up, so the fix removed the cadence. And the audit found `next.config.mjs` setting a Content-Type header for `/aitldr/:slug/llms.txt`, a route that doesn't exist. The only real one is `app/llms.txt/route.ts`.
 
@@ -83,27 +86,28 @@ The fix is `c57a046` (task S-1, PR #49):
      title: post.seoTitle ?? post.title,
      description: post.description,
      alternates: { canonical: url },
-     // share card is built from post.title
+     openGraph: { ...share.openGraph /* built from post.title */ },
+     twitter: { ...share.twitter },
    };
    ```
 
    The h1, the Open Graph card and the Twitter card keep the full editorial title. Four posts needed one.
 4. **Gave the home page its own meta description.** `SITE.description` in `lib/site.ts` is a long identity blurb that `llms.txt` and the JSON-LD also use. The home meta tag now reads `SITE.metaDescription`, so I can fit the snippet without editing the identity copy.
-5. **Fixed the outliers.** `/hire` went from 182 characters to 152. `/now` stopped claiming a cadence.
+5. **Fixed the outliers.** `/hire` went from 180 characters to 152. `/now` stopped claiming a cadence. Its first replacement said I was building things "right now" on a page still stamped June 27, which CodeRabbit flagged on PR #49. The follow-up, `b9be16a`, derives the description from the same `UPDATED` date the page renders, so the snippet can't claim more freshness than the page shows.
 
-After the change, the commit records 28 rendered pages, 0 over budget, and the h1 identical to the frontmatter title on all ten posts. I re-ran the script below on the build that includes this post, on September 26: 34 prerendered pages, none over either budget.
+After the change, the commit records 28 rendered pages, 0 over budget, and the h1 identical to the frontmatter title on all ten posts. I re-ran the script below on the build that includes this post, on September 26: 33 prerendered HTML files, the 404 page included, none over either budget.
 
-## The change I recommended and was wrong about
+## The change the audit recommended, and why it was wrong
 
-Every post on this site is served at two URLs: canonical `/writing/<slug>`, and the older `/aitldr/<slug>`, kept so old links still work. In the audit I recommended adding `Disallow: /aitldr/` to `robots.txt` to keep the duplicates out of the index.
+Every post on this site is served at two URLs: canonical `/writing/<slug>`, and the older `/aitldr/<slug>`, kept so old links still work. The audit recommended adding `Disallow: /aitldr/` to `robots.txt` to keep the duplicates out of the index.
 
 That would have made things worse. Each `/aitldr/` page declares `rel="canonical"` pointing at its `/writing/` twin, and a crawler can only read that tag if it's allowed to fetch the page. Block the crawl and Google stops seeing the canonical, while the URLs can still end up indexed. Google's guidance on duplicate URLs says it plainly: don't use robots.txt for canonicalization, because Google may still index disallowed URLs without their content.
 
-I didn't ship it. `app/robots.ts` blocks `/api/` and nothing else, and the canonical tag does the consolidating. At fifteen pages, crawl budget was never the constraint.
+It didn't ship. `app/robots.ts` blocks `/api/` and nothing else, and the canonical tag does the consolidating. At fifteen pages, crawl budget was never the constraint.
 
 ## How to check your own site
 
-1. **Measure the rendered output, not the source.** Title templates, fallbacks and defaults all change what ships. After `next build`, this reads every prerendered page:
+1. **Measure the rendered output, not the source.** Title templates, fallbacks and defaults all change what ships. Count characters after decoding entities. Byte counts overstate: my audit's 'worst: 293' was a 271-character description. After `next build`, this reads every prerendered page:
 
    ```js
    // measure-meta.mjs, run from the project root after `next build`
@@ -158,7 +162,7 @@ Same situation: Google truncates title links to fit the device width and doesn't
 
 ### Should the SEO title match the H1?
 
-It doesn't have to. Google builds title links automatically from the `<title>` element and other signals on and about the page. I keep the h1 as the full editorial title and add a shorter `seo_title` only where the full one won't fit. On this site that was four posts out of ten.
+It doesn't have to. Google generates title links automatically, from the page's content (including the `<title>` element) and from references to the page on the web. I keep the h1 as the full editorial title and add a shorter `seo_title` only where the full one won't fit. On this site that was four posts out of ten.
 
 ### How do I set a separate SEO title in the Next.js App Router?
 
@@ -168,4 +172,4 @@ Return it from `generateMetadata`: `title: post.seoTitle ?? post.title`. Build t
 
 No, if you want them consolidated. Google's guidance is not to use robots.txt for canonicalization. A blocked URL can still be indexed, and the crawler never sees the `rel="canonical"` on it. Let it crawl the duplicate and point the canonical at the page you want ranked.
 
-This is the same lesson as [the CI gate nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran): the source said one thing, and the shipped output said another. I only saw it once I measured what actually rendered.
+This is the same lesson as [the CI gate nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran): the number that mattered was in the shipped output, not the source file. I only saw it once I measured what actually rendered.
