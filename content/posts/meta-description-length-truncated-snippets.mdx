@@ -95,7 +95,7 @@ The fix is `c57a046` (task S-1, PR #49):
 4. **Gave the home page its own meta description.** `SITE.description` in `lib/site.ts` is a long identity blurb that `llms.txt` and the JSON-LD also use. The home meta tag now reads `SITE.metaDescription`, so I can fit the snippet without editing the identity copy.
 5. **Fixed the outliers.** `/hire` went from 180 characters to 152. `/now` stopped claiming a cadence. Its first replacement said I was building things "right now" on a page still stamped June 27, which CodeRabbit flagged on PR #49. The follow-up, `b9be16a`, derives the description from the same `UPDATED` date the page renders, so the snippet can't claim more freshness than the page shows.
 
-After the change, the commit records 28 rendered pages, 0 over budget, and the h1 identical to the frontmatter title on all ten posts. I re-ran the script below on the build that includes this post, on September 26: 33 prerendered HTML files, the 404 page included, none over either budget.
+After the change, the commit records 28 rendered pages, 0 over budget, and the h1 identical to the frontmatter title on all ten posts. I re-ran the script below on the build that includes this post, on September 26: 33 prerendered HTML files, the 404 page included, each with a title and a meta description, none over either budget.
 
 ## The change the audit recommended, and why it was wrong
 
@@ -132,8 +132,15 @@ It didn't ship. `app/robots.ts` blocks `/api/` and nothing else, and the canonic
 
    for (const file of files) {
      const html = fs.readFileSync(file, "utf8");
-     const title = decode(html.match(/<title>([^<]*)<\/title>/)?.[1] ?? "");
-     const desc = decode(html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? "");
+     const titleMatch = html.match(/<title>([^<]*)<\/title>/);
+     const descMatch = html.match(/<meta name="description" content="([^"]*)"/);
+     if (!titleMatch || !descMatch) {
+       console.log(`Missing or unmatched metadata: ${file.slice(root.length)}`);
+       process.exitCode = 1;
+       continue;
+     }
+     const title = decode(titleMatch[1]);
+     const desc = decode(descMatch[1]);
      const over = title.length > TITLE_MAX || desc.length > DESC_MAX ? "  <- over" : "";
      console.log(`${title.length}\t${desc.length}\t${file.slice(root.length)}${over}`);
    }
