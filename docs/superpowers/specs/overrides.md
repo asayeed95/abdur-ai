@@ -265,3 +265,7 @@ every article's h1 and body prose are untouched.
   content-publish-override: content/posts/the-analytics-call-that-couldnt-fail.mdx
   reason: publish the 2026-09-25 Mistakes TLDR draft (reported; receipts 82c5c59, e8c24ac, 6c284f7 re-verified against git history before promotion).
   approved-by: Abdur / Slack ("Can you please approve it for me and proceed publishing this") / 2026-09-25 10:34 EDT
+- task-id: AGE-2391
+  content-publish-override: content/posts/meta-description-length-truncated-snippets.mdx
+  reason: publish the 2026-09-26 Mistakes TLDR (reported; receipts c57a046 / b9be16a / PR #49 re-verified against git history (post descriptions re-measured at c57a046^ and c57a046; the commit's 293/88/182 identified as raw-HTML byte counts and corrected to characters 271/87/180), plus Google Search Central snippet, title-link and duplicate-URL docs re-read 2026-09-26). Independent fresh-context agent review completed 2026-09-26 (verdict: approve with fixes); all nine findings applied before ready-for-review. Merge left to Abdur.
+  approved-by: Abdur / standing instruction, Slack ts 1790347021.244939 ("Claude approves and keeps publishing abdur.ai TLDRs and writings") / 2026-09-25
