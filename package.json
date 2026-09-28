@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "validate:apply": "node scripts/validate-applications.mjs",
     "check:og": "node scripts/check-og-meta.mjs",
+    "check:robots": "node scripts/check-robots.mjs",
     "subscribers:sources": "node scripts/subscriber-sources.mjs"
   },
   "dependencies": {
