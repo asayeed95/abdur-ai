@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { upsertNowState } from "@/lib/supabase";
+import { requireAgentToken } from "@/lib/ingest-auth";
 
 /**
  * POST /api/ingest/now
@@ -9,7 +10,8 @@ import { upsertNowState } from "@/lib/supabase";
  * Webhook endpoint for the abdur-os agent swarm. Pushes a fresh
  * "Now" panel state — what each agent is working on right now.
  *
- * Auth: Bearer token via `AGENT_TOKEN` env var.
+ * Auth: Bearer token via `AGENT_TOKEN` env var (`lib/ingest-auth.ts`; fails
+ * closed with 500 if the token is not configured).
  *
  * Storage: upserts the `now_state` row (pk profile_id='abdur') in Supabase
  * via PostgREST, then `revalidateTag('now')` so the homepage re-renders.
@@ -27,10 +29,8 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
-  const auth = req.headers.get("authorization");
-  if (!auth || auth !== `Bearer ${process.env.AGENT_TOKEN}`) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
+  const denied = requireAgentToken(req, "ingest/now");
+  if (denied) return denied;
 
   let body: unknown;
   try {
