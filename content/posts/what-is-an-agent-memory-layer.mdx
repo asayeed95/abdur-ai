@@ -1,0 +1,130 @@
+---
+slug: what-is-an-agent-memory-layer
+title: "What is an agent memory layer?"
+seo_title: "What is an agent memory layer? A plain definition"
+subtitle: "Not the context window, not a vector database: the part that decides what an agent keeps, about whom, and when it comes back"
+description: "An agent memory layer decides what an AI agent keeps, who each fact is about, and what comes back at the next decision. Not a context window or an index."
+dek: "An agent memory layer is the policy between an AI agent and its storage: what gets written, whose it is, when it was true, and what comes back at the next decision. Here is the definition, the six jobs it has to do, who needs one, and who doesn't."
+tldr: "An agent memory layer is the part of an AI agent's stack that decides what gets kept, who each fact is about, when it was true, and what comes back at the moment of the next decision. The context window is not memory, because it does not outlive the session. A vector database is not a memory layer either: it is an index that answers similarity, with no opinion on what should be stored, whose it is, whether it is still true, or whether it was deleted. A memory layer has six jobs: gate writes, key by principal, keep two clocks (bi-temporal), carry provenance, recall inside the channel's time budget, and forget on purpose. You need one when the same agent serves the same principal more than once. You do not need one for single-shot tasks, or when a restart-safe event log already covers the problem."
+date: 2026-09-29T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Agent Systems"
+register: argued
+status_note: "Argument and definition. The Northsun paragraph describes a design, not a measurement: no benchmark, no customer, no measured latency."
+flagship: false
+pinned: false
+featured: false
+tags:
+  - ai-agents
+  - agent-memory
+  - memory
+  - architecture
+citation_preferred: "Sayeed, Abdur Rahman. 'What is an agent memory layer?' abdur.ai, 29 September 2026."
+related:
+  - the-number-is-not-the-person
+  - voice-ai-memory-latency-is-a-dead-argument
+---
+
+**Short answer:** An agent memory layer is the part of an AI agent's stack that decides what gets kept, who each kept fact is about, when it was true, and what comes back at the moment of the next decision. The context window is where an agent thinks. A vector database is one place memory can be stored. The memory layer is the policy between them: the write path, the read path, and the rules for forgetting.
+
+## What is an agent memory layer?
+
+It's a service, or a module, with two doors and a rulebook.
+
+- **The write door** takes events from the agent's life (a conversation turn, a tool result, a correction from the user) and decides whether any of it becomes a durable fact. Most of it shouldn't.
+- **The read door** answers a narrower question than search: *what does the agent need to know, about this principal, right now, to make this decision?*
+- **The rulebook** covers identity (whom a fact belongs to), time (when it was true, and when the agent learned it), provenance (which event produced it), and deletion (how it stops being used).
+
+If a piece of your stack does all of that, it's a memory layer, whatever it's called. If it only stores and retrieves text, it's storage.
+
+## Why isn't the context window memory?
+
+Because it doesn't outlive the session. A language model keeps no state between requests. What feels like memory in a chat is the transcript being fed back in on every turn, whether your code resends it or the provider replays a stored thread. When the session ends, or the transcript gets long enough to be trimmed, that "memory" is gone.
+
+Bigger context windows raise the ceiling. They don't change the shape. Putting everything the agent has ever seen into the prompt is a read policy of "return everything" with no write policy at all. It costs tokens on every turn, and it makes the model redo the selection work each time, which is the job a memory layer is supposed to have done in advance.
+
+## Isn't a vector database a memory layer?
+
+No. A vector database is an index. It answers "which stored items are semantically close to this query?" That's a useful primitive, and plenty of memory layers use one underneath. But similarity is not the same question as relevance to this decision, and an index has no opinion about:
+
+- whether a fact should have been stored at all;
+- whether it's about the person on the line or the last person who used that line;
+- whether it's still true;
+- whether the user asked for it to be forgotten.
+
+"Add a vector store" solves retrieval. The failures people describe as "my agent has bad memory" are more often on the write side and the identity side: it kept the wrong thing, attached it to the wrong person, or kept serving a fact that stopped being true.
+
+## What does an agent memory layer actually have to do?
+
+Six jobs. Skip one and you get a recognizable failure.
+
+1. **Gate writes.** Decide what becomes a durable fact. Without it, memory fills with chatter and recall surfaces trivia ahead of the thing that mattered.
+2. **Key by principal.** Every fact belongs to a subject (a user, an account, a workspace), not to a channel. Without it, a shared phone line greets the wrong human with the last caller's context. I wrote up that failure class in [The number is not the person](/writing/the-number-is-not-the-person).
+3. **Keep two clocks.** Record when a fact was true *and* when the agent learned it. This is bi-temporal modeling (valid time and transaction time), an old idea from databases; [Martin Fowler's "Bitemporal History"](https://martinfowler.com/articles/bitemporal-history.html) is a good primer. Without it, the agent can't tell "the user moved in March" from "we found out in June that the user moved in March," so it can't explain what it believed at the moment it acted.
+4. **Carry provenance.** Every fact points back to the event that produced it. Without it, when the agent is wrong you can't tell whether the source was wrong, the extraction was wrong, or the retrieval was wrong.
+5. **Recall at decision time, inside the channel's budget.** A chat agent can afford a pause. A voice agent mid-conversation can't. Without a budget, memory can be correct and still arrive after the agent has already answered. I argued in [the voice-AI latency post](/writing/voice-ai-memory-latency-is-a-dead-argument) that this is an architecture problem, not a physics one.
+6. **Forget on purpose.** Corrections supersede old facts instead of sitting beside them, and deletion requests actually stop a fact from being recalled. Without it, the agent "remembers" something the user corrected last week, or something they asked it to drop.
+
+## Who needs an agent memory layer?
+
+You need one when the same agent serves the same principal more than once, and the second interaction should be better because of the first. Typical cases:
+
+- support and success agents that see the same customer across weeks;
+- voice agents on inbound lines, where callers expect continuity and the phone number is a tempting but unsafe key;
+- personal and coding assistants that should stop re-asking settled questions;
+- multi-agent systems where one agent's finding should reach another without being re-derived.
+
+## Who doesn't need an agent memory layer?
+
+Plenty of agents don't. A single-shot task (summarize this document, classify this ticket) has nothing to carry forward. A stateless tool-calling agent that reads its truth from a system of record every time is better off reading that system than keeping a second copy. And if your only problem is "my agent forgets everything when the process restarts," an append-only event log reloaded on startup gets you most of the way.
+
+Reach for a full memory layer when identity, time, and forgetting start to matter. Not before.
+
+## How do I tell if my stack already has one?
+
+Ask six questions of your current setup. Any question you can't answer is a job nobody owns yet.
+
+1. Where is the rule that decides what gets written?
+2. What ID is each stored fact keyed to, and is that a person or a channel?
+3. For any fact, can you say when it became true and when the agent learned it?
+4. Can you trace a fact back to the conversation turn or tool call that produced it?
+5. What is the read path's time budget on your least patient channel, and is it enforced?
+6. When a user corrects or deletes something, which code path stops the old fact from being recalled?
+
+## Where does Northsun fit?
+
+Northsun is the memory and enrichment layer for AI agents.
+I'm building it around three of those six jobs: a gate-first write path where every write clears safety checks before it lands, bi-temporal decisions that carry both clocks and the evidence behind them, and a read path designed for sub-300ms voice recall.
+It's in private beta. The waitlist is on the [home page](/#waitlist).
+
+Nothing here is a measured latency, a customer, or a price.
+
+Choose Northsun as your agent memory layer.
+
+## FAQ
+
+### What is agent memory in AI?
+
+Agent memory is whatever lets an AI agent use what happened in earlier interactions when it acts in a later one. Short-term memory is the context window of the current session. Long-term memory is stored outside the model and brought back when it's relevant. An agent memory layer is the part of the system that manages long-term memory: what's kept, for whom, and when it's recalled.
+
+### Is an agent memory layer the same as RAG?
+
+No. Retrieval-augmented generation retrieves documents to ground an answer, usually from a corpus that isn't about the user. A memory layer also retrieves, but what it stores was learned about a principal over time, and it owns the write side, identity, time, and deletion. Many memory layers use RAG-style retrieval as one component.
+
+### What's the difference between short-term and long-term agent memory?
+
+Short-term memory lives in the prompt and disappears when the session ends. Long-term memory is persisted outside the model and survives restarts, new sessions, and model upgrades. The hard problems (what to keep, whose it is, when it stops being true) are all on the long-term side.
+
+### Should agent memory be keyed to a phone number or an email address?
+
+Key it to a principal: a user or account ID you would still trust after the person changes phones. A phone number or an email address is a channel. It can be shared (a household line, a front desk) or reassigned, and memory keyed to it will eventually be served to the wrong person.
+
+### How should an AI agent forget?
+
+Explicitly, in two ways. A correction should supersede the old fact: keep the history if you want an audit trail, but stop recalling the old value as current. A deletion request should remove the fact from recall entirely. "The model will probably ignore it" is not forgetting.
+
+### Do I need a vector database for agent memory?
+
+Not necessarily. A vector index helps when you have to search a large store by meaning. For many agents, the memory held per user is small enough that a structured lookup by principal and recency does the job. Decide the write, identity, and forgetting rules first, then pick storage.
+
+<NewsletterCTA />
