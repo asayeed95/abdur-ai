@@ -46,8 +46,12 @@ export type PostMeta = {
   ogImage?: string;
   patterns?: { id: string; name: string }[];
   receipts?: Array<{ path: string; sha?: string; lines?: string; note?: string }>;
+  /** `citation_preferred` frontmatter. Emitted on the post, feeds, and llms files. */
   citation?: string;
+  /** Published slugs named in `related:` frontmatter. Unresolved slugs are dropped. */
   related?: string[];
+  /** `series:` frontmatter, when the post belongs to one. */
+  series?: string;
 };
 
 const POSTS_DIR = path.join(process.cwd(), "content", "posts");
@@ -120,6 +124,18 @@ function toIso(v: unknown): string {
   return "";
 }
 
+function scalarString(v: unknown): string | undefined {
+  if (typeof v !== "string") return undefined;
+  const trimmed = v.trim();
+  return trimmed || undefined;
+}
+
+function slugList(v: unknown): string[] | undefined {
+  const raw = Array.isArray(v) ? v : v == null ? [] : [v];
+  const slugs = raw.filter((item): item is string => typeof item === "string" && item.trim() !== "");
+  return slugs.length ? slugs.map((slug) => slug.trim()) : undefined;
+}
+
 export function getAllPosts(): PostMeta[] {
   const files = listMdxFiles();
   const posts = files
@@ -153,8 +169,9 @@ export function getAllPosts(): PostMeta[] {
         ogImage: data.og?.image,
         patterns: data.patterns,
         receipts: data.receipts,
-        citation: data.citation_preferred,
-        related: data.related,
+        citation: scalarString(data.citation_preferred),
+        related: slugList(data.related),
+        series: scalarString(data.series),
       };
       return meta;
     })
@@ -182,6 +199,22 @@ export function getPostSource(slug: string): string | null {
  * Newer/older neighbours for the prev/next footer. `getAllPosts()` is sorted
  * newest-first, so the *next* index is the older post.
  */
+/** Related posts that are actually published. Unknown slugs are omitted. */
+export function resolveRelated(post: PostMeta, all: PostMeta[] = getAllPosts()): PostMeta[] {
+  if (!post.related?.length) return [];
+  const bySlug = new Map(all.map((item) => [item.slug, item]));
+  const seen = new Set<string>();
+  const resolved: PostMeta[] = [];
+  for (const slug of post.related) {
+    if (slug === post.slug || seen.has(slug)) continue;
+    const hit = bySlug.get(slug);
+    if (!hit) continue;
+    seen.add(slug);
+    resolved.push(hit);
+  }
+  return resolved;
+}
+
 export function getNeighbors(slug: string): { prev: PostMeta | null; next: PostMeta | null } {
   const all = getAllPosts();
   const i = all.findIndex((p) => p.slug === slug);

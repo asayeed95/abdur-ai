@@ -9,6 +9,14 @@ const nextConfig = {
   experimental: {
     mdxRs: false,
   },
+  async rewrites() {
+    return [
+      {
+        source: "/writing/:slug.md",
+        destination: "/writing/:slug/markdown",
+      },
+    ];
+  },
   async redirects() {
     // Legacy brand-era paths (Sentinel 2026-08-22: both 404'd). Neither route
     // ever existed in this repo; map them to the surfaces that own the intent
@@ -36,6 +44,18 @@ const nextConfig = {
       {
         source: "/llms.txt",
         headers: [{ key: "Content-Type", value: "text/plain; charset=utf-8" }],
+      },
+      {
+        source: "/llms-full.txt",
+        headers: [{ key: "Content-Type", value: "text/plain; charset=utf-8" }],
+      },
+      {
+        source: "/writing/feed.json",
+        headers: [{ key: "Content-Type", value: "application/feed+json; charset=utf-8" }],
+      },
+      {
+        source: "/writing/:slug.md",
+        headers: [{ key: "Content-Type", value: "text/markdown; charset=utf-8" }],
       },
       {
         source: "/writing/rss.xml",
