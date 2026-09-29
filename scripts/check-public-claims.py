@@ -39,6 +39,7 @@ PUBLIC_SOURCES = (
     "app/hire/page.tsx",
     "app/about/page.tsx",
     "app/llms.txt/route.ts",
+    "lib/llms-text.ts",
 )
 # northsun.ai DNS is not live yet (verified 2026-08-22), so product CTAs must
 # point at owned surfaces: the on-site waitlist form backed by the real
@@ -67,6 +68,7 @@ def check_static() -> list[str]:
         "lib/site.ts": claims_policy.IDENTITY,
         "components/MnemixSection.tsx": claims_policy.IDENTITY,
         "app/llms.txt/route.ts": claims_policy.IDENTITY,
+        "lib/llms-text.ts": claims_policy.IDENTITY,
         "app/hire/page.tsx": claims_policy.IDENTITY,
         "components/post/LeadMagnets.tsx": claims_policy.IDENTITY,
         "components/MnemixSection.tsx#cta": "NorthsunWaitlistForm",

@@ -35,7 +35,14 @@ export async function generateMetadata({
     // seoTitle is the SERP title only — h1, OG and Twitter keep the full
     // editorial title, which is often longer than Google will render.
     description: post.description,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      types: {
+        "text/markdown": `${url}.md`,
+        "application/rss+xml": `${SITE.url}/writing/rss.xml`,
+        "application/feed+json": `${SITE.url}/writing/feed.json`,
+      },
+    },
     openGraph: {
       ...share.openGraph,
       publishedTime: post.date,
