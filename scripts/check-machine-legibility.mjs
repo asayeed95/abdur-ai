@@ -61,6 +61,35 @@ assertIncludes("lib/legibility.ts", rss, "content_text: itemContent(post)");
 assertExcludes("lib/legibility.ts", rss, "content_html");
 
 assertIncludes("rewrite", read("next.config.mjs"), '/writing/:slug.md');
+assertIncludes("lib/legibility.ts", rss, "stripMdxComponents");
+assertIncludes("lib/legibility.ts", rss, "postBodyMarkdown(post)");
+if (rss.split("getPostSource(").length - 1 === 1) pass("lib/legibility.ts reads post source in one place");
+else fail("lib/legibility.ts reads post source outside postBodyMarkdown");
+// A headers() rule on the .md path would stamp text/markdown on the 404 too.
+assertExcludes("next.config.mjs headers", read("next.config.mjs"), 'value: "text/markdown');
+
+// Component tags that must never reach machine outputs. Fixed names from the
+// brief, plus every tag that sits alone on a line in a post body (MDX blocks).
+const COMPONENT_TAGS = new Set([
+  "NewsletterCTA",
+  "MnemixCTA",
+  "PatternsBlock",
+  "AsecWaitlistCTA",
+  "ReceiptsBlock",
+]);
+for (const dir of ["content/posts"]) {
+  for (const file of fs.readdirSync(path.join(ROOT, dir)).filter((f) => /\.mdx?$/.test(f))) {
+    for (const match of read(`${dir}/${file}`).matchAll(/^<([A-Z][A-Za-z0-9.]*)[^>\n]*\/?>\s*$/gm)) {
+      COMPONENT_TAGS.add(match[1]);
+    }
+  }
+}
+
+function assertNoComponentTags(label, text) {
+  const hits = [...COMPONENT_TAGS].filter((name) => new RegExp(`</?${name}(?![A-Za-z0-9])`).test(text));
+  if (hits.length) fail(`${label} contains component tags: ${hits.join(", ")}`);
+  else pass(`${label} has no MDX component tags (${COMPONENT_TAGS.size} names checked)`);
+}
 
 async function fetchText(urlPath) {
   const response = await fetch(`${BASE}${urlPath}`);
@@ -75,6 +104,8 @@ async function live() {
   assertIncludes("llms-full.txt", full.text, BODY_SENTENCE);
   assertIncludes("llms-full.txt", full.text, "citation_preferred");
   assertExcludes("llms-full.txt", full.text, "abdur-ai-launch-postmortem");
+  assertNoComponentTags("llms-full.txt", full.text);
+  assertExcludes("llms-full.txt", full.text, "\n\n\n");
 
   const index = await fetchText("/llms.txt");
   assertIncludes("llms.txt", index.text, "/llms-full.txt");
@@ -88,6 +119,20 @@ async function live() {
   assertIncludes("twin", twin.text, BODY_SENTENCE);
   assertIncludes("twin", twin.text, `url: https://abdur.ai/writing/${FLAGSHIP}`);
 
+  assertNoComponentTags("markdown twin", twin.text);
+  // Inline code that names a component is content, not a stray tag.
+  const codeTwin = await fetchText("/writing/the-analytics-call-that-couldnt-fail.md");
+  assertNoComponentTags("analytics twin", codeTwin.text);
+  assertIncludes("analytics twin", codeTwin.text, "`<Analytics />`");
+  for (const slug of ["what-is-an-agent-memory-layer", "the-analytics-call-that-couldnt-fail"]) {
+    assertNoComponentTags(`twin ${slug}`, (await fetchText(`/writing/${slug}.md`)).text);
+  }
+
+  const bogus = await fetchText("/writing/this-slug-does-not-exist.md");
+  if (bogus.status === 404) pass("unknown markdown slug 404");
+  else fail(`unknown markdown slug status ${bogus.status}`);
+  assertExcludes("unknown markdown slug type", bogus.type, "text/markdown");
+
   const draft = await fetchText("/writing/abdur-ai-launch-postmortem.md");
   if (draft.status === 404) pass("draft markdown twin 404");
   else fail(`draft markdown twin status ${draft.status}`);
@@ -95,6 +140,7 @@ async function live() {
   const rssXml = await fetchText("/writing/rss.xml");
   assertIncludes("rss type", rssXml.type, "rss");
   assertIncludes("rss body", rssXml.text, BODY_SENTENCE);
+  assertNoComponentTags("rss", rssXml.text);
   assertIncludes("rss series", rssXml.text, SERIES_NAME);
   const flagshipItem = rssXml.text
     .split("<item>")
@@ -113,6 +159,7 @@ async function live() {
 
   const legacy = await fetchText("/aitldr/rss.xml");
   assertIncludes("legacy rss body", legacy.text, BODY_SENTENCE);
+  assertNoComponentTags("legacy rss", legacy.text);
 
   const feed = await fetchText("/writing/feed.json");
   if (!feed.type.includes("feed+json") && !feed.type.includes("json")) {
@@ -125,6 +172,7 @@ async function live() {
     fail(`json feed parse ${error}`);
     return;
   }
+  assertNoComponentTags("json feed", feed.text);
   if (parsed.version !== "https://jsonfeed.org/version/1.1") fail(`json feed version ${parsed.version}`);
   else pass("json feed 1.1");
   const item = parsed.items?.find((entry) => entry.id?.endsWith(SERIES_POST));
@@ -147,7 +195,7 @@ async function live() {
   assertIncludes("post html series", page.text, SERIES_NAME);
   assertIncludes("post html citation", page.text, CITATION);
   assertIncludes("post html related", page.text, `/writing/${FLAGSHIP}`);
-  assertIncludes("post html json-ld citation", page.text, "Preferred citation");
+  assertIncludes("post html preferred-citation block", page.text, "Preferred citation");
 }
 
 if (BASE) {

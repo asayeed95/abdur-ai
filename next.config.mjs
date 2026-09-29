@@ -53,10 +53,9 @@ const nextConfig = {
         source: "/writing/feed.json",
         headers: [{ key: "Content-Type", value: "application/feed+json; charset=utf-8" }],
       },
-      {
-        source: "/writing/:slug.md",
-        headers: [{ key: "Content-Type", value: "text/markdown; charset=utf-8" }],
-      },
+      // No header rule for /writing/:slug.md on purpose: a headers() rule matches
+      // by path, so it would also stamp text/markdown on the 404 for an unknown
+      // slug. The markdown route sets Content-Type on real twins itself.
       {
         source: "/writing/rss.xml",
         headers: [{ key: "Content-Type", value: "application/rss+xml" }],

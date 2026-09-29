@@ -195,10 +195,6 @@ export function getPostSource(slug: string): string | null {
   return null;
 }
 
-/**
- * Newer/older neighbours for the prev/next footer. `getAllPosts()` is sorted
- * newest-first, so the *next* index is the older post.
- */
 /** Related posts that are actually published. Unknown slugs are omitted. */
 export function resolveRelated(post: PostMeta, all: PostMeta[] = getAllPosts()): PostMeta[] {
   if (!post.related?.length) return [];
@@ -215,6 +211,10 @@ export function resolveRelated(post: PostMeta, all: PostMeta[] = getAllPosts()):
   return resolved;
 }
 
+/**
+ * Newer/older neighbours for the prev/next footer. `getAllPosts()` is sorted
+ * newest-first, so the *next* index is the older post.
+ */
 export function getNeighbors(slug: string): { prev: PostMeta | null; next: PostMeta | null } {
   const all = getAllPosts();
   const i = all.findIndex((p) => p.slug === slug);

@@ -21,6 +21,70 @@ export function markdownTwinUrl(slug: string): string {
   return `${SITE.url}${markdownTwinPath(slug)}`;
 }
 
+const FENCE_OPEN = /^\s*(`{3,}|~{3,})/;
+// Capitalised JSX/MDX tags: self-closing, opening, or closing. Attribute values
+// may contain ">" inside quotes. Lower-case HTML and generics like Array<T> are untouched.
+const JSX_TAG = /<\/?[A-Z][A-Za-z0-9.]*(?:\s(?:[^>"']|"[^"]*"|'[^']*')*)?\/?>/g;
+const INLINE_CODE = /`[^`\n]*`/g;
+
+/** Strip MDX/JSX component tags from prose. Code spans are left alone. */
+function stripJsxFromProse(text: string): string {
+  const spans: string[] = [];
+  const masked = text.replace(INLINE_CODE, (span) => {
+    spans.push(span);
+    return `\u0000${spans.length - 1}\u0000`;
+  });
+  return masked
+    .replace(JSX_TAG, "")
+    .replace(/[ \t]+$/gm, "")
+    .replace(/\u0000(\d+)\u0000/g, (_m, i) => spans[Number(i)]);
+}
+
+/**
+ * MDX source to plain markdown for machine outputs (llms-full.txt, markdown
+ * twins, full-text RSS, JSON Feed). Component tags such as <NewsletterCTA />
+ * render as UI on the page and mean nothing as text, so they are removed.
+ * Fenced code blocks and inline code spans are preserved verbatim, and the
+ * blank-line runs left behind are collapsed to one blank line.
+ */
+export function stripMdxComponents(source: string): string {
+  const out: string[] = [];
+  let prose: string[] = [];
+  let fence: { char: string; length: number } | null = null;
+
+  const flushProse = () => {
+    if (!prose.length) return;
+    const cleaned = stripJsxFromProse(prose.join("\n")).replace(/\n{3,}/g, "\n\n");
+    out.push(cleaned);
+    prose = [];
+  };
+
+  for (const line of source.split("\n")) {
+    const match = FENCE_OPEN.exec(line);
+    if (fence) {
+      out.push(line);
+      const close = /^\s*(`{3,}|~{3,})\s*$/.exec(line);
+      if (close && close[1][0] === fence.char && close[1].length >= fence.length) fence = null;
+    } else if (match) {
+      flushProse();
+      out.push(line);
+      fence = { char: match[1][0], length: match[1].length };
+    } else {
+      prose.push(line);
+    }
+  }
+  flushProse();
+
+  return out
+    .join("\n")
+    .trim();
+}
+
+/** Published post body as plain markdown, ready for any machine output. */
+export function postBodyMarkdown(post: PostMeta): string {
+  return stripMdxComponents(getPostSource(post.slug) ?? "");
+}
+
 function yamlString(value: string): string {
   return JSON.stringify(value);
 }
@@ -48,7 +112,7 @@ export function machineRecord(post: PostMeta): string {
 
 /** Published markdown twin: frontmatter the page emits, then the post body. */
 export function fullPostMarkdown(post: PostMeta): string {
-  const body = (getPostSource(post.slug) ?? "").trim();
+  const body = postBodyMarkdown(post);
   const related = resolveRelated(post);
   const lines = [
     "---",
@@ -68,7 +132,7 @@ export function fullPostMarkdown(post: PostMeta): string {
 }
 
 function itemContent(post: PostMeta): string {
-  const body = (getPostSource(post.slug) ?? "").trim();
+  const body = postBodyMarkdown(post);
   return `${body}\n\n---\n${machineRecord(post)}\n`;
 }
 
