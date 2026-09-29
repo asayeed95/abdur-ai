@@ -273,3 +273,7 @@ every article's h1 and body prose are untouched.
   content-publish-override: content/posts/what-is-an-agent-memory-layer.mdx
   reason: publish the 2026-09-29 Agent Systems explainer (argued; no receipts owed, status_note names what is not claimed). AEO definition post for "agent memory layer". Northsun mentions use only the verbatim identity line, the allowed latency string and the verbatim closer. No price, benchmark, customer or integration claim. External source (Martin Fowler, "Bitemporal History") re-read 2026-09-29.
   approved-by: Abdur / Slack C0BT932R70U ts 1790605195.447939, reply in the daily-post thread 1790605131.863759 (":white_check_mark: Claude you are always good to publish. Go go go keep shipping it.") / 2026-09-28; thread re-read first-hand 2026-09-29
+- task-id: AGE-2596
+  copy-override: components/NowPanel.tsx and its mount in app/page.tsx (homepage section "/// NOW · live — Agents at work." with the "updated weekly · pushed by my agents" line and four hand-written agent rows) removed; getNowState() removed from lib/supabase.ts.
+  reason: a hand-written seed list was presented as "live" with status pills (now_state had 0 rows in production), the pills were low-contrast, and the rows named models without linking to any proof. Removed rather than rebuilt: the homepage already shows real published posts in the Latest section, and no build-time source for merged-PR data exists in this repo.
+  approved-by: Abdur / Slack C0BTVUX1YH5 ts 1790696740.824649 (relayed by the coordinator; ask dated 2026-09-29 15:45Z)

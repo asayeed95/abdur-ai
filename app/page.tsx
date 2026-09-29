@@ -1,6 +1,5 @@
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
-import { NowPanel } from "@/components/NowPanel";
 import { LatestFeed } from "@/components/LatestFeed";
 import { ShipLog } from "@/components/ShipLog";
 import { ToolsGrid } from "@/components/ToolsGrid";
@@ -17,7 +16,6 @@ export default function HomePage() {
       <Nav />
       <main>
         <Hero />
-        <NowPanel />
         <LatestFeed />
         <ShipLog />
         <ToolsGrid />
