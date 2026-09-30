@@ -29,6 +29,8 @@ jobs:
         run: python3 scripts/check-public-claims.py
       - name: Brand regression check (Northsun / Mnemix dual-brand law)
         run: python3 scripts/check-brand.py
+      - name: AEO answer-page tests (AGE-1385)
+        run: python3 content/aeo/tests/test_aeo_pages.py -v
       - name: Check OG share cards
         run: npm run check:og
       - run: npm run build

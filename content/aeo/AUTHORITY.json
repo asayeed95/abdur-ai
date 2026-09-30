@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "updated": "2026-08-28",
+  "issue": "AGE-1385",
+  "purpose": "AEO answer pages quote content/brand/brand-map.json first. Voice bundle hashes are recorded when content/voice/VERSION.json is on the tree (AGE-1216 / PR #33); on origin/main that file is absent.",
+  "brand_map": {
+    "path": "content/brand/brand-map.json",
+    "git_blob_sha1": "4e8dbd5643bed2af47995add45032298dbac135a",
+    "sha256": "0ce3729c0830170bae3a010f44ccf061696a2c0ee3020972a77f2371a0e89b7f"
+  },
+  "voice": {
+    "path": "content/voice/VERSION.json",
+    "status": "absent-on-main",
+    "note": "When AGE-1216 merges, set status to present and copy bundle_sha256 from VERSION.json. Public pages still must not dump the voice corpus."
+  },
+  "pages": [
+    "/what-is-northsun",
+    "/what-is-mnemix",
+    "/who-is-abdur"
+  ]
+}

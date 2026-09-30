@@ -12,6 +12,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE.url}/about`, lastModified: now, priority: 0.7, changeFrequency: "monthly" as const },
     { url: `${SITE.url}/now`, lastModified: now, priority: 0.6, changeFrequency: "weekly" as const },
     { url: `${SITE.url}/hire`, lastModified: now, priority: 0.8, changeFrequency: "monthly" as const },
+    { url: `${SITE.url}/what-is-northsun`, lastModified: now, priority: 0.8, changeFrequency: "monthly" as const },
+    { url: `${SITE.url}/what-is-mnemix`, lastModified: now, priority: 0.8, changeFrequency: "monthly" as const }, // Memory Lab
+    { url: `${SITE.url}/who-is-abdur`, lastModified: now, priority: 0.7, changeFrequency: "monthly" as const },
   ];
 
   const postPages = posts.map((p) => ({
