@@ -12,7 +12,9 @@
 #   2. [NEVER-SKIP] Nobody publishes content (content/posts/*.mdx outside
 #      _drafts/) without an explicit, on-record override in the same file —
 #      see content/posts/_drafts/CONTENT-ROUTING-RULE.md for why.
-#   3. The site actually builds, lints, and typechecks clean.
+#   3. The site actually builds, lints, and typechecks clean (built in a
+#      .next/cache/gate mirror when rsync is available, so a running
+#      `next dev` is not clobbered).
 #
 # Usage:
 #   ./scripts/check-phase.sh              # soft: report, exit 0
@@ -121,6 +123,14 @@ fi
 
 # ---------- Typecheck ----------
 echo "==> Typecheck"
+# Regenerate .next/types (routes.d.ts, validator.ts) so `tsc` checks the same
+# generated route types with or without a dev server, and a validator left
+# stale by a deleted route cannot keep the gate red. `next typegen` writes only
+# `.next/types/{routes.d.ts,validator.ts}` under `.next` — no BUILD_ID, no
+# manifests — so it is safe under a running dev.
+if ! "$ROOT/node_modules/.bin/next" typegen >"$TMPD/typegen.out" 2>&1; then
+  warn "next typegen failed — see $TMPD/typegen.out (typecheck runs without regenerated route types)"
+fi
 if npm run typecheck >$TMPD/typecheck.out 2>&1; then
   pass "npm run typecheck"
 else
@@ -138,12 +148,58 @@ else
 fi
 
 # ---------- Build ----------
+# Why a mirror: `next dev` and `next build` share `.next` (Next 15.5 has no
+# dev/build distDir split). An in-place build writes BUILD_ID and production
+# manifests under a running dev server, which then serves SSR HTML whose
+# /_next/static assets 404, and the overlay shows
+# `__webpack_modules__[moduleId] is not a function`. A separate distDir was
+# rejected: every build rewrites tsconfig.json `include` and next-env.d.ts to
+# point at `${distDir}/types`, and the generated routes.d.ts declares global
+# types, so two copies fail the build's own type check. Instead the build runs
+# in a disposable copy of the tree, so nothing the dev server serves (BUILD_ID,
+# manifests, static chunks) is written to `.next`; the gate only adds
+# `.next/cache/gate` and `.next/types` (plus `next lint`'s `.next/cache/eslint`). The mirror sits under `.next/cache/`
+# because dev startup and in-place builds wipe `.next` except `cache/`.
 echo "==> Build"
-if npm run build >$TMPD/build.out 2>&1; then
-  pass "npm run build"
+MIRROR="$ROOT/.next/cache/gate"
+if command -v rsync >/dev/null 2>&1; then
+  # Excludes: the unanchored .git/node_modules/.next skip any nested checkout's
+  # deps and build output; /.claude is agent config, never a build input;
+  # /package-lock.json is left out so the mirror does not add a second
+  # lockfile — Next walks up and picks the top-most one
+  # (next/dist/lib/find-root.js), so the inferred root is the same as an
+  # in-place build's ($ROOT in a normal checkout) and a copy would only add a
+  # "multiple lockfiles" warning. rsync never --deletes excluded destination
+  # paths, which keeps the mirror's .next/cache between runs. node_modules is
+  # rm'd and re-linked (not `ln -sfn`) because -sfn onto a real directory
+  # silently creates node_modules/node_modules instead.
+  if [ ! -f "$ROOT/package.json" ]; then
+    fail "cannot locate repo root ($ROOT) — refusing to mirror-build"
+  else
+    if { mkdir -p "$MIRROR" &&
+         rsync -a --delete --exclude=.git --exclude=node_modules --exclude=.next \
+           --exclude=/.claude --exclude=/package-lock.json "$ROOT/" "$MIRROR/" &&
+         rm -rf "$MIRROR/node_modules" &&
+         ln -s "$ROOT/node_modules" "$MIRROR/node_modules"; } >"$TMPD/rsync.out" 2>&1; then
+      if (cd "$MIRROR" && npm run build) >"$TMPD/build.out" 2>&1; then
+        pass "npm run build (in .next/cache/gate mirror — no BUILD_ID/manifests/chunks written to .next)"
+      else
+        fail "npm run build FAILED — see $TMPD/build.out"
+        tail -30 "$TMPD/build.out" | sed 's/^/      /'
+      fi
+    else
+      fail "mirror sync into .next/cache/gate FAILED — see $TMPD/rsync.out"
+      tail -20 "$TMPD/rsync.out" | sed 's/^/      /'
+    fi
+  fi
 else
-  fail "npm run build FAILED — see $TMPD/build.out"
-  tail -30 $TMPD/build.out | sed 's/^/      /'
+  warn "rsync not found — building IN PLACE; this breaks a running \`next dev\` (recover: stop next dev, rm -rf .next, npm run dev)"
+  if npm run build >$TMPD/build.out 2>&1; then
+    pass "npm run build"
+  else
+    fail "npm run build FAILED — see $TMPD/build.out"
+    tail -30 $TMPD/build.out | sed 's/^/      /'
+  fi
 fi
 
 # ---------- RETRO hygiene (nudge only, not a gate) ----------
