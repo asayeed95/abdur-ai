@@ -1,5 +1,11 @@
 # Overrides — design/content lock exceptions
 
+design-token-override: 2026-09-22 — H-4 on-page résumé wording.
+Abdur asked in the live session to update `/hire#sheet` using the
+September 21, 2026 ATS résumé while keeping the design consistent. This
+authorizes copy changes in
+`components/hire/ResumeSheet.tsx`; the paper layout and design tokens remain.
+
 Every edit to `tailwind.config.ts` / `app/globals.css` or rewrite of existing
 copy needs an entry here before it ships.
 
