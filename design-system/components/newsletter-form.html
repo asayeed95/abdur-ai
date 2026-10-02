@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NewsletterForm — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/type.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../components/components.css">
+<link rel="stylesheet" href="../assets/preview.css">
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head">
+    <div><nav class="ds-crumbs" aria-label="Design system"><a href="../index.html">Index</a><a href="../foundations.html">Foundations</a><a href="../tests/contrast.test.html">Contrast test</a></nav><h1>NewsletterForm</h1><p>Email capture with the four states the code renders: idle, submitting, success, error.</p><p class="ds-src">Source: components/Subscribe.tsx</p></div>
+  </div>
+  <div class="ds-panels">
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div class="ds-stack">
+      <span class="ds-state">idle</span><form class="form-row" onsubmit="return false">
+    <input class="input" type="email" placeholder="you@domain.com" aria-label="Email">
+    <button class="btn btn-primary" type="submit">Subscribe</button>
+  </form>
+      <span class="ds-state">focus</span><form class="form-row" onsubmit="return false">
+    <input class="input is-focus" type="email" placeholder="you@domain.com" aria-label="Email">
+    <button class="btn btn-primary" type="submit">Subscribe</button>
+  </form>
+      <span class="ds-state">submitting</span><form class="form-row" onsubmit="return false">
+    <input class="input" type="email" placeholder="you@domain.com" aria-label="Email" disabled>
+    <button class="btn btn-primary" type="submit" disabled>Sending…</button>
+  </form>
+      <span class="ds-state">success</span><form class="form-row" onsubmit="return false">
+    <input class="input" type="email" placeholder="you@domain.com" aria-label="Email">
+    <button class="btn btn-primary" type="submit" disabled>Subscribed</button>
+  </form><p class="form-msg" data-status="ok">You're on the list. Next lesson hits email when it ships.</p>
+      <span class="ds-state">error</span><form class="form-row" onsubmit="return false">
+    <input class="input" type="email" placeholder="you@domain.com" aria-label="Email" value="you@domain">
+    <button class="btn btn-primary" type="submit">Subscribe</button>
+  </form><p class="form-msg" data-status="err">That doesn't look like an email.</p>
+    </div></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div class="ds-stack">
+      <span class="ds-state">idle</span><form class="form-row" onsubmit="return false">
+    <input class="input" type="email" placeholder="you@domain.com" aria-label="Email">
+    <button class="btn btn-primary" type="submit">Subscribe</button>
+  </form>
+      <span class="ds-state">focus</span><form class="form-row" onsubmit="return false">
+    <input class="input is-focus" type="email" placeholder="you@domain.com" aria-label="Email">
+    <button class="btn btn-primary" type="submit">Subscribe</button>
+  </form>
+      <span class="ds-state">submitting</span><form class="form-row" onsubmit="return false">
+    <input class="input" type="email" placeholder="you@domain.com" aria-label="Email" disabled>
+    <button class="btn btn-primary" type="submit" disabled>Sending…</button>
+  </form>
+      <span class="ds-state">success</span><form class="form-row" onsubmit="return false">
+    <input class="input" type="email" placeholder="you@domain.com" aria-label="Email">
+    <button class="btn btn-primary" type="submit" disabled>Subscribed</button>
+  </form><p class="form-msg" data-status="ok">You're on the list. Next lesson hits email when it ships.</p>
+      <span class="ds-state">error</span><form class="form-row" onsubmit="return false">
+    <input class="input" type="email" placeholder="you@domain.com" aria-label="Email" value="you@domain">
+    <button class="btn btn-primary" type="submit">Subscribe</button>
+  </form><p class="form-msg" data-status="err">That doesn't look like an email.</p>
+    </div></section>
+  </div>
+  <ul class="ds-guide"><li>Input (<code>.input</code>): <code>surface</code> fill, <code>border</code>, mono <code>sm</code>, placeholder in <code>muted-3</code>. Focus swaps the border to <code>clay</code> (the code removes the outline here).</li><li>Button: primary. <strong>Submitting</strong>: input and button disabled, label <code>Sending…</code>. <strong>Success</strong>: button disabled <code>Subscribed</code>, message in <code>good</code>. <strong>Error</strong>: message in <code>clay</code>. No red exists.</li><li>Messages are the code's own strings. Keep them, and add no promises about cadence or volume.</li><li>The consumer supplies the action (<code>/api/subscribe</code>), the honeypot field and the render timestamp, as <code>Subscribe.tsx</code> does.</li></ul>
+</div>
+</body>
+</html>

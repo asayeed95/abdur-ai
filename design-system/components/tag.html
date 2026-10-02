@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tag — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/type.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../components/components.css">
+<link rel="stylesheet" href="../assets/preview.css">
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head">
+    <div><nav class="ds-crumbs" aria-label="Design system"><a href="../index.html">Index</a><a href="../foundations.html">Foundations</a><a href="../tests/contrast.test.html">Contrast test</a></nav><h1>Tag</h1><p>Topic tags, the three register badges, and the flagship chip.</p><p class="ds-src">Source: app/writing/page.tsx, components/post/RegisterNote.tsx</p></div>
+  </div>
+  <div class="ds-panels">
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div class="ds-stack">
+      <div class="ds-line"><span class="ds-state">#tag</span><span class="tag">#agents</span><span class="tag">#verification</span><span class="tag">#postmortem</span></div>
+      <div class="ds-line"><span class="ds-state">register</span><span class="badge badge-reported">Reported</span><span class="badge">Designed</span><span class="badge">Argued</span></div>
+      <div class="ds-line"><span class="ds-state">chip</span><span class="chip-flagship">FLAGSHIP</span><span class="chip-flagship">FLAGSHIP · PINNED</span></div>
+    </div></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div class="ds-stack">
+      <div class="ds-line"><span class="ds-state">#tag</span><span class="tag">#agents</span><span class="tag">#verification</span><span class="tag">#postmortem</span></div>
+      <div class="ds-line"><span class="ds-state">register</span><span class="badge badge-reported">Reported</span><span class="badge">Designed</span><span class="badge">Argued</span></div>
+      <div class="ds-line"><span class="ds-state">chip</span><span class="chip-flagship">FLAGSHIP</span><span class="chip-flagship">FLAGSHIP · PINNED</span></div>
+    </div></section>
+  </div>
+  <ul class="ds-guide"><li><strong>#tag</strong> (<code>.tag</code>): mono 10px, wider tracking, <code>muted-2</code>, no box. Lowercase slug after <code>#</code>.</li><li><strong>Register badge</strong> (<code>.badge</code>): every post declares one. <code>reported</code> is <code>clay</code> on a <code>clay</code> 40% border (it owes receipts); <code>designed</code> and <code>argued</code> are <code>muted-2</code> on <code>border</code>.</li><li><strong>Flagship chip</strong> (<code>.chip-flagship</code>): <code>bg</code> on <code>clay</code>. One per index.</li><li>Tags are not interactive in the app; don't give them hover states.</li></ul>
+</div>
+</body>
+</html>

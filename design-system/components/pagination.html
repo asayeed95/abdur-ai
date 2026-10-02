@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pagination — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/type.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../components/components.css">
+<link rel="stylesheet" href="../assets/preview.css">
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head">
+    <div><nav class="ds-crumbs" aria-label="Design system"><a href="../index.html">Index</a><a href="../foundations.html">Foundations</a><a href="../tests/contrast.test.html">Contrast test</a></nav><h1>Pagination</h1><p>Previous and next post cards at the foot of an article. The site has no numbered pagination.</p><p class="ds-src">Source: components/post/PostArticle.tsx</p></div>
+  </div>
+  <div class="ds-panels">
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div class="ds-stack">
+      <span class="ds-state">both · next hovered</span>
+      <nav class="pager" aria-label="Previous and next post">
+        <a href="#" class="pager-link"><p class="pager-dir">← Previous</p><p class="pager-title">12 of my 15 meta descriptions were too long for search</p></a>
+        <a href="#" class="pager-link next is-hover"><p class="pager-dir">Next →</p><p class="pager-title">What is an agent memory layer?</p></a>
+      </nav>
+      <span class="ds-state">first post · focus</span>
+      <nav class="pager" aria-label="Previous and next post"><div></div>
+        <a href="#" class="pager-link next is-focus"><p class="pager-dir">Next →</p><p class="pager-title">Your pager is not your customer</p></a>
+      </nav>
+    </div></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div class="ds-stack">
+      <span class="ds-state">both · next hovered</span>
+      <nav class="pager" aria-label="Previous and next post">
+        <a href="#" class="pager-link"><p class="pager-dir">← Previous</p><p class="pager-title">12 of my 15 meta descriptions were too long for search</p></a>
+        <a href="#" class="pager-link next is-hover"><p class="pager-dir">Next →</p><p class="pager-title">What is an agent memory layer?</p></a>
+      </nav>
+      <span class="ds-state">first post · focus</span>
+      <nav class="pager" aria-label="Previous and next post"><div></div>
+        <a href="#" class="pager-link next is-focus"><p class="pager-dir">Next →</p><p class="pager-title">Your pager is not your customer</p></a>
+      </nav>
+    </div></section>
+  </div>
+  <ul class="ds-guide"><li><code>.pager</code>: two equal columns under a <code>border</code> rule, prose width. Each <code>.pager-link</code> is a <code>surface</code> card. The direction label is mono 10px <code>muted-3</code>, the title is Playfair <code>lg</code>.</li><li>Hover: border and title turn <code>clay</code>. Next aligns right.</li><li>A missing side renders an empty cell, so the first post shows only Next. There's no disabled card.</li><li>Index pages list every post. Numbered pagination doesn't exist, and this system adds none.</li></ul>
+</div>
+</body>
+</html>

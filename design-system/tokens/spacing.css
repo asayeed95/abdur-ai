@@ -1,0 +1,51 @@
+/* ============================================================
+   abdur.ai Design System 1.0 — spacing, radius, shadow, layout
+   Spacing and radius are the Tailwind 3.4 defaults the code uses.
+   Shadows are copied verbatim from the two components that cast one.
+   ============================================================ */
+
+:root {
+  /* Spacing — 4/8/12/16/24/32/48/64 (Tailwind 1·2·3·4·6·8·12·16) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radius — counts are uses in app/ + components/ */
+  --radius-sm: 2px;      /* rounded-sm (45) — buttons, inputs, pills */
+  --radius: 4px;         /* rounded (5) — inline code */
+  --radius-md: 6px;      /* rounded-md (19) */
+  --radius-lg: 8px;      /* rounded-lg (12) — cards, code blocks, callouts */
+  --radius-full: 9999px; /* rounded-full (25) — dots, theme toggle */
+
+  /* Shadow — no theme variants exist in code */
+  --shadow-pop: 0 24px 48px -20px rgba(0, 0, 0, 0.55);          /* HireActions menu */
+  --shadow-card-hover: 0 18px 40px -20px rgba(217, 119, 87, 0.5); /* ToolsGrid card hover; dark clay, both themes */
+
+  /* Layout */
+  --content-max: 1280px;   /* max-w-content */
+  --prose-max: 65ch;       /* max-w-prose */
+  --nav-height: 56px;      /* h-14 */
+  --gutter: 24px;          /* px-6 */
+  --gutter-md: 40px;       /* md:px-10 */
+  --rule-accent-w: 60px;   /* the clay rule under h1s */
+  --rule-accent-h: 2px;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+}
+
+/* AITLDR-LAYOUT-001 — copied with the code's scoping, defect included:
+   in app/globals.css these sit inside :root[data-theme="dark"], so they
+   do not exist in the light theme. tests/contrast.test.html reports it.
+   UNLOCKED per the code comment; no component consumes them today. */
+:root[data-theme="dark"] {
+  --aitldr-measure: min(100%, 92vw, 54rem);
+  --aitldr-title-to-date: 2.5rem;
+  --aitldr-date-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  --aitldr-date-tracking: 0.025em;
+  --aitldr-figure-max: 28rem;
+}

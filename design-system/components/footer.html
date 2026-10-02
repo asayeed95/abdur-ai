@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Footer — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/type.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../components/components.css">
+<link rel="stylesheet" href="../assets/preview.css">
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head">
+    <div><nav class="ds-crumbs" aria-label="Design system"><a href="../index.html">Index</a><a href="../foundations.html">Foundations</a><a href="../tests/contrast.test.html">Contrast test</a></nav><h1>Footer</h1><p>Three-column footer with site links, contacts, and the legal strip.</p><p class="ds-src">Source: components/Footer.tsx</p></div>
+  </div>
+  <div class="ds-panels">
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><footer class="footer">
+  <div class="footer-main">
+    <div>
+      <a href="#" class="brand"><span class="dot" aria-hidden="true"></span>abdur.ai</a>
+      <p class="footer-tagline">Made in NJ. Shipped at 2am.</p>
+    </div>
+    <div class="footer-cols">
+      <ul class="footer-list"><li><a href="#">Writing</a></li><li><a href="#">Tools</a></li><li><a href="#">Northsun</a></li></ul>
+      <ul class="footer-list"><li><a href="#">About</a></li><li><a href="#">Now</a></li><li><a href="#" class="is-hover">Hire</a></li></ul>
+    </div>
+    <div class="footer-find">
+      <p class="footer-label">Find me</p>
+      <ul class="footer-list"><li><a href="#">hello@abdur.ai</a></li><li><a href="#">LinkedIn</a></li><li><a href="#">GitHub</a></li></ul>
+    </div>
+  </div>
+  <div class="footer-legal">
+    <div class="footer-legal-inner">
+      <p>© 2026 Abdur Rahman Sayeed · <a href="#">An ASEC property — coming</a></p>
+      <p><a href="#">RSS</a><a href="#">llms.txt</a><a href="#">Sitemap</a></p>
+    </div>
+  </div>
+</footer></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><footer class="footer">
+  <div class="footer-main">
+    <div>
+      <a href="#" class="brand"><span class="dot" aria-hidden="true"></span>abdur.ai</a>
+      <p class="footer-tagline">Made in NJ. Shipped at 2am.</p>
+    </div>
+    <div class="footer-cols">
+      <ul class="footer-list"><li><a href="#">Writing</a></li><li><a href="#">Tools</a></li><li><a href="#">Northsun</a></li></ul>
+      <ul class="footer-list"><li><a href="#">About</a></li><li><a href="#">Now</a></li><li><a href="#" class="is-hover">Hire</a></li></ul>
+    </div>
+    <div class="footer-find">
+      <p class="footer-label">Find me</p>
+      <ul class="footer-list"><li><a href="#">hello@abdur.ai</a></li><li><a href="#">LinkedIn</a></li><li><a href="#">GitHub</a></li></ul>
+    </div>
+  </div>
+  <div class="footer-legal">
+    <div class="footer-legal-inner">
+      <p>© 2026 Abdur Rahman Sayeed · <a href="#">An ASEC property — coming</a></p>
+      <p><a href="#">RSS</a><a href="#">llms.txt</a><a href="#">Sitemap</a></p>
+    </div>
+  </div>
+</footer></section>
+  </div>
+  <ul class="ds-guide"><li><code>bg</code> with a top <code>border</code>. Columns: brand + tagline (<code>muted</code>), two mono link lists (<code>muted</code> → <code>text</code>), Find me (label <code>muted-3</code>, links → <code>clay</code>).</li><li>Legal strip: mono 10px <code>muted-3</code>. The copyright line, the ASEC parent link, then RSS · llms.txt · Sitemap.</li><li>Copy is fixed in code. The ASEC link says 'coming' because it is.</li></ul>
+</div>
+</body>
+</html>

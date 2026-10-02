@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foundations — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens/colors.css">
+<link rel="stylesheet" href="tokens/type.css">
+<link rel="stylesheet" href="tokens/spacing.css">
+<link rel="stylesheet" href="tokens/motion.css">
+<link rel="stylesheet" href="components/components.css">
+<link rel="stylesheet" href="assets/preview.css">
+<style>
+  .f-section { margin-top: var(--space-16); }
+  .f-section > h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--text-4xl); line-height: var(--leading-4xl); letter-spacing: var(--tracking-tight); margin: var(--space-3) 0 var(--space-6); }
+  .f-note { color: rgb(var(--c-muted)); max-width: 75ch; line-height: var(--leading-relaxed); margin: 0 0 var(--space-6); }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-3); }
+  .swatch { border: 1px solid rgb(var(--c-border)); border-radius: var(--radius-lg); overflow: hidden; background: rgb(var(--c-surface)); }
+  .swatch-chip { height: 64px; border-bottom: 1px solid rgb(var(--c-border)); }
+  .swatch-meta { padding: var(--space-2) var(--space-3); font-family: var(--font-mono); font-size: var(--text-10); line-height: 15px; color: rgb(var(--c-muted)); }
+  .swatch-meta b { display: block; color: rgb(var(--c-text)); font-weight: 500; font-size: var(--text-xs); }
+  table.cm { border-collapse: collapse; font-family: var(--font-mono); font-size: var(--text-xs); width: 100%; }
+  table.cm th, table.cm td { padding: var(--space-2) var(--space-3); border-bottom: 1px solid rgb(var(--c-border)); text-align: left; white-space: nowrap; }
+  table.cm th { font-size: var(--text-10); letter-spacing: var(--tracking-widest); text-transform: uppercase; color: rgb(var(--c-muted)); font-weight: 400; }
+  .cell-sample { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-sm); margin-right: var(--space-2); }
+  .v-pass { color: rgb(var(--c-text)); }
+  .v-fail { color: rgb(var(--c-clay)); font-weight: 600; }
+  .type-row { display: grid; grid-template-columns: 180px 1fr; gap: var(--space-6); align-items: baseline; padding: var(--space-4) 0; border-bottom: 1px solid rgb(var(--c-border)); }
+  .type-row .ds-state { line-height: 1.6; }
+  .space-row { display: flex; align-items: center; gap: var(--space-4); padding: 6px 0; }
+  .space-bar { height: 12px; background: rgb(var(--c-clay)); border-radius: 1px; }
+  .radius-box, .shadow-box { width: 120px; height: 80px; background: rgb(var(--c-surface)); border: 1px solid rgb(var(--c-border)); }
+  .grid-demo { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: flex-end; }
+  .motion-stage { height: 80px; display: flex; align-items: center; gap: var(--space-8); }
+</style>
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head"><div>
+    <nav class="ds-crumbs" aria-label="Design system"><a href="index.html">Index</a><a href="foundations.html">Foundations</a><a href="tests/contrast.test.html">Contrast test</a></nav>
+    <h1>Foundations</h1>
+    <p>Every value on this page is read live from <code class="code-inline">tokens/*.css</code>. Nothing here is typed by hand. Ratios use the same engine as the contrast test.</p>
+  </div></div>
+
+  <section class="f-section">
+    <p class="eyebrow">/// Colour</p><h2>Palette, both themes</h2>
+    <p class="f-note">Channel triples (<code class="code-inline">--c-clay: 217 119 87</code>) consumed as <code class="code-inline">rgb(var(--c-clay) / &lt;alpha&gt;)</code>. <code class="code-inline">good</code>, <code class="code-inline">good-2</code> and <code class="code-inline">good-3</code> are theme-independent.</p>
+    <div class="ds-panels">
+      <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div class="swatches" data-swatches="dark"></div></section>
+      <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div class="swatches" data-swatches="light"></div></section>
+    </div>
+  </section>
+
+  <section class="f-section">
+    <p class="eyebrow">/// Contrast</p><h2>Every text token on every surface</h2>
+    <p class="f-note">Text needs 4.5:1. All of these tokens appear at 10–12px somewhere in the app, so large-text relief (3:1) is shown but doesn't count as a pass. Failing cells are in bold clay. The full list with proposed fixes is in the <a class="link" href="tests/contrast.test.html">contrast test</a>.</p>
+    <div class="ds-panels">
+      <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark</span><div data-matrix="dark"></div></section>
+      <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div data-matrix="light"></div></section>
+    </div>
+  </section>
+
+  <section class="f-section">
+    <p class="eyebrow">/// Type</p><h2>Type scale</h2>
+    <p class="f-note">Playfair Display for headings only. Inter for body (<code class="code-inline">ss01 cv11 tnum</code>). JetBrains Mono for labels, controls and code.</p>
+    <div class="ds-panels stacked"><section class="ds-panel" data-theme="dark">
+      <div class="type-row"><span class="ds-state">hero · display 800<br>clamp(48px, 8.5vw, 116px) / 0.96</span><span style="font-family:var(--font-display);font-weight:800;font-size:var(--text-hero);line-height:var(--leading-hero);letter-spacing:var(--tracking-hero)">I ship AI things</span></div>
+      <div class="type-row"><span class="ds-state">h1 page · display<br>text-7xl 72 / 1</span><span class="h-page">The logbook.</span></div>
+      <div class="type-row"><span class="ds-state">h1 post · display<br>text-6xl 60 / 1.04</span><span style="font-family:var(--font-display);font-size:var(--text-6xl);line-height:var(--leading-post-h1);letter-spacing:var(--tracking-tight)">What is an agent memory layer?</span></div>
+      <div class="type-row"><span class="ds-state">h2 · display<br>text-4xl 36 / 40</span><span style="font-family:var(--font-display);font-size:var(--text-4xl);line-height:var(--leading-4xl);letter-spacing:var(--tracking-tight)">A second-level heading</span></div>
+      <div class="type-row"><span class="ds-state">h3 · display<br>text-2xl 24 / 32</span><span style="font-family:var(--font-display);font-size:var(--text-2xl);line-height:var(--leading-2xl);letter-spacing:var(--tracking-tight)">A third-level heading</span></div>
+      <div class="type-row"><span class="ds-state">body-lg · Inter<br>text-lg 18 / 1.625</span><span style="font-size:var(--text-lg);line-height:var(--leading-relaxed);color:rgb(var(--c-text-soft))">When I learn it the hard way, you get the TLDR the same week.</span></div>
+      <div class="type-row"><span class="ds-state">body · Inter<br>text-base 16 / 24</span><span style="font-size:var(--text-base);line-height:var(--leading-base)">Every piece declares what kind of claim it is making.</span></div>
+      <div class="type-row"><span class="ds-state">small · Inter<br>text-sm 14 / 20</span><span style="font-size:var(--text-sm);line-height:var(--leading-sm);color:rgb(var(--c-muted))">Made in NJ. Shipped at 2am.</span></div>
+      <div class="type-row"><span class="ds-state">eyebrow · mono<br>12 / widest / upper</span><p class="eyebrow">/// Writing</p></div>
+      <div class="type-row"><span class="ds-state">nav · mono<br>11 / widest / upper</span><span class="link-nav">Ship log</span></div>
+      <div class="type-row"><span class="ds-state">micro · mono<br>10 / wider / upper</span><span class="tag">#verification</span></div>
+      <div class="type-row"><span class="ds-state">code · mono<br>text-sm 14 / 20</span><code class="code-inline">rgb(var(--c-clay) / 0.4)</code></div>
+    </section></div>
+  </section>
+
+  <section class="f-section">
+    <p class="eyebrow">/// Spacing · radius · shadow</p><h2>Scale</h2>
+    <div class="ds-panels">
+      <section class="ds-panel" data-theme="dark">
+        <span class="ds-state ds-panel-label">Spacing</span>
+        <div data-spacing></div>
+      </section>
+      <section class="ds-panel" data-theme="dark">
+        <span class="ds-state ds-panel-label">Radius</span>
+        <div class="grid-demo">
+          <div><div class="radius-box" style="border-radius:var(--radius-sm)"></div><p class="ds-state">radius-sm 2px · controls</p></div>
+          <div><div class="radius-box" style="border-radius:var(--radius)"></div><p class="ds-state">radius 4px · inline code</p></div>
+          <div><div class="radius-box" style="border-radius:var(--radius-md)"></div><p class="ds-state">radius-md 6px</p></div>
+          <div><div class="radius-box" style="border-radius:var(--radius-lg)"></div><p class="ds-state">radius-lg 8px · cards</p></div>
+          <div><div class="radius-box" style="border-radius:var(--radius-full);width:80px"></div><p class="ds-state">radius-full</p></div>
+        </div>
+        <span class="ds-state ds-panel-label" style="margin-top:var(--space-8)">Shadow (two exist; the site is border-first)</span>
+        <div class="grid-demo">
+          <div><div class="shadow-box" style="box-shadow:var(--shadow-pop);border-radius:var(--radius-sm)"></div><p class="ds-state">shadow-pop · menus</p></div>
+          <div><div class="shadow-box" style="box-shadow:var(--shadow-card-hover);border-radius:var(--radius-lg);border-color:rgb(var(--c-clay))"></div><p class="ds-state">shadow-card-hover · card hover</p></div>
+        </div>
+      </section>
+    </div>
+    <div class="ds-panels" style="margin-top:var(--space-4)"><section class="ds-panel" data-theme="light">
+      <span class="ds-state ds-panel-label">Shadows in light</span>
+      <div class="grid-demo">
+        <div><div class="shadow-box" style="box-shadow:var(--shadow-pop);border-radius:var(--radius-sm)"></div><p class="ds-state">shadow-pop</p></div>
+        <div><div class="shadow-box" style="box-shadow:var(--shadow-card-hover);border-radius:var(--radius-lg);border-color:rgb(var(--c-clay))"></div><p class="ds-state">shadow-card-hover (dark clay, as in code)</p></div>
+      </div>
+    </section></div>
+  </section>
+
+  <section class="f-section">
+    <p class="eyebrow">/// Motion</p><h2>Three motion tokens, no others</h2>
+    <p class="f-note">hero-in and data-reveal share <code class="code-inline">cubic-bezier(0.2, 0.7, 0.2, 1)</code>. pulse-clay is <code class="code-inline">2.4s ease-in-out infinite</code>, on the live dot only. Everything stops under <code class="code-inline">prefers-reduced-motion: reduce</code>.</p>
+    <div class="ds-panels stacked"><section class="ds-panel" data-theme="dark">
+      <div class="motion-stage"><span class="ds-state" style="width:180px">hero-in · 0.6s · 8px</span><span id="m-hero" class="animate-hero-in" style="font-family:var(--font-display);font-size:var(--text-4xl)">I ship AI things</span></div>
+      <div class="motion-stage"><span class="ds-state" style="width:180px">data-reveal · 0.6s · 12px</span><div id="m-reveal" data-reveal class="card" style="padding:var(--space-4) var(--space-6)"><span class="card-title" style="margin:0">Section enters on scroll</span></div></div>
+      <div class="motion-stage"><span class="ds-state" style="width:180px">pulse-clay · 2.4s · ∞</span><span class="dot animate-pulse-clay" style="width:10px;height:10px"></span><span class="ds-p">abdur.ai</span></div>
+      <button class="btn btn-secondary" id="replay">Replay ↻</button>
+    </section></div>
+  </section>
+</div>
+
+<script src="assets/contrast.js"></script>
+<script>
+(function () {
+  var C = window.DSContrast;
+  var live = C.readLive();
+  var rows = C.evaluate(live.tokens);
+  C.THEMES.forEach(function (th) {
+    var sw = document.querySelector('[data-swatches="' + th + '"]');
+    sw.innerHTML = C.COLOR_TOKENS.map(function (n) {
+      var c = live.tokens[th][n];
+      return '<div class="swatch"><div class="swatch-chip" style="background:rgb(var(--c-' + n + '))"></div><div class="swatch-meta"><b>' + n + '</b>--c-' + n + '<br>' + c.join(" ") + ' · ' + C.toHex(c) + '</div></div>';
+    }).join("");
+
+    var head = '<tr><th>token</th>' + C.GROUNDS.map(function (g) { return '<th>on ' + g + '</th>'; }).join("") + '</tr>';
+    var body = C.TEXT_TOKENS.map(function (t) {
+      return '<tr><td>' + t.fg + '</td>' + C.GROUNDS.map(function (g) {
+        var r = rows.filter(function (x) { return x.theme === th && x.kind === "text" && x.fg === t.fg && x.bg === g; })[0];
+        return '<td><span class="cell-sample" style="background:rgb(var(--c-' + g + '));color:rgb(var(--c-' + t.fg + '))">Aa</span><span class="' + (r.pass ? "v-pass" : "v-fail") + '">' + r.ratio.toFixed(2) + (r.pass ? "" : (r.large ? " · large only" : " · fail")) + '</span></td>';
+      }).join("") + '</tr>';
+    }).join("");
+    var clay = rows.filter(function (x) { return x.theme === th && x.fg === "bg" && x.bg === "clay"; })[0];
+    body += '<tr><td>bg on clay</td><td colspan="4"><span class="cell-sample" style="background:rgb(var(--c-clay));color:rgb(var(--c-bg))">Subscribe</span><span class="' + (clay.pass ? "v-pass" : "v-fail") + '">' + clay.ratio.toFixed(2) + '</span></td></tr>';
+    document.querySelector('[data-matrix="' + th + '"]').innerHTML = '<table class="cm">' + head + body + '</table>';
+  });
+
+  var steps = [1, 2, 3, 4, 6, 8, 12, 16];
+  document.querySelector("[data-spacing]").innerHTML = steps.map(function (s) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue("--space-" + s).trim();
+    return '<div class="space-row"><span class="ds-state" style="width:90px">space-' + s + '</span><span class="space-bar" style="width:var(--space-' + s + ')"></span><span class="ds-state">' + v + '</span></div>';
+  }).join("");
+
+  var reveal = document.getElementById("m-reveal");
+  function replay() {
+    var h = document.getElementById("m-hero");
+    h.classList.remove("animate-hero-in"); void h.offsetWidth; h.classList.add("animate-hero-in");
+    reveal.classList.remove("in"); void reveal.offsetWidth;
+    setTimeout(function () { reveal.classList.add("in"); }, 60);
+  }
+  document.getElementById("replay").addEventListener("click", replay);
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) e.target.classList.add("in"); }); }).observe(reveal);
+  } else { reveal.classList.add("in"); }
+})();
+</script>
+</body>
+</html>
