@@ -1,6 +1,6 @@
-# abdur.ai Design System 1.0
+# abdur.ai Design System 1.1
 
-**Owner:** Abdur · **Last updated:** 2026-10-02 · **Version:** 1.0.0 ([CHANGELOG](CHANGELOG.md))
+**Owner:** Abdur · **Last updated:** 2026-10-02 · **Version:** 1.1.0 ([CHANGELOG](CHANGELOG.md))
 
 The design system locks what `app/globals.css` and `tailwind.config.ts` already do and invents nothing. Where this folder and the code disagree, the code wins: `node design-system/scripts/build.mjs` fails on any drift.
 
@@ -25,13 +25,16 @@ The design system locks what `app/globals.css` and `tailwind.config.ts` already 
 | `--c-border-2` | 74 61 38 | 211 196 168 | Strong hairline |
 | `--c-text` | 242 237 230 | 31 26 20 | Primary text |
 | `--c-text-soft` | 201 192 178 | 70 64 54 | Prose body |
-| `--c-muted` | 148 139 125 | 126 118 106 | Secondary text |
-| `--c-muted-2` | 126 118 106 | 154 144 127 | Tags, badges |
-| `--c-muted-3` | 122 114 100 | 154 144 127 | Fine print |
+| `--c-muted` | 148 139 125 | 126 118 106 | Borders, input boundary (not text) |
+| `--c-muted-2` | 126 118 106 | 154 144 127 | Rules, dots (not text) |
+| `--c-muted-3` | 122 114 100 | 154 144 127 | Rules, dots (not text) |
 | `--c-muted-4` | 106 98 86 | 154 144 127 | Non-text only |
 | `--c-clay` | 217 119 87 | 174 83 56 | The accent |
-| `--c-gold` | 245 196 81 | 143 106 0 | Highlight only |
-| `--c-good` | 111 207 151 | (same) | Status: success |
+| `--c-gold` | 245 196 81 | 143 106 0 | Highlight only, on surface |
+| `--c-meta` | var(--c-muted) | var(--c-text-soft) | Alias: all secondary text |
+| `--c-good-text` | 111 207 151 | 38 53 43 | Alias: success text |
+| `--c-band` | var(--c-bg-2) | var(--c-surface) | Alias: section/aside ground |
+| `--c-good` | 111 207 151 | (same) | Status fill (not text) |
 | `--c-good-2` | 127 184 138 | (same) | Status (unused) |
 | `--c-good-3` | 38 53 43 | (same) | Status border |
 
@@ -60,6 +63,15 @@ The design system locks what `app/globals.css` and `tailwind.config.ts` already 
 | `tests/contrast-results.json` | The same pass, written by the build |
 | `scripts/build.mjs` | Builds tokens.json and the pages, runs the drift, hex and contrast checks. `--artifact DIR` exports the Design System artifact. |
 
-## Contrast and proposed fixes
+## Contrast rules (1.1)
 
-The authoritative list is `tests/contrast.test.html` (in the browser) and `tests/contrast-results.json` (from the build). Every fix there is **PROPOSED, not applied**: each reuses existing token values, and any edit to `app/globals.css` still needs a `design-token-override:` entry in `docs/superpowers/specs/overrides.md`.
+Every text pair the site uses holds 4.5:1 in both themes, and the focus ring and input boundaries hold 3:1. These four usage rules keep it that way. `scripts/build.mjs` fails the build if anything in `app/`, `components/` or `lib/` breaks one.
+
+| Do | Never | Why |
+| --- | --- | --- |
+| Secondary text in `text-meta` | `text-muted`, `text-muted-2`, `text-muted-3` | No muted step reaches 4.5:1 for small text in light (2.58–4.41:1). |
+| Success text in `text-good-text` | `text-good` | `good` measures 1.56–1.87:1 on the light grounds. |
+| Banded sections and asides on `bg-band` | `bg-bg-2` / `bg-surface-2` under clay or gold text | Light clay on bg-2 measures 4.21:1. `band` is bg-2 in dark and surface in light. |
+| Input borders in `border-muted` | `border-border` on a focusable field | A `border` hairline measures 1.14–1.31:1 against its ground. |
+
+Gold text sits only on `surface` (the `.status-near` pill carries its own surface fill). The live matrix is in `tests/contrast.test.html`, and the build writes the same results to `tests/contrast-results.json`.

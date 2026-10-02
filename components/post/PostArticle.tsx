@@ -69,11 +69,11 @@ export function PostArticle({
           {post.title}
         </h1>
         {post.subtitle && (
-          <p className="font-display italic text-xl md:text-2xl text-muted mb-6">
+          <p className="font-display italic text-xl md:text-2xl text-meta mb-6">
             {post.subtitle}
           </p>
         )}
-        <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-muted-3">
+        <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-meta">
           <RegisterBadge register={post.register} />
           <span>{post.dateDisplay}</span>
           <span>·</span>
@@ -112,7 +112,7 @@ export function PostArticle({
             href={postPath(prev.slug)}
             className="group block bg-surface border border-border rounded-lg p-5 hover:border-clay transition-colors"
           >
-            <p className="font-mono text-[10px] tracking-widest uppercase text-muted-3 mb-2">
+            <p className="font-mono text-[10px] tracking-widest uppercase text-meta mb-2">
               ← Previous
             </p>
             <p className="font-display text-lg text-text group-hover:text-clay transition-colors leading-tight">
@@ -127,7 +127,7 @@ export function PostArticle({
             href={postPath(next.slug)}
             className="group block bg-surface border border-border rounded-lg p-5 hover:border-clay transition-colors text-right"
           >
-            <p className="font-mono text-[10px] tracking-widest uppercase text-muted-3 mb-2">
+            <p className="font-mono text-[10px] tracking-widest uppercase text-meta mb-2">
               Next →
             </p>
             <p className="font-display text-lg text-text group-hover:text-clay transition-colors leading-tight">

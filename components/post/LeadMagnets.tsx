@@ -41,7 +41,7 @@ export function MnemixCTA({ heading = "What MOLL is part of" }: { heading?: stri
         other agents can use. Bi-temporal, evidence-anchored decisions.
         Memory that grades itself.
       </p>
-      <p className="text-muted leading-relaxed mb-5">
+      <p className="text-meta leading-relaxed mb-5">
         If you build with agents and have ever shipped a doctrine that failed
         in the same way this one did — you&apos;re the person Northsun is for.
       </p>
@@ -94,8 +94,8 @@ export function AsecWaitlistCTA() {
   }
 
   return (
-    <aside className="not-prose my-12 bg-bg-2 border border-border rounded-lg p-6 md:p-8">
-      <p className="font-mono text-[10px] tracking-widest uppercase text-muted mb-3">
+    <aside className="not-prose my-12 bg-band border border-border rounded-lg p-6 md:p-8">
+      <p className="font-mono text-[10px] tracking-widest uppercase text-meta mb-3">
         /// COMING — ASEC
       </p>
       <p className="text-text-soft text-lg leading-relaxed mb-3">
@@ -104,12 +104,12 @@ export function AsecWaitlistCTA() {
         where builders post their own postmortems, demo their work, and get
         cited for it the way researchers cite papers.
       </p>
-      <p className="text-muted leading-relaxed mb-5">
+      <p className="text-meta leading-relaxed mb-5">
         If you write postmortems like this one, you&apos;ll have a profile
         waiting for you when ASEC opens.
       </p>
       {done ? (
-        <p className="font-mono text-sm text-good">
+        <p className="font-mono text-sm text-good-text">
           ✓ On the list. I&apos;ll email when ASEC opens.
         </p>
       ) : (
@@ -122,7 +122,7 @@ export function AsecWaitlistCTA() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="flex-1 bg-bg border border-border text-text px-4 py-3 rounded-sm font-mono text-sm placeholder:text-muted-3 focus:border-clay focus:outline-none"
+            className="flex-1 bg-bg border border-muted text-text px-4 py-3 rounded-sm font-mono text-sm placeholder:text-meta focus:border-clay focus:outline-none"
           />
           <input
             type="text"
@@ -144,7 +144,7 @@ export function AsecWaitlistCTA() {
         </form>
       )}
       {err && <p className="font-mono text-xs text-clay mt-3">{err}</p>}
-      <p className="font-mono text-[10px] text-muted-3 mt-4">
+      <p className="font-mono text-[10px] text-meta mt-4">
         No spam. One email when ASEC opens, one if I publish anything as
         important as this post.
       </p>

@@ -38,11 +38,9 @@
   --focus-ring-offset: 2px;
 }
 
-/* AITLDR-LAYOUT-001 — copied with the code's scoping, defect included:
-   in app/globals.css these sit inside :root[data-theme="dark"], so they
-   do not exist in the light theme. tests/contrast.test.html reports it.
-   UNLOCKED per the code comment; no component consumes them today. */
-:root[data-theme="dark"] {
+/* AITLDR-LAYOUT-001 — theme-independent (moved out of the dark block in 1.1,
+   so they now exist in light). UNLOCKED per the code comment. */
+:root {
   --aitldr-measure: min(100%, 92vw, 54rem);
   --aitldr-title-to-date: 2.5rem;
   --aitldr-date-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);

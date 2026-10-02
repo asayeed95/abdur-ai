@@ -120,7 +120,7 @@ export const COMPONENTS = [
     guide: [
       "Use **primary** (`.btn-primary`: `bg` text on `clay`) once per view, for the action the page exists for: Subscribe, Read the flagship.",
       "Use **secondary** (`.btn-secondary`: `text` on transparent, `border` hairline) beside a primary, or alone for navigation-like actions. Hover turns the border and label `clay`.",
-      "Use **ghost** (`.btn-ghost`: `muted` → `text` on hover) for tertiary actions that should read as links.",
+      "Use **ghost** (`.btn-ghost`: `meta` → `text` on hover) for tertiary actions that should read as links.",
       "The nav's compact clay outline (`.btn-nav`) is the Subscribe CTA in the bar; don't reuse it elsewhere.",
       "Disabled is `opacity: 0.4` on any variant, as in the code. Gold is never a button colour.",
       "The consumer supplies the label and, for links, the `href`. The arrow glyphs (→ ↓) are part of the label text.",
@@ -134,11 +134,11 @@ export const COMPONENTS = [
   },
   {
     slug: "link", name: "Link", group: "Actions", height: 230, source: "app/globals.css (.prose-clay a), components/Footer.tsx, components/Nav.tsx",
-    summary: "Three link styles: underlined clay inline links in prose, muted meta links, and mono nav links.",
+    summary: "Three link styles: underlined clay inline links in prose, meta links, and mono nav links.",
     guide: [
       "**Inline** (`.link`): `clay` text, 4px underline offset, underline at `clay` 40% → 100% on hover. Prose only.",
-      "**Meta** (`.link-meta`): `muted` → `clay` on hover. Footer contacts, RSS, small print.",
-      "**Nav** (`.link-nav`): mono 11px, widest tracking, `muted` → `text` on hover; `aria-current=\"page\"` turns it `clay`. Only route links can be current, never `/#anchor` links.",
+      "**Meta** (`.link-meta`): `meta` → `clay` on hover. Footer contacts, RSS, small print.",
+      "**Nav** (`.link-nav`): mono 11px, widest tracking, `meta` → `text` on hover; `aria-current=\"page\"` turns it `clay`. Only route links can be current, never `/#anchor` links.",
       "Focus is the global ring: 2px solid `clay`, 2px offset.",
     ],
     html: () => matrix([
@@ -152,8 +152,8 @@ export const COMPONENTS = [
     slug: "tag", name: "Tag", group: "Labels", height: 150, source: "app/writing/page.tsx, components/post/RegisterNote.tsx",
     summary: "Topic tags, the three register badges, and the flagship chip.",
     guide: [
-      "**#tag** (`.tag`): mono 10px, wider tracking, `muted-2`, no box. Lowercase slug after `#`.",
-      "**Register badge** (`.badge`): every post declares one. `reported` is `clay` on a `clay` 40% border (it owes receipts); `designed` and `argued` are `muted-2` on `border`.",
+      "**#tag** (`.tag`): mono 10px, wider tracking, `meta`, no box. Lowercase slug after `#`.",
+      "**Register badge** (`.badge`): every post declares one. `reported` is `clay` on a `clay` 40% border (it owes receipts); `designed` and `argued` are `meta` on `border`.",
       "**Flagship chip** (`.chip-flagship`): `bg` on `clay`. One per index.",
       "Tags are not interactive in the app; don't give them hover states.",
     ],
@@ -168,7 +168,7 @@ export const COMPONENTS = [
     summary: "The four product-status pills: live, near, flight, building.",
     guide: [
       "`.status-pill` + one variant. Mono 10px uppercase, 2px radius, 1px border.",
-      "**live**: `bg` on a `clay` fill. **near**: `gold` text, `border-2` border. **flight**: `good` text, `good-3` border. **building**: `muted` text, `border` border.",
+      "**live**: `bg` on a `clay` fill. **near**: `gold` text on a `surface` fill, `border-2` border. **flight**: `good-text`, `good-3` border. **building**: `meta` text, `border` border.",
       "The label must be literal and true. A pill is a public claim about a product's state.",
       "No red, amber or info variants exist. Don't add them.",
     ],
@@ -183,7 +183,7 @@ export const COMPONENTS = [
     slug: "card", name: "Card", group: "Content", height: 250, source: "components/ToolsGrid.tsx",
     summary: "A surface tile that lifts and picks up a clay border on hover.",
     guide: [
-      "`.card`: `surface` fill, `border` hairline, `radius-lg`, 24px padding. Title in Playfair `xl` (`.card-title`), body `sm` `muted` (`.card-body`).",
+      "`.card`: `surface` fill, `border` hairline, `radius-lg`, 24px padding. Title in Playfair `xl` (`.card-title`), body `sm` `meta` (`.card-body`).",
       "Hover: border and title turn `clay`, the card lifts 6px and casts `shadow-card-hover`.",
       "`aria-disabled=\"true\"` renders at 80% opacity, the code's treatment for a tool still building.",
       "The consumer supplies title, one-line description and `href`; a status pill may sit top-right.",
@@ -196,9 +196,9 @@ export const COMPONENTS = [
     slug: "post-card", name: "PostCard", group: "Content", height: 760, source: "app/writing/page.tsx, app/aitldr/page.tsx",
     summary: "The writing-index row and the flagship card: date, register, title, dek, tags, reading time.",
     guide: [
-      "**Row** (`.post-row` in a `.post-list`): grid 110px · 1fr · 70px. Date in mono `clay`, register badge plus an optional status note (`muted-3`), Playfair title (`3xl`), dek in `muted`, #tags, reading time in `muted-3`.",
+      "**Row** (`.post-row` in a `.post-list`): grid 110px · 1fr · 70px. Date in mono `clay`, register badge plus an optional status note (`meta`), Playfair title (`3xl`), dek in `meta`, #tags, reading time in `meta`.",
       "Hover fills the row `surface` and turns the title `clay`.",
-      "**Flagship** (`.post-flagship`): `bg-2` with a `clay` border, `radius-lg`, 40px padding, a 5xl title. At most one per index.",
+      "**Flagship** (`.post-flagship`): `band` with a `clay` border, `radius-lg`, 40px padding, a 5xl title. At most one per index.",
       "Every value comes from post frontmatter (`lib/posts.ts`). Never type a date, reading time or register by hand.",
     ],
     html: () => `<div class="ds-stack">
@@ -215,9 +215,9 @@ export const COMPONENTS = [
     slug: "callout", name: "Callout", group: "Content", height: 520, source: "components/post/LeadMagnets.tsx, components/post/RegisterNote.tsx",
     summary: "In-post asides: the clay CTA callout, the quiet aside, and the register status note.",
     guide: [
-      "**CTA** (`.callout`): `surface`, 4px `clay` left rule, right corners `radius-lg`. Label in mono `clay`, lede in `text-soft`, body in `muted`, one primary button.",
-      "**Quiet** (`.callout-quiet`): `bg-2`, hairline border, label in `muted`. For a secondary aside.",
-      "**Register note** (`.register-note`): mono xs `muted`, 2px `clay` left rule. Carries a designed or argued post's status line. It's a statement, not fine print.",
+      "**CTA** (`.callout`): `surface`, 4px `clay` left rule, right corners `radius-lg`. Label in mono `clay`, lede in `text-soft`, body in `meta`, one primary button.",
+      "**Quiet** (`.callout-quiet`): `band`, hairline border, label in `meta`. For a secondary aside.",
+      "**Register note** (`.register-note`): mono xs `meta`, 2px `clay` left rule. Carries a designed or argued post's status line. It's a statement, not fine print.",
       `Product copy in callouts closes with exactly: "${CLOSER}" No other closer exists.`,
     ],
     html: () => `<div class="ds-stack">
@@ -258,8 +258,8 @@ export const COMPONENTS = [
     slug: "newsletter-form", name: "NewsletterForm", group: "Forms", height: 470, source: "components/Subscribe.tsx",
     summary: "Email capture with the four states the code renders: idle, submitting, success, error.",
     guide: [
-      "Input (`.input`): `surface` fill, `border`, mono `sm`, placeholder in `muted-3`. Focus swaps the border to `clay` (the code removes the outline here).",
-      "Button: primary. **Submitting**: input and button disabled, label `Sending…`. **Success**: button disabled `Subscribed`, message in `good`. **Error**: message in `clay`. No red exists.",
+      "Input (`.input`): `surface` fill, `muted` border (3:1 on every ground), mono `sm`, placeholder in `meta`. Focus swaps the border to `clay` (the code removes the outline here).",
+      "Button: primary. **Submitting**: input and button disabled, label `Sending…`. **Success**: button disabled `Subscribed`, message in `good-text`. **Error**: message in `clay`. No red exists.",
       "Messages are the code's own strings. Keep them, and add no promises about cadence or volume.",
       "The consumer supplies the action (`/api/subscribe`), the honeypot field and the render timestamp, as `Subscribe.tsx` does.",
     ],
@@ -285,8 +285,8 @@ export const COMPONENTS = [
     slug: "footer", name: "Footer", group: "Navigation", height: 330, source: "components/Footer.tsx",
     summary: "Three-column footer with site links, contacts, and the legal strip.",
     guide: [
-      "`bg` with a top `border`. Columns: brand + tagline (`muted`), two mono link lists (`muted` → `text`), Find me (label `muted-3`, links → `clay`).",
-      "Legal strip: mono 10px `muted-3`. The copyright line, the ASEC parent link, then RSS · llms.txt · Sitemap.",
+      "`bg` with a top `border`. Columns: brand + tagline (`meta`), two mono link lists (`meta` → `text`), Find me (label `meta`, links → `clay`).",
+      "Legal strip: mono 10px `meta`. The copyright line, the ASEC parent link, then RSS · llms.txt · Sitemap.",
       "Copy is fixed in code. The ASEC link says 'coming' because it is.",
     ],
     html: () => footerHtml,
@@ -295,7 +295,7 @@ export const COMPONENTS = [
     slug: "pagination", name: "Pagination", group: "Navigation", height: 300, source: "components/post/PostArticle.tsx",
     summary: "Previous and next post cards at the foot of an article. The site has no numbered pagination.",
     guide: [
-      "`.pager`: two equal columns under a `border` rule, prose width. Each `.pager-link` is a `surface` card. The direction label is mono 10px `muted-3`, the title is Playfair `lg`.",
+      "`.pager`: two equal columns under a `border` rule, prose width. Each `.pager-link` is a `surface` card. The direction label is mono 10px `meta`, the title is Playfair `lg`.",
       "Hover: border and title turn `clay`. Next aligns right.",
       "A missing side renders an empty cell, so the first post shows only Next. There's no disabled card.",
       "Index pages list every post. Numbered pagination doesn't exist, and this system adds none.",
@@ -316,7 +316,7 @@ export const COMPONENTS = [
     slug: "empty-state", name: "EmptyState", group: "Content", height: 260, source: "none (requested by the brief; composed from existing classes)",
     summary: "What a list shows when it has nothing to list, built only from existing pieces.",
     guide: [
-      "Intentional addition: the app has no empty state today. It's composed from `.eyebrow-muted`, a Playfair `2xl` line, a `muted` sentence and a secondary button. No new styles.",
+      "Intentional addition: the app has no empty state today. It's composed from `.eyebrow-muted`, a Playfair `2xl` line, a `meta` sentence and a secondary button. No new styles.",
       "Say what's missing and where to go. Never promise a date or a count.",
     ],
     html: () => `<div class="empty">

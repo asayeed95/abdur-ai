@@ -33,7 +33,7 @@ export function Hero() {
         <br />
         and write the TLDR.
         <span
-          className="font-display italic font-medium text-muted-2 whitespace-nowrap"
+          className="font-display italic font-medium text-meta whitespace-nowrap"
           style={{ fontSize: "0.3em", marginLeft: "0.45em", letterSpacing: "-0.01em" }}
         >
           shipped at 2am.
@@ -42,7 +42,7 @@ export function Hero() {
 
       <div className="w-[60px] h-[2px] bg-clay mt-8 mb-6" />
 
-      <p className="text-lg md:text-[18px] leading-relaxed text-muted max-w-[560px]">
+      <p className="text-lg md:text-[18px] leading-relaxed text-meta max-w-[560px]">
         {SITE.description}
       </p>
 

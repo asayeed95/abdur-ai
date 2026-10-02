@@ -33,6 +33,14 @@
   --c-clay: 217 119 87;       /* #D97757 */
   --c-gold: 245 196 81;       /* #F5C451 */
 
+  /* Semantic aliases (1.1) — existing values only, no new colours.
+     meta: all secondary text · good-text: success text · band: section ground.
+     The muted ramp is for borders, rules and dots; no muted step holds
+     4.5:1 for small text in both themes. */
+  --c-meta: var(--c-muted);
+  --c-good-text: 111 207 151; /* = good */
+  --c-band: var(--c-bg-2);
+
   color-scheme: dark;
 }
 
@@ -53,6 +61,10 @@
   --c-muted-4: 154 144 127;   /* #9A907F */
   --c-clay: 174 83 56;        /* #AE5338 */
   --c-gold: 143 106 0;        /* #8F6A00 */
+
+  --c-meta: var(--c-text-soft);
+  --c-good-text: 38 53 43;    /* = good-3 */
+  --c-band: var(--c-surface);
 
   color-scheme: light;
 }

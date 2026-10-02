@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.1.0 — 2026-10-02
+
+All eight contrast fixes proposed in 1.0.0 are applied in the app (AGE-2844, approved by Abdur in a live session). No existing token value changed: the fixes add three aliases that point at existing values.
+
+### Added
+- `--c-meta`: `muted` in dark, `text-soft` in light. All secondary text moves to it: 113 class uses of `text-muted`, `text-muted-2` and `text-muted-3`.
+- `--c-good-text`: `good` in dark, `good-3` in light. Success text and the TestFlight pill use it.
+- `--c-band`: `bg-2` in dark, `surface` in light. Nine banded sections, asides and flagship cards move from `bg-bg-2` to it, so dark doesn't change.
+- A usage scan in `scripts/build.mjs` that fails on any class pattern that would undo a fix. A negative test confirmed each rule rejects its pattern.
+
+### Changed
+- `.status-near`, the /hire "Open to roles" pill and the NowPanel queued and blocked pills sit on a `surface` fill, so gold and clay text keep 4.5:1.
+- All five form fields use a `muted` border (3.68:1 or better on every ground) instead of `border`.
+- The AITLDR-LAYOUT-001 tokens move from `:root[data-theme="dark"]` to `:root`, so they exist in light.
+
+### Result
+- Text: 52 of 52 pairs pass. Non-text: 18 of 18. All four 1.0 risks are fixed.
+- Trade-offs:
+  - Light secondary text is now the same colour as prose body (`text-soft`), so light mode loses one grey step.
+  - Light bands are a lighter cream (`surface`) than before (`bg-2`).
+  - Dark meta text is slightly lighter than the old `muted-2`/`muted-3`.
+
 ## 1.0.0 — 2026-10-02
 
 First release, extracted from `app/globals.css` and `tailwind.config.ts` at `main@4e7891a`.

@@ -28,14 +28,20 @@ const COLOR_USAGE = {
   bg: "Page ground. Default for every route.",
   "bg-2": "Recessed sections: Subscribe, flagship card, quiet callout.",
   surface: "Cards, inputs, code, prev/next cards, row hover fill.",
-  "surface-2": "Menu row hover (HireActions). Same value as bg-2 in light.",
+  "surface-2": "Menu row hover (HireActions). Same value as bg-2 in light. No clay or gold text.",
+  band: "Alias. Alternating sections, asides, flagship card: bg-2 in dark, surface in light. The only banded ground clay and gold text may sit on.",
+  muted: "Not for text since 1.1 (light 3.68–4.41:1). Borders: input boundary (3:1+ on every ground).",
+  "muted-2": "Not for text since 1.1. Rules and dots.",
+  "muted-3": "Not for text since 1.1. Rules and dots.",
+  "muted-4": "Non-text only.",
+  good: "Not for text since 1.1 (light 1.56–1.87:1). Fills and dots; text uses good-text.",
   border: "Hairlines: dividers, card and input borders, footer rules.",
   "border-2": "Stronger hairline: status-near pill border.",
   "good-2": "Defined in tailwind.config.ts; no use in app code today.",
   "good-3": "status-flight pill border; NowPanel running fill (30%).",
 };
 
-export function exportArtifact({ out, DS, color, tokensJson, rows, risks, C, templates, VERSION, UPDATED }) {
+export function exportArtifact({ out, DS, color, tokensJson, rows, risks, C, templates, VERSION, UPDATED, liveTokens }) {
   const P = (...p) => path.join(out, "project", ...p);
   const read = (p) => fs.readFileSync(path.join(DS, p), "utf8");
   const files = [];
@@ -49,16 +55,15 @@ export function exportArtifact({ out, DS, color, tokensJson, rows, risks, C, tem
     const parts = ["dark", "light"].map((th) => {
       const rs = rows.filter((r) => r.kind === "text" && r.theme === th && r.fg === name);
       const lo = Math.min(...rs.map((r) => r.ratio)), hi = Math.max(...rs.map((r) => r.ratio));
-      const fails = rs.filter((r) => !r.pass).map((r) => r.bg);
-      return `${th} ${fmt(lo)}–${fmt(hi)}:1 on bg/bg-2/surface/surface-2${fails.length ? ` (under 4.5 on ${fails.join(", ")})` : ""}`;
+      return `${th} ${fmt(lo)}–${fmt(hi)}:1`;
     });
-    const anyFail = rows.some((r) => r.kind === "text" && r.fg === name && !r.pass);
-    return `Text: ${t.use}. ${parts.join("; ")}.${anyFail ? " Kept exact from the code; see README › Contrast for the proposed fix." : ""}`;
+    return `Text: ${t.use}. Allowed on ${t.grounds.join(", ")}: ${parts.join("; ")}.`;
   };
-  const order = ["bg", "bg-2", "surface", "surface-2", "border", "border-2", "text", "text-soft", "muted", "muted-2", "muted-3", "muted-4", "clay", "gold", "good", "good-2", "good-3"];
+  const order = ["bg", "bg-2", "band", "surface", "surface-2", "border", "border-2", "text", "text-soft", "meta", "muted", "muted-2", "muted-3", "muted-4", "clay", "gold", "good-text", "good", "good-2", "good-3"];
   const colorTokens = order.map((name) => {
     const t = color.tokens[name];
-    const value = t.all ? t.all.hex.toLowerCase() : { dark: t.dark.hex.toLowerCase(), light: t.light.hex.toLowerCase() };
+    const v = (e) => (e.alias ? `{${e.alias}}` : e.hex.toLowerCase());
+    const value = t.all ? v(t.all) : { dark: v(t.dark), light: v(t.light) };
     let usage = usageFor(name);
     if (name === "clay") usage = `The only accent: primary buttons, eyebrows, links, focus ring, selection, active nav. ${usage}`;
     if (name === "gold") usage = `Highlights only, never buttons. ${usage}`;
@@ -213,7 +218,6 @@ ${body}
   const text = rows.filter((r) => r.kind === "text"), ui = rows.filter((r) => r.kind === "ui");
   const n = (rs, p) => rs.filter((r) => r.pass === p).length;
   const failing = rows.filter((r) => !r.pass);
-  const fixKeys = [...new Set(failing.map((r) => `${r.theme}:${r.fg}`))];
   const readme = `abdur.ai is a personal site and logbook for a solo AI founder: what shipped, what broke, what was learned. The system is small on purpose. It locks what the code already does and adds nothing. Version ${VERSION}, owner Abdur, last updated ${UPDATED}.
 
 ## The five rules
@@ -234,7 +238,7 @@ ${body}
 
 ## Visual foundations
 
-- **Colour.** Warm near-black ground (\`bg\`) and cream text in dark. Cream ground and ink text in light. Depth comes from steps of ground (\`bg\` → \`bg-2\` → \`surface\` → \`surface-2\`) and hairlines (\`border\`, \`border-2\`), not shadows. The muted ramp (\`muted\` … \`muted-4\`) carries hierarchy, and \`clay\` marks the one thing to look at. Status uses \`good\`, \`good-2\` and \`good-3\` only. No red, amber or info colours exist.
+- **Colour.** Warm near-black ground (\`bg\`) and cream text in dark. Cream ground and ink text in light. Depth comes from steps of ground (\`bg\`, \`band\`, \`surface\`) and hairlines (\`border\`, \`border-2\`), not shadows. Text runs \`text\` → \`text-soft\` → \`meta\`, and \`clay\` marks the one thing to look at. Status uses \`good\`, \`good-2\` and \`good-3\` only. No red, amber or info colours exist.
 - **Type.** Playfair Display 400–800 for headings, tracked tight. Inter for body with \`ss01\`, \`cv11\` and \`tnum\`. JetBrains Mono for every label, button, date and pill. The prose measure is 65ch and content max width is 1280px.
 - **Spacing and radius.** 4/8/12/16/24/32/48/64. Corners are small: \`radius-sm\` (2px) for controls and pills, \`radius-lg\` (8px) for cards and blocks, \`radius-full\` for dots and the theme toggle.
 - **Accents.** A 60×2px \`clay\` rule sits under page h1s, a 6px \`clay\` dot leads the brand, and a faint Playfair "AS" monogram at \`clay\` 6% watermarks the hero.
@@ -248,20 +252,17 @@ No icon set. Direction is typed as glyphs inside labels (→ ↓ ←). Status is
 
 ## Contrast
 
-Measured with WCAG 2 relative luminance on every text token over \`bg\`, \`bg-2\`, \`surface\` and \`surface-2\`, in both themes. All text tokens appear at 10–12px somewhere, so each is held to 4.5:1. Focus ring and input boundary are held to 3:1.
+Measured with WCAG 2 relative luminance in both themes. Every text token appears at 10–12px somewhere, so each needs 4.5:1 on every ground it's allowed on. The focus ring and input boundary need 3:1.
 
 - Text: **${n(text, true)} pass, ${n(text, false)} fail** of ${text.length}. Non-text: **${n(ui, true)} pass, ${n(ui, false)} fail** of ${ui.length}.
+- Set secondary text in \`meta\`, never the muted ramp. Set success text in \`good-text\`, never \`good\`.
+- Put \`clay\` text on \`bg\`, \`band\` or \`surface\` only. Put \`gold\` text on \`surface\` or \`band\` only. Banded sections use \`band\`, not \`bg-2\`.
+- Input boundaries use \`muted\`, not \`border\`.
+- The repo's \`design-system/scripts/build.mjs\` fails the build if \`app/\` or \`components/\` breaks any of these rules.
 
-| theme | token | on | ratio | needs |
-| --- | --- | --- | --- | --- |
-${failing.map((r) => `| ${r.theme} | ${r.fg} | ${r.bg} | ${fmt(r.ratio)}:1 | ${r.min}:1 |`).join("\n")}
+${failing.length ? `| theme | token | on | ratio | needs |\n| --- | --- | --- | --- | --- |\n${failing.map((r) => `| ${r.theme} | ${r.fg} | ${r.bg} | ${fmt(r.ratio)}:1 | ${r.min}:1 |`).join("\n")}\n\n` : ""}Known risks from 1.0: ${risks.map((k) => `${k.label}: **${k.pass ? "fixed" : "open"}** (${k.detail})`).join(". ")}.
 
-Known risks: ${risks.map((k) => `${k.label}: **${k.pass ? "pass" : "fail"}** (${k.detail})`).join(". ")}.
-
-### Proposed fixes (not applied; no locked value changes)
-
-${fixKeys.map((k) => `- **${k}**: ${C.FIXES[k] ?? "No fix proposed."}`).join("\n")}
-- **AITLDR layout tokens**: ${C.FIXES["aitldr-light"]}
+Palette tokens that carry no text: ${C.notForText(liveTokens).map((t) => `\`${t.fg}\` (dark ${t.dark}, light ${t.light}:1)`).join(", ")}. They stay in the palette for borders, rules, dots and fills.
 
 ## Theme behaviour
 

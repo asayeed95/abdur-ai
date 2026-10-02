@@ -2,7 +2,7 @@ type Item = { id: string; name: string };
 
 export function PatternsBlock({ items }: { items: Item[] }) {
   return (
-    <aside className="not-prose my-12 bg-bg-2 border border-border rounded-lg p-6">
+    <aside className="not-prose my-12 bg-band border border-border rounded-lg p-6">
       <p className="font-mono text-[10px] tracking-widest uppercase text-clay mb-4">
         /// PATTERNS COMMITTED TO MOLL
       </p>
@@ -10,7 +10,7 @@ export function PatternsBlock({ items }: { items: Item[] }) {
         {items.map((p) => (
           <li key={p.id} className="text-text-soft">
             <code className="text-clay">{p.id}</code>{" "}
-            <span className="text-muted">— {p.name}</span>
+            <span className="text-meta">— {p.name}</span>
           </li>
         ))}
       </ul>

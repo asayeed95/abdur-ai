@@ -7,7 +7,7 @@ import { POSTS, CLOSER, navBar, footerHtml, postRow, flagshipCard, badge } from 
 
 const page = (inner) => `${navBar(true)}\n<main>\n${inner}\n</main>\n${footerHtml}`;
 
-const subscribeSection = `<section style="border-top:1px solid rgb(var(--c-border));background:rgb(var(--c-bg-2))">
+const subscribeSection = `<section style="border-top:1px solid rgb(var(--c-border));background:rgb(var(--c-band))">
   <div class="container" style="padding-top:var(--space-16);padding-bottom:var(--space-16)">
     <p class="eyebrow" style="margin-bottom:var(--space-4)">/// The logbook, not the pitch.</p>
     <p class="lede" style="margin-bottom:40px">When I learn it the hard way, you get the TLDR the same week. Pager is not the customer. The number is not the person. More of that as I write it. Not a product tour. Not a waitlist for a platform that is not done.</p>
@@ -33,7 +33,7 @@ export function TEMPLATES({ postCount }) {
 <section class="container" style="position:relative;padding-top:160px;padding-bottom:128px">
   <div aria-hidden="true" style="position:absolute;top:80px;right:40px;font-family:var(--font-display);font-size:200px;line-height:1;color:rgb(var(--c-clay) / 0.06);user-select:none;pointer-events:none">AS</div>
   <p class="eyebrow" style="margin-bottom:var(--space-8)"><span class="dot animate-pulse-clay" style="margin-right:var(--space-2);vertical-align:middle" aria-hidden="true"></span>Solo AI founder · Prospect Park, NJ · NYC metro</p>
-  <h1 class="animate-hero-in" style="font-family:var(--font-display);font-weight:var(--weight-extrabold);font-size:var(--text-hero);line-height:var(--leading-hero);letter-spacing:var(--tracking-hero);margin:0">I ship AI things<br>and write the TLDR.<span style="font-style:italic;font-weight:var(--weight-medium);color:rgb(var(--c-muted-2));font-size:0.3em;margin-left:0.45em;letter-spacing:-0.01em;white-space:nowrap">shipped at 2am.</span></h1>
+  <h1 class="animate-hero-in" style="font-family:var(--font-display);font-weight:var(--weight-extrabold);font-size:var(--text-hero);line-height:var(--leading-hero);letter-spacing:var(--tracking-hero);margin:0">I ship AI things<br>and write the TLDR.<span style="font-style:italic;font-weight:var(--weight-medium);color:rgb(var(--c-meta));font-size:0.3em;margin-left:0.45em;letter-spacing:-0.01em;white-space:nowrap">shipped at 2am.</span></h1>
   <div class="accent-rule" style="margin:var(--space-8) 0 var(--space-6)"></div>
   <p class="lede" style="max-width:560px">Abdur Rahman Sayeed — solo AI founder running a portfolio of vertical AI products on one memory spine, Northsun. One human on strategy, an agent team on execution. This is the logbook: what shipped, what broke, what I learned.</p>
   <div style="margin-top:40px;display:flex;flex-wrap:wrap;gap:var(--space-3)"><a href="#" class="btn btn-primary">Read the flagship postmortem →</a><a href="#" class="btn btn-secondary">The logbook ↓</a></div>
@@ -63,8 +63,8 @@ ${subscribeSection}`),
   <header style="max-width:var(--prose-max);margin:0 auto">
     <p class="eyebrow" style="margin-bottom:var(--space-6)">ai-agents · agent-memory · memory · architecture</p>
     <h1 style="font-family:var(--font-display);font-weight:400;font-size:var(--text-6xl);line-height:var(--leading-post-h1);letter-spacing:var(--tracking-tight);margin:0 0 var(--space-6)">${POSTS.memory.title}</h1>
-    <p style="font-family:var(--font-display);font-style:italic;font-size:var(--text-2xl);line-height:var(--leading-2xl);color:rgb(var(--c-muted));margin:0 0 var(--space-6)">Not the context window, not a vector database: the part that decides what an agent keeps, about whom, and when it comes back</p>
-    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-3);font-family:var(--font-mono);font-size:var(--text-xs);color:rgb(var(--c-muted-3))">${badge("argued")}<span>SEP 29</span><span>·</span><span>7 min read</span><span>·</span><span>by Abdur Rahman Sayeed</span></div>
+    <p style="font-family:var(--font-display);font-style:italic;font-size:var(--text-2xl);line-height:var(--leading-2xl);color:rgb(var(--c-meta));margin:0 0 var(--space-6)">Not the context window, not a vector database: the part that decides what an agent keeps, about whom, and when it comes back</p>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-3);font-family:var(--font-mono);font-size:var(--text-xs);color:rgb(var(--c-meta))">${badge("argued")}<span>SEP 29</span><span>·</span><span>7 min read</span><span>·</span><span>by Abdur Rahman Sayeed</span></div>
     <div class="accent-rule" style="margin-top:var(--space-8)"></div>
     <p class="register-note">Argument and definition. The Northsun paragraph describes a design, not a measurement: no benchmark, no customer, no measured latency.</p>
   </header>
@@ -94,7 +94,7 @@ ${subscribeSection}`),
   <p class="lede" style="margin-bottom:var(--space-16)">${postCount} entries · evidence-anchored builder logs · RSS available.</p>
   <div style="margin-bottom:var(--space-16)">${flagshipCard(POSTS.flagship, "FLAGSHIP · PINNED")}</div>
   <ul class="post-list"><li>${postRow(POSTS.memory)}</li><li>${postRow(POSTS.meta)}</li><li>${postRow(POSTS.pager)}</li><li>${postRow(POSTS.retention)}</li></ul>
-  <p style="margin-top:40px;font-family:var(--font-mono);font-size:var(--text-xs);color:rgb(var(--c-muted-3))">Subscribe via <a href="#" class="link-meta">RSS</a> · <a href="#" class="link-meta">email</a></p>
+  <p style="margin-top:40px;font-family:var(--font-mono);font-size:var(--text-xs);color:rgb(var(--c-meta))">Subscribe via <a href="#" class="link-meta">RSS</a> · <a href="#" class="link-meta">email</a></p>
 </div>`),
     },
     {

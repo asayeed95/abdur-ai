@@ -25,7 +25,7 @@ const write = (p, s) => {
   fs.mkdirSync(path.dirname(p), { recursive: true });
   fs.writeFileSync(p, s);
 };
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 const UPDATED = "2026-10-02";
 const errors = [];
 
@@ -68,9 +68,21 @@ for (const b of parsed.colors) {
   for (const [k, v] of Object.entries(b.decls)) {
     const name = k.replace(/^--c-/, "");
     color.tokens[name] ??= { var: k };
-    const entry = { channels: v, hex: hexOf(channels(v)) };
+    const alias = v.match(/^var\(--c-([a-z0-9-]+)\)$/)?.[1];
+    const entry = alias ? { alias, raw: v } : { channels: v, hex: hexOf(channels(v)) };
     if (scope === "all") color.tokens[name].all = entry;
     else color.tokens[name][scope] = entry;
+  }
+}
+// Resolve semantic aliases (--c-meta: var(--c-muted)) to the target's value in the same theme.
+for (const t of Object.values(color.tokens)) {
+  for (const th of ["dark", "light"]) {
+    const e = t[th];
+    if (!e?.alias) continue;
+    const target = color.tokens[e.alias];
+    const src = target?.[th] ?? target?.all;
+    if (!src?.channels) errors.push(`alias ${t.var} (${th}) points at unknown --c-${e.alias}`);
+    else Object.assign(e, { channels: src.channels, hex: src.hex });
   }
 }
 const flat = (file) => {
@@ -99,7 +111,7 @@ const tokensJson = {
   radius: pick(spacingAll, /^--radius/),
   shadow: pick(spacingAll, /^--shadow-/),
   layout: pick(spacingAll, /^--(content|prose|nav|gutter|rule|focus)/),
-  layoutDarkOnly: spacingAll["@dark-only"] ?? {},
+  aitldr: pick(spacingAll, /^--aitldr-/),
   motion: flat("motion"),
 };
 write(path.join(DS, "tokens", "tokens.json"), JSON.stringify(tokensJson, null, 2) + "\n");
@@ -109,15 +121,17 @@ const globals = read(path.join(REPO, "app", "globals.css"));
 const gBlocks = parseBlocks(globals);
 const gDark = gBlocks.find((b) => b.selector === ":root")?.decls ?? {};
 const gLight = gBlocks.find((b) => b.selector === ':root[data-theme="light"]')?.decls ?? {};
-const gDarkScoped = gBlocks.find((b) => b.selector === ':root[data-theme="dark"]')?.decls ?? {};
+const gAitldr = gBlocks.find((b) => b.selector === ":root" && b.decls["--aitldr-measure"])?.decls ?? {};
 for (const [name, t] of Object.entries(color.tokens)) {
   if (t.all) continue;
-  if (gDark[t.var] !== t.dark?.channels) errors.push(`drift: ${t.var} dark = "${t.dark?.channels}", app = "${gDark[t.var]}"`);
-  if (gLight[t.var] !== t.light?.channels) errors.push(`drift: ${t.var} light = "${t.light?.channels}", app = "${gLight[t.var]}"`);
+  const want = (e) => e?.raw ?? e?.channels;
+  if (gDark[t.var] !== want(t.dark)) errors.push(`drift: ${t.var} dark = "${want(t.dark)}", app = "${gDark[t.var]}"`);
+  if (gLight[t.var] !== want(t.light)) errors.push(`drift: ${t.var} light = "${want(t.light)}", app = "${gLight[t.var]}"`);
 }
 for (const k of Object.keys(gDark)) if (!color.tokens[k.replace(/^--c-/, "")]) errors.push(`drift: ${k} exists in app/globals.css but not in tokens/colors.css`);
-for (const [k, v] of Object.entries(tokensJson.layoutDarkOnly)) {
-  if (gDarkScoped[k] !== v) errors.push(`drift: ${k} = "${v}", app = "${gDarkScoped[k]}"`);
+if (!Object.keys(tokensJson.aitldr).length) errors.push("drift: --aitldr-* tokens missing from tokens/spacing.css :root");
+for (const [k, v] of Object.entries(tokensJson.aitldr)) {
+  if (gAitldr[k] !== v) errors.push(`drift: ${k} = "${v}", app :root = "${gAitldr[k]}"`);
 }
 const tw = read(path.join(REPO, "tailwind.config.ts"));
 for (const n of ["good", "good-2", "good-3"]) {
@@ -208,11 +222,12 @@ write(path.join(DS, "index.html"), `${head("Index", 0)}
   const ROLE = {
     bg: "Page ground", "bg-2": "Recessed section", surface: "Card, input, code", "surface-2": "Menu hover",
     border: "Hairline", "border-2": "Strong hairline", text: "Primary text", "text-soft": "Prose body",
-    muted: "Secondary text", "muted-2": "Tags, badges", "muted-3": "Fine print", "muted-4": "Non-text only",
-    clay: "The accent", gold: "Highlight only", good: "Status: success", "good-2": "Status (unused)", "good-3": "Status border",
+    muted: "Borders, input boundary (not text)", "muted-2": "Rules, dots (not text)", "muted-3": "Rules, dots (not text)", "muted-4": "Non-text only",
+    clay: "The accent", gold: "Highlight only, on surface", good: "Status fill (not text)", "good-2": "Status (unused)", "good-3": "Status border",
+    meta: "Alias: all secondary text", "good-text": "Alias: success text", band: "Alias: section/aside ground",
   };
   const rowsMd = Object.entries(color.tokens).map(([n, t]) =>
-    `| \`${t.var}\` | ${t.all ? t.all.channels : t.dark.channels} | ${t.all ? "(same)" : t.light.channels} | ${ROLE[n] ?? ""} |`);
+    `| \`${t.var}\` | ${t.all ? t.all.channels : t.dark.raw ?? t.dark.channels} | ${t.all ? "(same)" : t.light.raw ?? t.light.channels} | ${ROLE[n] ?? ""} |`);
   const kv = (o) => Object.entries(o).map(([k, v]) => `\`${k}\` ${v}`).join(" · ");
   const table = [
     "| Colour | Dark | Light | Role |", "| --- | --- | --- | --- |", ...rowsMd, "",
@@ -230,13 +245,33 @@ write(path.join(DS, "index.html"), `${head("Index", 0)}
   write(mdPath, doc);
 }
 
+// ---------- Usage scan: the 1.1 contrast rules, enforced in the app ----------
+// Each rule names a class pattern that would put a token on a ground it fails on.
+const USAGE_RULES = [
+  { re: /(?<![\w-])text-muted(-[234])?(?![\w-])/, msg: "muted ramp used for text — use text-meta" },
+  { re: /(?<![\w-])text-good(?![\w-])/, msg: "text-good fails in light (1.56–1.87:1) — use text-good-text" },
+  { re: /(?<![\w-])bg-(bg-2|surface-2)(?![\w-]).*(?<![\w-])(text-clay|text-gold|eyebrow)(?![\w-])|(?<![\w-])(text-clay|text-gold|eyebrow)(?![\w-]).*(?<![\w-])bg-(bg-2|surface-2)(?![\w-])/, msg: "clay/gold text on bg-2/surface-2 fails in light — use bg-band" },
+  { re: /focus:border-clay/, also: /(?<![\w-])border-border(?![\w-])/, msg: "input boundary in border fails 3:1 — use border-muted" },
+];
+for (const dir of ["app", "components", "lib"]) {
+  for (const f of walk(path.join(REPO, dir))) {
+    if (!/\.(tsx?|css|mdx?)$/.test(f)) continue;
+    read(f).split("\n").forEach((line, i) => {
+      for (const r of USAGE_RULES) {
+        if (r.re.test(line) && (!r.also || r.also.test(line))) errors.push(`usage: ${path.relative(REPO, f)}:${i + 1} ${r.msg}`);
+      }
+    });
+  }
+}
+
 // ---------- 3. Hex check ----------
 const HEX = /(?<![&\w])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z_-])/g;
-const walk = (dir) =>
-  fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+function walk(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const p = path.join(dir, e.name);
     return e.isDirectory() ? walk(p) : [p];
   });
+}
 for (const f of walk(DS)) {
   const rel = path.relative(DS, f);
   if (rel.startsWith("tokens" + path.sep) || !/\.(html|css|js|mjs|md)$/.test(f)) continue;
@@ -256,8 +291,8 @@ for (const [name, t] of Object.entries(color.tokens)) {
   for (const th of ["dark", "light"]) live[th][name] = channels((t.all ?? t[th]).channels);
 }
 const layout = {
-  dark: Object.fromEntries(Object.keys(tokensJson.layoutDarkOnly).map((k) => [k, tokensJson.layoutDarkOnly[k]])),
-  light: {},
+  dark: { ...tokensJson.aitldr },
+  light: { ...tokensJson.aitldr },
 };
 const rows = C.evaluate(live);
 const risks = C.riskResults(rows, layout);
@@ -267,9 +302,12 @@ console.log(`\nContrast — text 4.5:1: ${count(text)} · non-text 3:1: ${count(
 for (const r of rows.filter((r) => !r.pass)) {
   console.log(`  FAIL ${r.theme.padEnd(5)} ${r.fg.padEnd(9)} on ${r.bg.padEnd(9)} ${r.ratio.toFixed(2)}:1 (min ${r.min}${r.kind === "text" && r.large ? ", passes 3:1 large" : ""})`);
 }
+console.log("Not for text (reference only):");
+const nft = C.notForText(live);
+for (const t of nft) console.log(`  ${t.fg.padEnd(8)} dark ${t.dark} · light ${t.light} — ${t.rule}`);
 console.log("Known risks:");
 for (const k of risks) console.log(`  ${k.pass ? "PASS" : "FAIL"} ${k.label} — ${k.detail}`);
-write(path.join(DS, "tests", "contrast-results.json"), JSON.stringify({ generated: UPDATED, summary: { text: count(text), ui: count(ui) }, rows, risks }, null, 2) + "\n");
+write(path.join(DS, "tests", "contrast-results.json"), JSON.stringify({ generated: UPDATED, summary: { text: count(text), ui: count(ui) }, rows, notForText: nft, risks }, null, 2) + "\n");
 
 // ---------- 6. Artifact export ----------
 const ai = process.argv.indexOf("--artifact");
@@ -279,7 +317,7 @@ if (ai > -1) {
     process.exit(1);
   }
   const { exportArtifact } = await import("./artifact.mjs");
-  exportArtifact({ out: path.resolve(process.argv[ai + 1]), DS, REPO, color, tokensJson, rows, risks, C, templates, VERSION, UPDATED });
+  exportArtifact({ out: path.resolve(process.argv[ai + 1]), DS, REPO, color, tokensJson, rows, risks, C, templates, VERSION, UPDATED, liveTokens: live });
 }
 
 if (errors.length) {

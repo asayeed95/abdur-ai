@@ -1,8 +1,8 @@
 {
   "generated": "2026-10-02",
   "summary": {
-    "text": "37 pass / 37 fail",
-    "ui": "8 pass / 2 fail"
+    "text": "52 pass / 0 fail",
+    "ui": "18 pass / 0 fail"
   },
   "rows": [
     {
@@ -16,8 +16,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#F2EDE6",
-      "bgHex": "#0B0A08",
-      "fix": null
+      "bgHex": "#0B0A08"
     },
     {
       "theme": "dark",
@@ -30,8 +29,20 @@
       "pass": true,
       "large": true,
       "fgHex": "#F2EDE6",
-      "bgHex": "#0E0C0A",
-      "fix": null
+      "bgHex": "#0E0C0A"
+    },
+    {
+      "theme": "dark",
+      "kind": "text",
+      "fg": "text",
+      "bg": "band",
+      "min": 4.5,
+      "use": "headings, primary text",
+      "ratio": 16.76,
+      "pass": true,
+      "large": true,
+      "fgHex": "#F2EDE6",
+      "bgHex": "#0E0C0A"
     },
     {
       "theme": "dark",
@@ -44,8 +55,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#F2EDE6",
-      "bgHex": "#161310",
-      "fix": null
+      "bgHex": "#161310"
     },
     {
       "theme": "dark",
@@ -58,8 +68,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#F2EDE6",
-      "bgHex": "#1C1813",
-      "fix": null
+      "bgHex": "#1C1813"
     },
     {
       "theme": "dark",
@@ -72,8 +81,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#C9C0B2",
-      "bgHex": "#0B0A08",
-      "fix": null
+      "bgHex": "#0B0A08"
     },
     {
       "theme": "dark",
@@ -86,8 +94,20 @@
       "pass": true,
       "large": true,
       "fgHex": "#C9C0B2",
-      "bgHex": "#0E0C0A",
-      "fix": null
+      "bgHex": "#0E0C0A"
+    },
+    {
+      "theme": "dark",
+      "kind": "text",
+      "fg": "text-soft",
+      "bg": "band",
+      "min": 4.5,
+      "use": "prose body (.prose-clay), callout lede",
+      "ratio": 10.85,
+      "pass": true,
+      "large": true,
+      "fgHex": "#C9C0B2",
+      "bgHex": "#0E0C0A"
     },
     {
       "theme": "dark",
@@ -100,8 +120,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#C9C0B2",
-      "bgHex": "#161310",
-      "fix": null
+      "bgHex": "#161310"
     },
     {
       "theme": "dark",
@@ -114,232 +133,72 @@
       "pass": true,
       "large": true,
       "fgHex": "#C9C0B2",
-      "bgHex": "#1C1813",
-      "fix": null
+      "bgHex": "#1C1813"
     },
     {
       "theme": "dark",
       "kind": "text",
-      "fg": "muted",
+      "fg": "meta",
       "bg": "bg",
       "min": 4.5,
-      "use": "ledes, deks, meta, nav links, .eyebrow-muted, building pill",
+      "use": "every secondary line: ledes, deks, dates, tags, badges, nav, footer, placeholders",
       "ratio": 5.89,
       "pass": true,
       "large": true,
       "fgHex": "#948B7D",
-      "bgHex": "#0B0A08",
-      "fix": null
+      "bgHex": "#0B0A08"
     },
     {
       "theme": "dark",
       "kind": "text",
-      "fg": "muted",
+      "fg": "meta",
       "bg": "bg-2",
       "min": 4.5,
-      "use": "ledes, deks, meta, nav links, .eyebrow-muted, building pill",
+      "use": "every secondary line: ledes, deks, dates, tags, badges, nav, footer, placeholders",
       "ratio": 5.81,
       "pass": true,
       "large": true,
       "fgHex": "#948B7D",
-      "bgHex": "#0E0C0A",
-      "fix": null
+      "bgHex": "#0E0C0A"
     },
     {
       "theme": "dark",
       "kind": "text",
-      "fg": "muted",
+      "fg": "meta",
+      "bg": "band",
+      "min": 4.5,
+      "use": "every secondary line: ledes, deks, dates, tags, badges, nav, footer, placeholders",
+      "ratio": 5.81,
+      "pass": true,
+      "large": true,
+      "fgHex": "#948B7D",
+      "bgHex": "#0E0C0A"
+    },
+    {
+      "theme": "dark",
+      "kind": "text",
+      "fg": "meta",
       "bg": "surface",
       "min": 4.5,
-      "use": "ledes, deks, meta, nav links, .eyebrow-muted, building pill",
+      "use": "every secondary line: ledes, deks, dates, tags, badges, nav, footer, placeholders",
       "ratio": 5.51,
       "pass": true,
       "large": true,
       "fgHex": "#948B7D",
-      "bgHex": "#161310",
-      "fix": null
+      "bgHex": "#161310"
     },
     {
       "theme": "dark",
       "kind": "text",
-      "fg": "muted",
+      "fg": "meta",
       "bg": "surface-2",
       "min": 4.5,
-      "use": "ledes, deks, meta, nav links, .eyebrow-muted, building pill",
+      "use": "every secondary line: ledes, deks, dates, tags, badges, nav, footer, placeholders",
       "ratio": 5.25,
       "pass": true,
       "large": true,
       "fgHex": "#948B7D",
-      "bgHex": "#1C1813",
-      "fix": null
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-2",
-      "bg": "bg",
-      "min": 4.5,
-      "use": "#tags (10px), register badges designed/argued (10px), hero aside",
-      "ratio": 4.42,
-      "pass": false,
-      "large": true,
-      "fgHex": "#7E766A",
-      "bgHex": "#0B0A08",
-      "fix": "Small text (<24px) in muted-2 → muted (5.25–5.89:1 dark). Keep muted-2 for text ≥24px (≥3.94:1)."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-2",
-      "bg": "bg-2",
-      "min": 4.5,
-      "use": "#tags (10px), register badges designed/argued (10px), hero aside",
-      "ratio": 4.36,
-      "pass": false,
-      "large": true,
-      "fgHex": "#7E766A",
-      "bgHex": "#0E0C0A",
-      "fix": "Small text (<24px) in muted-2 → muted (5.25–5.89:1 dark). Keep muted-2 for text ≥24px (≥3.94:1)."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-2",
-      "bg": "surface",
-      "min": 4.5,
-      "use": "#tags (10px), register badges designed/argued (10px), hero aside",
-      "ratio": 4.13,
-      "pass": false,
-      "large": true,
-      "fgHex": "#7E766A",
-      "bgHex": "#161310",
-      "fix": "Small text (<24px) in muted-2 → muted (5.25–5.89:1 dark). Keep muted-2 for text ≥24px (≥3.94:1)."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-2",
-      "bg": "surface-2",
-      "min": 4.5,
-      "use": "#tags (10px), register badges designed/argued (10px), hero aside",
-      "ratio": 3.94,
-      "pass": false,
-      "large": true,
-      "fgHex": "#7E766A",
-      "bgHex": "#1C1813",
-      "fix": "Small text (<24px) in muted-2 → muted (5.25–5.89:1 dark). Keep muted-2 for text ≥24px (≥3.94:1)."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-3",
-      "bg": "bg",
-      "min": 4.5,
-      "use": "reading time, footer legal (10px), placeholder, prev/next labels",
-      "ratio": 4.16,
-      "pass": false,
-      "large": true,
-      "fgHex": "#7A7264",
-      "bgHex": "#0B0A08",
-      "fix": "Small text in muted-3 → muted. muted-3 stays legal only at ≥24px (≥3.71:1)."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-3",
-      "bg": "bg-2",
-      "min": 4.5,
-      "use": "reading time, footer legal (10px), placeholder, prev/next labels",
-      "ratio": 4.11,
-      "pass": false,
-      "large": true,
-      "fgHex": "#7A7264",
-      "bgHex": "#0E0C0A",
-      "fix": "Small text in muted-3 → muted. muted-3 stays legal only at ≥24px (≥3.71:1)."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-3",
-      "bg": "surface",
-      "min": 4.5,
-      "use": "reading time, footer legal (10px), placeholder, prev/next labels",
-      "ratio": 3.89,
-      "pass": false,
-      "large": true,
-      "fgHex": "#7A7264",
-      "bgHex": "#161310",
-      "fix": "Small text in muted-3 → muted. muted-3 stays legal only at ≥24px (≥3.71:1)."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-3",
-      "bg": "surface-2",
-      "min": 4.5,
-      "use": "reading time, footer legal (10px), placeholder, prev/next labels",
-      "ratio": 3.71,
-      "pass": false,
-      "large": true,
-      "fgHex": "#7A7264",
-      "bgHex": "#1C1813",
-      "fix": "Small text in muted-3 → muted. muted-3 stays legal only at ≥24px (≥3.71:1)."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-4",
-      "bg": "bg",
-      "min": 4.5,
-      "use": "no text use in app/ or components/ today",
-      "ratio": 3.29,
-      "pass": false,
-      "large": true,
-      "fgHex": "#6A6256",
-      "bgHex": "#0B0A08",
-      "fix": "No text uses muted-4 today. Document it as non-text only (fails 3:1 on surface-2 at 2.94:1). No code change."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-4",
-      "bg": "bg-2",
-      "min": 4.5,
-      "use": "no text use in app/ or components/ today",
-      "ratio": 3.25,
-      "pass": false,
-      "large": true,
-      "fgHex": "#6A6256",
-      "bgHex": "#0E0C0A",
-      "fix": "No text uses muted-4 today. Document it as non-text only (fails 3:1 on surface-2 at 2.94:1). No code change."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-4",
-      "bg": "surface",
-      "min": 4.5,
-      "use": "no text use in app/ or components/ today",
-      "ratio": 3.08,
-      "pass": false,
-      "large": true,
-      "fgHex": "#6A6256",
-      "bgHex": "#161310",
-      "fix": "No text uses muted-4 today. Document it as non-text only (fails 3:1 on surface-2 at 2.94:1). No code change."
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "muted-4",
-      "bg": "surface-2",
-      "min": 4.5,
-      "use": "no text use in app/ or components/ today",
-      "ratio": 2.94,
-      "pass": false,
-      "large": false,
-      "fgHex": "#6A6256",
-      "bgHex": "#1C1813",
-      "fix": "No text uses muted-4 today. Document it as non-text only (fails 3:1 on surface-2 at 2.94:1). No code change."
+      "bgHex": "#1C1813"
     },
     {
       "theme": "dark",
@@ -347,27 +206,25 @@
       "fg": "clay",
       "bg": "bg",
       "min": 4.5,
-      "use": ".eyebrow (12px), post dates, links, form error, register reported",
+      "use": ".eyebrow, post dates, links, form error, register reported",
       "ratio": 6.34,
       "pass": true,
       "large": true,
       "fgHex": "#D97757",
-      "bgHex": "#0B0A08",
-      "fix": null
+      "bgHex": "#0B0A08"
     },
     {
       "theme": "dark",
       "kind": "text",
       "fg": "clay",
-      "bg": "bg-2",
+      "bg": "band",
       "min": 4.5,
-      "use": ".eyebrow (12px), post dates, links, form error, register reported",
+      "use": ".eyebrow, post dates, links, form error, register reported",
       "ratio": 6.25,
       "pass": true,
       "large": true,
       "fgHex": "#D97757",
-      "bgHex": "#0E0C0A",
-      "fix": null
+      "bgHex": "#0E0C0A"
     },
     {
       "theme": "dark",
@@ -375,55 +232,25 @@
       "fg": "clay",
       "bg": "surface",
       "min": 4.5,
-      "use": ".eyebrow (12px), post dates, links, form error, register reported",
+      "use": ".eyebrow, post dates, links, form error, register reported",
       "ratio": 5.93,
       "pass": true,
       "large": true,
       "fgHex": "#D97757",
-      "bgHex": "#161310",
-      "fix": null
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "clay",
-      "bg": "surface-2",
-      "min": 4.5,
-      "use": ".eyebrow (12px), post dates, links, form error, register reported",
-      "ratio": 5.66,
-      "pass": true,
-      "large": true,
-      "fgHex": "#D97757",
-      "bgHex": "#1C1813",
-      "fix": null
+      "bgHex": "#161310"
     },
     {
       "theme": "dark",
       "kind": "text",
       "fg": "gold",
-      "bg": "bg",
+      "bg": "band",
       "min": 4.5,
-      "use": "status-near pill (10px), Open-to-roles pill, NowPanel queued",
-      "ratio": 12.15,
-      "pass": true,
-      "large": true,
-      "fgHex": "#F5C451",
-      "bgHex": "#0B0A08",
-      "fix": null
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "gold",
-      "bg": "bg-2",
-      "min": 4.5,
-      "use": "status-near pill (10px), Open-to-roles pill, NowPanel queued",
+      "use": "status-near pill (has a surface fill), Open-to-roles pill, NowPanel queued",
       "ratio": 11.99,
       "pass": true,
       "large": true,
       "fgHex": "#F5C451",
-      "bgHex": "#0E0C0A",
-      "fix": null
+      "bgHex": "#0E0C0A"
     },
     {
       "theme": "dark",
@@ -431,83 +258,77 @@
       "fg": "gold",
       "bg": "surface",
       "min": 4.5,
-      "use": "status-near pill (10px), Open-to-roles pill, NowPanel queued",
+      "use": "status-near pill (has a surface fill), Open-to-roles pill, NowPanel queued",
       "ratio": 11.37,
       "pass": true,
       "large": true,
       "fgHex": "#F5C451",
-      "bgHex": "#161310",
-      "fix": null
+      "bgHex": "#161310"
     },
     {
       "theme": "dark",
       "kind": "text",
-      "fg": "gold",
-      "bg": "surface-2",
-      "min": 4.5,
-      "use": "status-near pill (10px), Open-to-roles pill, NowPanel queued",
-      "ratio": 10.84,
-      "pass": true,
-      "large": true,
-      "fgHex": "#F5C451",
-      "bgHex": "#1C1813",
-      "fix": null
-    },
-    {
-      "theme": "dark",
-      "kind": "text",
-      "fg": "good",
+      "fg": "good-text",
       "bg": "bg",
       "min": 4.5,
-      "use": "status-flight pill (10px), form success message",
+      "use": "status-flight pill, form success message, NowPanel running",
       "ratio": 10.41,
       "pass": true,
       "large": true,
       "fgHex": "#6FCF97",
-      "bgHex": "#0B0A08",
-      "fix": null
+      "bgHex": "#0B0A08"
     },
     {
       "theme": "dark",
       "kind": "text",
-      "fg": "good",
+      "fg": "good-text",
       "bg": "bg-2",
       "min": 4.5,
-      "use": "status-flight pill (10px), form success message",
+      "use": "status-flight pill, form success message, NowPanel running",
       "ratio": 10.27,
       "pass": true,
       "large": true,
       "fgHex": "#6FCF97",
-      "bgHex": "#0E0C0A",
-      "fix": null
+      "bgHex": "#0E0C0A"
     },
     {
       "theme": "dark",
       "kind": "text",
-      "fg": "good",
+      "fg": "good-text",
+      "bg": "band",
+      "min": 4.5,
+      "use": "status-flight pill, form success message, NowPanel running",
+      "ratio": 10.27,
+      "pass": true,
+      "large": true,
+      "fgHex": "#6FCF97",
+      "bgHex": "#0E0C0A"
+    },
+    {
+      "theme": "dark",
+      "kind": "text",
+      "fg": "good-text",
       "bg": "surface",
       "min": 4.5,
-      "use": "status-flight pill (10px), form success message",
+      "use": "status-flight pill, form success message, NowPanel running",
       "ratio": 9.74,
       "pass": true,
       "large": true,
       "fgHex": "#6FCF97",
-      "bgHex": "#161310",
-      "fix": null
+      "bgHex": "#161310"
     },
     {
       "theme": "dark",
       "kind": "text",
-      "fg": "good",
+      "fg": "good-text",
       "bg": "surface-2",
       "min": 4.5,
-      "use": "status-flight pill (10px), form success message",
+      "use": "status-flight pill, form success message, NowPanel running",
       "ratio": 9.29,
       "pass": true,
       "large": true,
       "fgHex": "#6FCF97",
-      "bgHex": "#1C1813",
-      "fix": null
+      "bgHex": "#1C1813"
     },
     {
       "theme": "dark",
@@ -520,8 +341,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#0B0A08",
-      "bgHex": "#D97757",
-      "fix": null
+      "bgHex": "#D97757"
     },
     {
       "theme": "dark",
@@ -534,8 +354,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#D97757",
-      "bgHex": "#0B0A08",
-      "fix": null
+      "bgHex": "#0B0A08"
     },
     {
       "theme": "dark",
@@ -548,8 +367,20 @@
       "pass": true,
       "large": true,
       "fgHex": "#D97757",
-      "bgHex": "#0E0C0A",
-      "fix": null
+      "bgHex": "#0E0C0A"
+    },
+    {
+      "theme": "dark",
+      "kind": "ui",
+      "fg": "clay",
+      "bg": "band",
+      "min": 3,
+      "use": "focus ring (2px solid clay)",
+      "ratio": 6.25,
+      "pass": true,
+      "large": true,
+      "fgHex": "#D97757",
+      "bgHex": "#0E0C0A"
     },
     {
       "theme": "dark",
@@ -562,8 +393,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#D97757",
-      "bgHex": "#161310",
-      "fix": null
+      "bgHex": "#161310"
     },
     {
       "theme": "dark",
@@ -576,22 +406,59 @@
       "pass": true,
       "large": true,
       "fgHex": "#D97757",
-      "bgHex": "#1C1813",
-      "fix": null
+      "bgHex": "#1C1813"
     },
     {
       "theme": "dark",
       "kind": "ui",
-      "fg": "border",
+      "fg": "muted",
+      "bg": "bg",
+      "min": 3,
+      "use": "input boundary (border-muted) on this ground",
+      "ratio": 5.89,
+      "pass": true,
+      "large": true,
+      "fgHex": "#948B7D",
+      "bgHex": "#0B0A08"
+    },
+    {
+      "theme": "dark",
+      "kind": "ui",
+      "fg": "muted",
       "bg": "bg-2",
       "min": 3,
-      "use": "newsletter input boundary on the bg-2 section",
-      "ratio": 1.31,
-      "pass": false,
-      "large": false,
-      "fgHex": "#2C2620",
-      "bgHex": "#0E0C0A",
-      "fix": "Input boundary → muted border (dark 5.81:1, light 3.68:1 on bg-2). Existing token."
+      "use": "input boundary (border-muted) on this ground",
+      "ratio": 5.81,
+      "pass": true,
+      "large": true,
+      "fgHex": "#948B7D",
+      "bgHex": "#0E0C0A"
+    },
+    {
+      "theme": "dark",
+      "kind": "ui",
+      "fg": "muted",
+      "bg": "band",
+      "min": 3,
+      "use": "input boundary (border-muted) on this ground",
+      "ratio": 5.81,
+      "pass": true,
+      "large": true,
+      "fgHex": "#948B7D",
+      "bgHex": "#0E0C0A"
+    },
+    {
+      "theme": "dark",
+      "kind": "ui",
+      "fg": "muted",
+      "bg": "surface",
+      "min": 3,
+      "use": "input boundary (border-muted) on this ground",
+      "ratio": 5.51,
+      "pass": true,
+      "large": true,
+      "fgHex": "#948B7D",
+      "bgHex": "#161310"
     },
     {
       "theme": "light",
@@ -604,8 +471,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#1F1A14",
-      "bgHex": "#F6F1E8",
-      "fix": null
+      "bgHex": "#F6F1E8"
     },
     {
       "theme": "light",
@@ -618,8 +484,20 @@
       "pass": true,
       "large": true,
       "fgHex": "#1F1A14",
-      "bgHex": "#EFE8DB",
-      "fix": null
+      "bgHex": "#EFE8DB"
+    },
+    {
+      "theme": "light",
+      "kind": "text",
+      "fg": "text",
+      "bg": "band",
+      "min": 4.5,
+      "use": "headings, primary text",
+      "ratio": 16.99,
+      "pass": true,
+      "large": true,
+      "fgHex": "#1F1A14",
+      "bgHex": "#FFFDF8"
     },
     {
       "theme": "light",
@@ -632,8 +510,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#1F1A14",
-      "bgHex": "#FFFDF8",
-      "fix": null
+      "bgHex": "#FFFDF8"
     },
     {
       "theme": "light",
@@ -646,8 +523,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#1F1A14",
-      "bgHex": "#EFE8DB",
-      "fix": null
+      "bgHex": "#EFE8DB"
     },
     {
       "theme": "light",
@@ -660,8 +536,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#464036",
-      "bgHex": "#F6F1E8",
-      "fix": null
+      "bgHex": "#F6F1E8"
     },
     {
       "theme": "light",
@@ -674,8 +549,20 @@
       "pass": true,
       "large": true,
       "fgHex": "#464036",
-      "bgHex": "#EFE8DB",
-      "fix": null
+      "bgHex": "#EFE8DB"
+    },
+    {
+      "theme": "light",
+      "kind": "text",
+      "fg": "text-soft",
+      "bg": "band",
+      "min": 4.5,
+      "use": "prose body (.prose-clay), callout lede",
+      "ratio": 10.09,
+      "pass": true,
+      "large": true,
+      "fgHex": "#464036",
+      "bgHex": "#FFFDF8"
     },
     {
       "theme": "light",
@@ -688,8 +575,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#464036",
-      "bgHex": "#FFFDF8",
-      "fix": null
+      "bgHex": "#FFFDF8"
     },
     {
       "theme": "light",
@@ -702,232 +588,72 @@
       "pass": true,
       "large": true,
       "fgHex": "#464036",
-      "bgHex": "#EFE8DB",
-      "fix": null
+      "bgHex": "#EFE8DB"
     },
     {
       "theme": "light",
       "kind": "text",
-      "fg": "muted",
+      "fg": "meta",
       "bg": "bg",
       "min": 4.5,
-      "use": "ledes, deks, meta, nav links, .eyebrow-muted, building pill",
-      "ratio": 3.98,
-      "pass": false,
+      "use": "every secondary line: ledes, deks, dates, tags, badges, nav, footer, placeholders",
+      "ratio": 9.12,
+      "pass": true,
       "large": true,
-      "fgHex": "#7E766A",
-      "bgHex": "#F6F1E8",
-      "fix": "Add theme alias --c-meta (dark → muted, light → text-soft, 8.42–10.09:1) and move small meta text to it. Aliases existing values; changes none."
+      "fgHex": "#464036",
+      "bgHex": "#F6F1E8"
     },
     {
       "theme": "light",
       "kind": "text",
-      "fg": "muted",
+      "fg": "meta",
       "bg": "bg-2",
       "min": 4.5,
-      "use": "ledes, deks, meta, nav links, .eyebrow-muted, building pill",
-      "ratio": 3.68,
-      "pass": false,
+      "use": "every secondary line: ledes, deks, dates, tags, badges, nav, footer, placeholders",
+      "ratio": 8.42,
+      "pass": true,
       "large": true,
-      "fgHex": "#7E766A",
-      "bgHex": "#EFE8DB",
-      "fix": "Add theme alias --c-meta (dark → muted, light → text-soft, 8.42–10.09:1) and move small meta text to it. Aliases existing values; changes none."
+      "fgHex": "#464036",
+      "bgHex": "#EFE8DB"
     },
     {
       "theme": "light",
       "kind": "text",
-      "fg": "muted",
+      "fg": "meta",
+      "bg": "band",
+      "min": 4.5,
+      "use": "every secondary line: ledes, deks, dates, tags, badges, nav, footer, placeholders",
+      "ratio": 10.09,
+      "pass": true,
+      "large": true,
+      "fgHex": "#464036",
+      "bgHex": "#FFFDF8"
+    },
+    {
+      "theme": "light",
+      "kind": "text",
+      "fg": "meta",
       "bg": "surface",
       "min": 4.5,
-      "use": "ledes, deks, meta, nav links, .eyebrow-muted, building pill",
-      "ratio": 4.41,
-      "pass": false,
+      "use": "every secondary line: ledes, deks, dates, tags, badges, nav, footer, placeholders",
+      "ratio": 10.09,
+      "pass": true,
       "large": true,
-      "fgHex": "#7E766A",
-      "bgHex": "#FFFDF8",
-      "fix": "Add theme alias --c-meta (dark → muted, light → text-soft, 8.42–10.09:1) and move small meta text to it. Aliases existing values; changes none."
+      "fgHex": "#464036",
+      "bgHex": "#FFFDF8"
     },
     {
       "theme": "light",
       "kind": "text",
-      "fg": "muted",
+      "fg": "meta",
       "bg": "surface-2",
       "min": 4.5,
-      "use": "ledes, deks, meta, nav links, .eyebrow-muted, building pill",
-      "ratio": 3.68,
-      "pass": false,
+      "use": "every secondary line: ledes, deks, dates, tags, badges, nav, footer, placeholders",
+      "ratio": 8.42,
+      "pass": true,
       "large": true,
-      "fgHex": "#7E766A",
-      "bgHex": "#EFE8DB",
-      "fix": "Add theme alias --c-meta (dark → muted, light → text-soft, 8.42–10.09:1) and move small meta text to it. Aliases existing values; changes none."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-2",
-      "bg": "bg",
-      "min": 4.5,
-      "use": "#tags (10px), register badges designed/argued (10px), hero aside",
-      "ratio": 2.8,
-      "pass": false,
-      "large": false,
-      "fgHex": "#9A907F",
-      "bgHex": "#F6F1E8",
-      "fix": "Same alias: small muted-2 text → --c-meta. muted-2 fails even 3:1 on bg-2/surface-2 (2.58:1): decorative only in light."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-2",
-      "bg": "bg-2",
-      "min": 4.5,
-      "use": "#tags (10px), register badges designed/argued (10px), hero aside",
-      "ratio": 2.58,
-      "pass": false,
-      "large": false,
-      "fgHex": "#9A907F",
-      "bgHex": "#EFE8DB",
-      "fix": "Same alias: small muted-2 text → --c-meta. muted-2 fails even 3:1 on bg-2/surface-2 (2.58:1): decorative only in light."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-2",
-      "bg": "surface",
-      "min": 4.5,
-      "use": "#tags (10px), register badges designed/argued (10px), hero aside",
-      "ratio": 3.1,
-      "pass": false,
-      "large": true,
-      "fgHex": "#9A907F",
-      "bgHex": "#FFFDF8",
-      "fix": "Same alias: small muted-2 text → --c-meta. muted-2 fails even 3:1 on bg-2/surface-2 (2.58:1): decorative only in light."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-2",
-      "bg": "surface-2",
-      "min": 4.5,
-      "use": "#tags (10px), register badges designed/argued (10px), hero aside",
-      "ratio": 2.58,
-      "pass": false,
-      "large": false,
-      "fgHex": "#9A907F",
-      "bgHex": "#EFE8DB",
-      "fix": "Same alias: small muted-2 text → --c-meta. muted-2 fails even 3:1 on bg-2/surface-2 (2.58:1): decorative only in light."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-3",
-      "bg": "bg",
-      "min": 4.5,
-      "use": "reading time, footer legal (10px), placeholder, prev/next labels",
-      "ratio": 2.8,
-      "pass": false,
-      "large": false,
-      "fgHex": "#9A907F",
-      "bgHex": "#F6F1E8",
-      "fix": "Same alias: small muted-3 text → --c-meta."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-3",
-      "bg": "bg-2",
-      "min": 4.5,
-      "use": "reading time, footer legal (10px), placeholder, prev/next labels",
-      "ratio": 2.58,
-      "pass": false,
-      "large": false,
-      "fgHex": "#9A907F",
-      "bgHex": "#EFE8DB",
-      "fix": "Same alias: small muted-3 text → --c-meta."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-3",
-      "bg": "surface",
-      "min": 4.5,
-      "use": "reading time, footer legal (10px), placeholder, prev/next labels",
-      "ratio": 3.1,
-      "pass": false,
-      "large": true,
-      "fgHex": "#9A907F",
-      "bgHex": "#FFFDF8",
-      "fix": "Same alias: small muted-3 text → --c-meta."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-3",
-      "bg": "surface-2",
-      "min": 4.5,
-      "use": "reading time, footer legal (10px), placeholder, prev/next labels",
-      "ratio": 2.58,
-      "pass": false,
-      "large": false,
-      "fgHex": "#9A907F",
-      "bgHex": "#EFE8DB",
-      "fix": "Same alias: small muted-3 text → --c-meta."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-4",
-      "bg": "bg",
-      "min": 4.5,
-      "use": "no text use in app/ or components/ today",
-      "ratio": 2.8,
-      "pass": false,
-      "large": false,
-      "fgHex": "#9A907F",
-      "bgHex": "#F6F1E8",
-      "fix": "Unused for text. Document as non-text only."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-4",
-      "bg": "bg-2",
-      "min": 4.5,
-      "use": "no text use in app/ or components/ today",
-      "ratio": 2.58,
-      "pass": false,
-      "large": false,
-      "fgHex": "#9A907F",
-      "bgHex": "#EFE8DB",
-      "fix": "Unused for text. Document as non-text only."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-4",
-      "bg": "surface",
-      "min": 4.5,
-      "use": "no text use in app/ or components/ today",
-      "ratio": 3.1,
-      "pass": false,
-      "large": true,
-      "fgHex": "#9A907F",
-      "bgHex": "#FFFDF8",
-      "fix": "Unused for text. Document as non-text only."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "muted-4",
-      "bg": "surface-2",
-      "min": 4.5,
-      "use": "no text use in app/ or components/ today",
-      "ratio": 2.58,
-      "pass": false,
-      "large": false,
-      "fgHex": "#9A907F",
-      "bgHex": "#EFE8DB",
-      "fix": "Unused for text. Document as non-text only."
+      "fgHex": "#464036",
+      "bgHex": "#EFE8DB"
     },
     {
       "theme": "light",
@@ -935,167 +661,129 @@
       "fg": "clay",
       "bg": "bg",
       "min": 4.5,
-      "use": ".eyebrow (12px), post dates, links, form error, register reported",
+      "use": ".eyebrow, post dates, links, form error, register reported",
       "ratio": 4.56,
       "pass": true,
       "large": true,
       "fgHex": "#AE5338",
-      "bgHex": "#F6F1E8",
-      "fix": null
+      "bgHex": "#F6F1E8"
     },
     {
       "theme": "light",
       "kind": "text",
       "fg": "clay",
-      "bg": "bg-2",
+      "bg": "band",
       "min": 4.5,
-      "use": ".eyebrow (12px), post dates, links, form error, register reported",
-      "ratio": 4.21,
-      "pass": false,
-      "large": true,
-      "fgHex": "#AE5338",
-      "bgHex": "#EFE8DB",
-      "fix": "Keep small clay text off bg-2/surface-2: the Subscribe section and flagship card move bg-2 → bg (in dark the two grounds differ by 1.01:1, so nothing visible changes). The 4.21:1 pairs disappear."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "clay",
-      "bg": "surface",
-      "min": 4.5,
-      "use": ".eyebrow (12px), post dates, links, form error, register reported",
+      "use": ".eyebrow, post dates, links, form error, register reported",
       "ratio": 5.05,
       "pass": true,
       "large": true,
       "fgHex": "#AE5338",
-      "bgHex": "#FFFDF8",
-      "fix": null
+      "bgHex": "#FFFDF8"
     },
     {
       "theme": "light",
       "kind": "text",
       "fg": "clay",
-      "bg": "surface-2",
-      "min": 4.5,
-      "use": ".eyebrow (12px), post dates, links, form error, register reported",
-      "ratio": 4.21,
-      "pass": false,
-      "large": true,
-      "fgHex": "#AE5338",
-      "bgHex": "#EFE8DB",
-      "fix": "Keep small clay text off bg-2/surface-2: the Subscribe section and flagship card move bg-2 → bg (in dark the two grounds differ by 1.01:1, so nothing visible changes). The 4.21:1 pairs disappear."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "gold",
-      "bg": "bg",
-      "min": 4.5,
-      "use": "status-near pill (10px), Open-to-roles pill, NowPanel queued",
-      "ratio": 4.41,
-      "pass": false,
-      "large": true,
-      "fgHex": "#8F6A00",
-      "bgHex": "#F6F1E8",
-      "fix": "Gold text only on surface (4.88:1). The status-near pill already sits on cards (surface); the /hire Open-to-roles pill on bg moves onto a surface chip."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "gold",
-      "bg": "bg-2",
-      "min": 4.5,
-      "use": "status-near pill (10px), Open-to-roles pill, NowPanel queued",
-      "ratio": 4.08,
-      "pass": false,
-      "large": true,
-      "fgHex": "#8F6A00",
-      "bgHex": "#EFE8DB",
-      "fix": "Gold text only on surface (4.88:1). The status-near pill already sits on cards (surface); the /hire Open-to-roles pill on bg moves onto a surface chip."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "gold",
       "bg": "surface",
       "min": 4.5,
-      "use": "status-near pill (10px), Open-to-roles pill, NowPanel queued",
+      "use": ".eyebrow, post dates, links, form error, register reported",
+      "ratio": 5.05,
+      "pass": true,
+      "large": true,
+      "fgHex": "#AE5338",
+      "bgHex": "#FFFDF8"
+    },
+    {
+      "theme": "light",
+      "kind": "text",
+      "fg": "gold",
+      "bg": "band",
+      "min": 4.5,
+      "use": "status-near pill (has a surface fill), Open-to-roles pill, NowPanel queued",
       "ratio": 4.88,
       "pass": true,
       "large": true,
       "fgHex": "#8F6A00",
-      "bgHex": "#FFFDF8",
-      "fix": null
+      "bgHex": "#FFFDF8"
     },
     {
       "theme": "light",
       "kind": "text",
       "fg": "gold",
-      "bg": "surface-2",
-      "min": 4.5,
-      "use": "status-near pill (10px), Open-to-roles pill, NowPanel queued",
-      "ratio": 4.08,
-      "pass": false,
-      "large": true,
-      "fgHex": "#8F6A00",
-      "bgHex": "#EFE8DB",
-      "fix": "Gold text only on surface (4.88:1). The status-near pill already sits on cards (surface); the /hire Open-to-roles pill on bg moves onto a surface chip."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "good",
-      "bg": "bg",
-      "min": 4.5,
-      "use": "status-flight pill (10px), form success message",
-      "ratio": 1.69,
-      "pass": false,
-      "large": false,
-      "fgHex": "#6FCF97",
-      "bgHex": "#F6F1E8",
-      "fix": "Success text in light → good-3 (existing token, 10.60–12.70:1 on light grounds). The status-flight pill text likewise. Dark keeps good."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "good",
-      "bg": "bg-2",
-      "min": 4.5,
-      "use": "status-flight pill (10px), form success message",
-      "ratio": 1.56,
-      "pass": false,
-      "large": false,
-      "fgHex": "#6FCF97",
-      "bgHex": "#EFE8DB",
-      "fix": "Success text in light → good-3 (existing token, 10.60–12.70:1 on light grounds). The status-flight pill text likewise. Dark keeps good."
-    },
-    {
-      "theme": "light",
-      "kind": "text",
-      "fg": "good",
       "bg": "surface",
       "min": 4.5,
-      "use": "status-flight pill (10px), form success message",
-      "ratio": 1.87,
-      "pass": false,
-      "large": false,
-      "fgHex": "#6FCF97",
-      "bgHex": "#FFFDF8",
-      "fix": "Success text in light → good-3 (existing token, 10.60–12.70:1 on light grounds). The status-flight pill text likewise. Dark keeps good."
+      "use": "status-near pill (has a surface fill), Open-to-roles pill, NowPanel queued",
+      "ratio": 4.88,
+      "pass": true,
+      "large": true,
+      "fgHex": "#8F6A00",
+      "bgHex": "#FFFDF8"
     },
     {
       "theme": "light",
       "kind": "text",
-      "fg": "good",
+      "fg": "good-text",
+      "bg": "bg",
+      "min": 4.5,
+      "use": "status-flight pill, form success message, NowPanel running",
+      "ratio": 11.48,
+      "pass": true,
+      "large": true,
+      "fgHex": "#26352B",
+      "bgHex": "#F6F1E8"
+    },
+    {
+      "theme": "light",
+      "kind": "text",
+      "fg": "good-text",
+      "bg": "bg-2",
+      "min": 4.5,
+      "use": "status-flight pill, form success message, NowPanel running",
+      "ratio": 10.6,
+      "pass": true,
+      "large": true,
+      "fgHex": "#26352B",
+      "bgHex": "#EFE8DB"
+    },
+    {
+      "theme": "light",
+      "kind": "text",
+      "fg": "good-text",
+      "bg": "band",
+      "min": 4.5,
+      "use": "status-flight pill, form success message, NowPanel running",
+      "ratio": 12.7,
+      "pass": true,
+      "large": true,
+      "fgHex": "#26352B",
+      "bgHex": "#FFFDF8"
+    },
+    {
+      "theme": "light",
+      "kind": "text",
+      "fg": "good-text",
+      "bg": "surface",
+      "min": 4.5,
+      "use": "status-flight pill, form success message, NowPanel running",
+      "ratio": 12.7,
+      "pass": true,
+      "large": true,
+      "fgHex": "#26352B",
+      "bgHex": "#FFFDF8"
+    },
+    {
+      "theme": "light",
+      "kind": "text",
+      "fg": "good-text",
       "bg": "surface-2",
       "min": 4.5,
-      "use": "status-flight pill (10px), form success message",
-      "ratio": 1.56,
-      "pass": false,
-      "large": false,
-      "fgHex": "#6FCF97",
-      "bgHex": "#EFE8DB",
-      "fix": "Success text in light → good-3 (existing token, 10.60–12.70:1 on light grounds). The status-flight pill text likewise. Dark keeps good."
+      "use": "status-flight pill, form success message, NowPanel running",
+      "ratio": 10.6,
+      "pass": true,
+      "large": true,
+      "fgHex": "#26352B",
+      "bgHex": "#EFE8DB"
     },
     {
       "theme": "light",
@@ -1108,8 +796,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#F6F1E8",
-      "bgHex": "#AE5338",
-      "fix": null
+      "bgHex": "#AE5338"
     },
     {
       "theme": "light",
@@ -1122,8 +809,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#AE5338",
-      "bgHex": "#F6F1E8",
-      "fix": null
+      "bgHex": "#F6F1E8"
     },
     {
       "theme": "light",
@@ -1136,8 +822,20 @@
       "pass": true,
       "large": true,
       "fgHex": "#AE5338",
-      "bgHex": "#EFE8DB",
-      "fix": null
+      "bgHex": "#EFE8DB"
+    },
+    {
+      "theme": "light",
+      "kind": "ui",
+      "fg": "clay",
+      "bg": "band",
+      "min": 3,
+      "use": "focus ring (2px solid clay)",
+      "ratio": 5.05,
+      "pass": true,
+      "large": true,
+      "fgHex": "#AE5338",
+      "bgHex": "#FFFDF8"
     },
     {
       "theme": "light",
@@ -1150,8 +848,7 @@
       "pass": true,
       "large": true,
       "fgHex": "#AE5338",
-      "bgHex": "#FFFDF8",
-      "fix": null
+      "bgHex": "#FFFDF8"
     },
     {
       "theme": "light",
@@ -1164,49 +861,117 @@
       "pass": true,
       "large": true,
       "fgHex": "#AE5338",
-      "bgHex": "#EFE8DB",
-      "fix": null
+      "bgHex": "#EFE8DB"
     },
     {
       "theme": "light",
       "kind": "ui",
-      "fg": "border",
+      "fg": "muted",
+      "bg": "bg",
+      "min": 3,
+      "use": "input boundary (border-muted) on this ground",
+      "ratio": 3.98,
+      "pass": true,
+      "large": true,
+      "fgHex": "#7E766A",
+      "bgHex": "#F6F1E8"
+    },
+    {
+      "theme": "light",
+      "kind": "ui",
+      "fg": "muted",
       "bg": "bg-2",
       "min": 3,
-      "use": "newsletter input boundary on the bg-2 section",
-      "ratio": 1.14,
-      "pass": false,
-      "large": false,
-      "fgHex": "#E4DACA",
-      "bgHex": "#EFE8DB",
-      "fix": "Same: input border → muted."
+      "use": "input boundary (border-muted) on this ground",
+      "ratio": 3.68,
+      "pass": true,
+      "large": true,
+      "fgHex": "#7E766A",
+      "bgHex": "#EFE8DB"
+    },
+    {
+      "theme": "light",
+      "kind": "ui",
+      "fg": "muted",
+      "bg": "band",
+      "min": 3,
+      "use": "input boundary (border-muted) on this ground",
+      "ratio": 4.41,
+      "pass": true,
+      "large": true,
+      "fgHex": "#7E766A",
+      "bgHex": "#FFFDF8"
+    },
+    {
+      "theme": "light",
+      "kind": "ui",
+      "fg": "muted",
+      "bg": "surface",
+      "min": 3,
+      "use": "input boundary (border-muted) on this ground",
+      "ratio": 4.41,
+      "pass": true,
+      "large": true,
+      "fgHex": "#7E766A",
+      "bgHex": "#FFFDF8"
+    }
+  ],
+  "notForText": [
+    {
+      "fg": "muted",
+      "rule": "Borders and input boundaries only. Text uses meta.",
+      "dark": "5.25–5.89",
+      "light": "3.68–4.41"
+    },
+    {
+      "fg": "muted-2",
+      "rule": "Rules and dots only. Text uses meta.",
+      "dark": "3.94–4.42",
+      "light": "2.58–3.10"
+    },
+    {
+      "fg": "muted-3",
+      "rule": "Rules and dots only. Text uses meta.",
+      "dark": "3.71–4.16",
+      "light": "2.58–3.10"
+    },
+    {
+      "fg": "muted-4",
+      "rule": "Non-text only; never had a text use.",
+      "dark": "2.94–3.29",
+      "light": "2.58–3.10"
+    },
+    {
+      "fg": "good",
+      "rule": "Fills and dots only. Text uses good-text.",
+      "dark": "9.29–10.41",
+      "light": "1.56–1.87"
     }
   ],
   "risks": [
     {
       "id": "light-muted-234",
       "label": "Light muted-2/3/4 on the cream background",
-      "pass": false,
-      "detail": "muted-2 on bg 2.80:1 · muted-3 on bg 2.80:1 · muted-4 on bg 2.80:1"
+      "pass": true,
+      "detail": "muted-2/muted-3/muted-4 no longer carry text · meta on bg 9.12:1"
     },
     {
       "id": "dark-muted-4",
       "label": "Dark muted-4 on the dark background",
-      "pass": false,
-      "detail": "muted-4 on bg 3.29:1"
+      "pass": true,
+      "detail": "muted-4 no longer carry text · meta on bg 5.89:1"
     },
     {
       "id": "light-clay-bg2",
-      "label": "Light clay on bg-2 / surface-2 (code comment measured only the cream bg)",
-      "pass": false,
-      "detail": "clay on bg-2 4.21:1 · clay on surface-2 4.21:1"
+      "label": "Light clay on bg-2 / surface-2",
+      "pass": true,
+      "detail": "clay is not allowed on bg-2/surface-2; sections moved to band · clay on band 5.05:1"
     },
     {
       "id": "aitldr-light",
       "label": "AITLDR-LAYOUT-001 tokens missing in light mode",
-      "pass": false,
-      "detail": "5/5 undefined in light (5/5 defined in dark)",
-      "fix": "Move the five --aitldr-* declarations from :root[data-theme=\"dark\"] to :root. Unlocked per the code comment; no value changes."
+      "pass": true,
+      "detail": "all 5 defined in both themes"
     }
   ]
 }
