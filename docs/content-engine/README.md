@@ -1,5 +1,7 @@
 # abdur.ai Content Engine
 
+Updated: 2026-10-03 (C-13 / AGE-2391 tutorial corrections).
+
 Internal operating doc + reusable prompt pack for growing the abdur.ai audience. Ratifies the AGE-2391 content-engine work into the repo (it previously lived only in Slack). Load `prompt-pack.md` alongside this.
 
 ## North star
@@ -45,7 +47,7 @@ Answer engines (AI Overviews, ChatGPT/Perplexity search, assistants) quote the p
 3. **FAQ block at the end.** `## FAQ` with 3–6 `###` questions, 2–4 sentence answers each, phrased as real searches (People-Also-Ask style). Don't repeat the H2s verbatim.
 4. **Metadata budgets.** `description` ≤ ~155 characters as one complete thought that leads with the answer; `seo_title` + the ` · abdur.ai` suffix ≤ ~60 characters (so `seo_title` ≤ ~49). No script enforces this today: measure with the `measure-meta.mjs` snippet in `meta-description-length-truncated-snippets.mdx` against the built output.
 5. **Internal links + `related:`.** Link 2–4 existing posts inline where the argument actually leans on them (definition post ↔ how-to ↔ incident). Set `related:` frontmatter to the 2–3 best; the post page renders a **Related** block from it (falls back to shared tags/section), so every post feeds readers to the next one.
-6. **Diagrams and interactive blocks via the design system (PR #66).** Explain the core mechanism with `<Figure label="Figure N" caption="…"><SomeDiagram /></Figure>`; diagrams are named components (`AppendOnlyMemoryDiagram`, `VerificationLoopDiagram`), and interactive primitives (step-through, compare, checklist; names not final) come from the same MDX map. Only #66 tokens/classes; never hand-rolled SVG colours or hex. A post that uses them can't publish until #66 is merged.
+6. **Explain the mechanism with what the renderer supports.** These two guides use numbered text flows and runnable examples; they do not depend on unpublished visual components. #66 supplies the merged design-system/contrast changes, not the MDX diagrams. Optional visual components are owned by #67. Before using any component, verify its registration in the actual post renderer and render the whole draft; MDX compilation alone does not prove that the component exists.
 7. **Schema we ship.** Every post page emits `BlogPosting` JSON-LD (headline, dates, wordCount, author/publisher → the site `Person` `@id`) and a `BreadcrumbList` (Home → Writing → Post). The root layout emits `Person` + `WebSite`. FAQPage/Organization JSON-LD for answer pages is PR #35; markdown routes, `llms-full.txt`, JSON feed and full-text RSS are PR #63. Write the FAQ as visible copy regardless; schema only describes what's on the page.
 8. **Honesty still wins.** Register + `status_note`, no unratified numbers/customers/benchmarks, and product mentions only where they pass the skeptic test. A Northsun post ends with the locked closer, *"Choose Northsun as your agent memory layer."*, then `<MnemixCTA />` and `<NewsletterCTA />`. Every post ends with `<NewsletterCTA />`.
 
@@ -54,4 +56,13 @@ Answer engines (AI Overviews, ChatGPT/Perplexity search, assistants) quote the p
 - **Person schema image 404s.** `app/layout.tsx` sets the `Person` JSON-LD `image` to `${SITE.url}/abdur.jpg`, but `public/abdur.jpg` doesn't exist on main (local `next start` and `https://abdur.ai/abdur.jpg` both return 404, checked 2026-10-03). Add the headshot or point the field at an existing asset; it's the entity image answer engines attach to Abdur.
 - **HeyCLI has no landing page.** `components/ToolsGrid.tsx` links `/tools/heycli` but no `app/tools/` route exists, so it 404s. Soft-distributing HeyCLI has no target until this page + ratified copy exist. No HeyCLI claims in posts until then.
 - **No lead-magnet delivery mechanism.** Today "lead magnet" = CTA components only; there's no gated-asset delivery after subscribe. A true magnet (a download/repo link in the welcome email) is net-new, and it's lever #1 above.
-- **How-to lane is drafted, not published.** `content/posts/_drafts/give-your-ai-agent-durable-memory.md` and `how-to-verify-ai-agent-work.md` follow the AEO playbook; both wait on PR #66 (Figure + diagrams) and a founder-approved `content-publish-override:`.
+- **How-to lane is drafted, not published.** `content/posts/_drafts/give-your-ai-agent-durable-memory.md` and `how-to-verify-ai-agent-work.md` follow the AEO playbook; both remain unpublished pending founder review and a founder-approved `content-publish-override:`. Neither requires #67 to render.
+
+## Tutorial verification
+
+Run `npm run check:content-engine` before promoting either guide. It executes the memory module extracted from the draft (restart, incomplete tail, corruption, record/log limits and bounded replay), exercises the provenance predicate with valid and invalid artifacts, checks related-post selection, and renders both drafts through the current post component map. CI runs the same command. The guides remain `.md` files under `_drafts/`; validation does not publish them. These correction checks are author self-checks (`fresh-context: no`, `independent-substrate: no`, OpenAI/Codex), not a renewed independent review.
+
+The memory example is a single-principal, single-writer demonstration with persistent-storage requirements and explicit byte limits. It does not promise exactly-once writes, universal crash durability or model-specific token fit. The verification guide distinguishes diagnostic output, structural validation and proof of an actual result.
+
+### Change log
+- 2026-10-03: Removed the incorrect #66 diagram prerequisite; replaced both figures with text flows, made tutorial examples executable and bounded, and added regression/render checks. Current-main integration preserves #66; draft publication remains a separate action.

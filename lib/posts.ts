@@ -186,6 +186,8 @@ export function getPostSource(slug: string): string | null {
  * newest first on a tie. The post itself is never included.
  */
 export function getRelatedPosts(post: PostMeta, limit = 3): PostMeta[] {
+  if (!Number.isFinite(limit) || limit < 1) return [];
+  limit = Math.floor(limit);
   const others = getAllPosts().filter((p) => p.slug !== post.slug);
   const bySlug = new Map(others.map((p) => [p.slug, p]));
   const picked: PostMeta[] = [];
