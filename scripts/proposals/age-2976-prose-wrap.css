@@ -1,0 +1,14 @@
+/* AGE-2976 proposal only: not imported by the application.
+ * Apply to app/globals.css only after the founder approves its override.
+ */
+@media (max-width: 767px) {
+  .prose-clay code:not(pre code),
+  .prose-clay a {
+    overflow-wrap: anywhere;
+  }
+
+  /* Receipt notes can contain long identifiers as plain text, not <code>. */
+  .prose-clay .not-prose li > p {
+    overflow-wrap: anywhere;
+  }
+}

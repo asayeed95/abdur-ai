@@ -56,3 +56,22 @@ Not started, not currently planned. Posts stay as MDX in `content/posts/` per `C
 ## Explicitly out of scope for this build-discipline retrofit
 
 Per the retrofit brief: no external market research, no from-zero blueprint, no 7-phase `/spec/*` pipeline (personas/journeys/ERD/api-contract/etc.) — this project doesn't have the data-model/auth/payments surface those exist to gate. If Phase 2 or 3 above actually kicks off, write real specs for *that* work at that time; don't manufacture specs for phases that aren't happening yet.
+
+### AGE-2976 — mobile prose wrap proposal (needs founder override approval)
+
+Status: review — 2026-10-03. Lever: readable engineering posts on phones preserve reader attention and trust.
+
+`scripts/proposals/age-2976-prose-wrap.css` is an inert, unimported CSS proposal. Below the existing `md` breakpoint (max-width 767px), it adds `overflow-wrap: anywhere` to `.prose-clay code:not(pre code)` and `.prose-clay a`. An additional `.prose-clay .not-prose li > p` rule wraps plain-text identifiers in receipt notes: the requested two selectors alone left 4px overflow on the flagship post in the tested Chrome build. Fenced code keeps its scrolling behavior. `app/globals.css` is unchanged. Apply the proposal there only after the founder's approval is recorded in `overrides.md`.
+
+Proposed entry text for founder approval (this block is a request, not an approval):
+
+```yaml
+- task-id: AGE-2976
+  design-token-override: app/globals.css
+  reason: Prevent long inline code, links, and plain-text receipt notes from overflowing narrow viewports; preserve fenced-code scrolling and leave desktop computed styles unchanged (max-width 767px).
+  approved-by: PENDING — founder name and actual approval date required
+```
+
+Verification: `scripts/tests/mobile-prose-overflow.cjs` injects the exact proposed CSS into a production build, enumerates every published MDX post, checks 375px document overflow and 1280px computed-style, text-line, and element-geometry equality in both themes (screenshot hashes retained as diagnostics because Chromium list-marker rasterization can vary), and verifies fenced-code styles are unchanged. PR #70's ReceiptsBlock fix is a separate prerequisite for its all-post mobile result; test receipts identify the runtime revision. This proposal is not a production fix until approved, applied, and reverified against the release head.
+
+Verified proposal receipt: `scripts/proposals/age-2976-results.json` records 13 posts × 2 themes × 2 widths = 52 cases on Chrome 154.0.8037.93, against PR #70 `c4eab890f547898da590f6f1e87eae078941e44e`. All 375px document overflows are 0. All 1280px computed styles (including markers), text-line rectangles and element geometry are identical. Fenced-code styles are unchanged. Screenshot hashes are diagnostic: one dark screenshot pair retains a marker-edge raster difference; pixel-perfect screenshot equality is not claimed.
