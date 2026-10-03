@@ -47,6 +47,7 @@ export type DraftInput = {
   comments?: boolean;
 };
 
+/** A draft that breaks the content law; `problems` lists every violation at once. */
 export class DraftError extends Error {
   constructor(public readonly problems: string[]) {
     super(`Draft rejected:\n- ${problems.join("\n- ")}`);
@@ -56,6 +57,7 @@ export class DraftError extends Error {
 
 const nonEmpty = (v: unknown): v is string => typeof v === "string" && v.trim().length > 0;
 
+/** Throw unless `slug` is lowercase-hyphenated and at most SLUG_MAX chars. */
 export function assertSlug(slug: string): void {
   if (!SLUG_RE.test(slug) || slug.length > SLUG_MAX) {
     throw new DraftError([
@@ -135,16 +137,19 @@ export function parseDraft(raw: string): DraftInput {
   return { ...(data as Omit<DraftInput, "body">), date, body: content.trim() } as DraftInput;
 }
 
+/** Repo path of a slug's draft file. */
 export function draftPath(slug: string): string {
   assertSlug(slug);
   return `${DRAFTS_DIR}/${slug}.mdx`;
 }
 
+/** Repo path a slug is published at. */
 export function publishedPath(slug: string): string {
   assertSlug(slug);
   return `${PUBLISHED_DIR}/${slug}.mdx`;
 }
 
+/** Repo path for a post image; refuses SVG, traversal and odd names. */
 export function imagePath(slug: string, filename: string): string {
   assertSlug(slug);
   const name = filename.toLowerCase();

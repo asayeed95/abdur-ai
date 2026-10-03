@@ -14,6 +14,7 @@ export type FileWrite =
   /** Remove the file in the same commit (used to move a draft on publish). */
   | { path: string; delete: true };
 
+/** A non-2xx GitHub API response; `status` lets callers treat 404 as "absent". */
 export class GitHubError extends Error {
   constructor(
     message: string,
@@ -24,6 +25,7 @@ export class GitHubError extends Error {
   }
 }
 
+/** Just the REST calls the publish core needs, scoped to one repository. */
 export class GitHub {
   constructor(
     private readonly repoRef: RepoRef,
@@ -31,10 +33,12 @@ export class GitHub {
     private readonly api = "https://api.github.com",
   ) {}
 
+  /** True when a token is configured; without one, callers must not attempt writes. */
   get canWrite(): boolean {
     return Boolean(this.token);
   }
 
+  /** One REST call. Throws GitHubError with the API's message (never the token). */
   private async call<T>(method: string, path: string, body?: unknown): Promise<T> {
     const res = await fetch(`${this.api}/repos/${this.repoRef.owner}/${this.repoRef.repo}${path}`, {
       method,
@@ -61,11 +65,13 @@ export class GitHub {
     return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
   }
 
+  /** The repository's default branch name (normally `main`). */
   async defaultBranch(): Promise<string> {
     const r = await this.call<{ default_branch: string }>("GET", "");
     return r.default_branch;
   }
 
+  /** Head commit sha of `branch`, or null when the branch does not exist. */
   async branchSha(branch: string): Promise<string | null> {
     try {
       const r = await this.call<{ object: { sha: string } }>("GET", `/git/ref/heads/${encodeURIComponent(branch)}`);
@@ -76,6 +82,7 @@ export class GitHub {
     }
   }
 
+  /** Create `branch` pointing at `fromSha`. */
   async createBranch(branch: string, fromSha: string): Promise<void> {
     await this.call("POST", "/git/refs", { ref: `refs/heads/${branch}`, sha: fromSha });
   }
@@ -94,6 +101,7 @@ export class GitHub {
     }
   }
 
+  /** Directory entries at `ref`; an empty list when the directory is absent. */
   async listDir(path: string, ref: string): Promise<{ name: string; path: string; type: string }[]> {
     try {
       return await this.call("GET", `/contents/${path}?ref=${encodeURIComponent(ref)}`);
@@ -129,11 +137,13 @@ export class GitHub {
     return commit.sha;
   }
 
+  /** Open a draft PR from `head` into `base`. */
   async openDraftPr(args: { head: string; base: string; title: string; body: string }): Promise<{ number: number; url: string }> {
     const r = await this.call<{ number: number; html_url: string }>("POST", "/pulls", { ...args, draft: true });
     return { number: r.number, url: r.html_url };
   }
 
+  /** The open PR whose head is `head` in this repo, if any (so writes reuse one PR). */
   async findOpenPr(head: string): Promise<{ number: number; url: string } | null> {
     const r = await this.call<{ number: number; html_url: string }[]>(
       "GET",

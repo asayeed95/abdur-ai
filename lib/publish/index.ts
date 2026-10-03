@@ -33,6 +33,7 @@ export { DraftError, validateDraft, type DraftInput } from "./draft";
 
 export type PublishConfig = { owner: string; repo: string; token?: string };
 
+/** Repo + token from ABDUR_PUBLISH_REPO / ABDUR_PUBLISH_GITHUB_TOKEN. */
 export function configFromEnv(env: Record<string, string | undefined> = process.env): PublishConfig {
   const [owner, repo] = (env.ABDUR_PUBLISH_REPO || "asayeed95/abdur-ai").split("/");
   return { owner, repo, token: env.ABDUR_PUBLISH_GITHUB_TOKEN || undefined };
@@ -44,12 +45,14 @@ export type WriteResult =
 
 export const branchFor = (slug: string) => `drafts/${slug}`;
 
+/** The agent/admin write path: drafts/<slug> branch commits + one draft PR per slug. */
 export class Publisher {
   private gh: GitHub;
   constructor(private readonly cfg: PublishConfig) {
     this.gh = new GitHub({ owner: cfg.owner, repo: cfg.repo }, cfg.token);
   }
 
+  /** False means every write returns a dry-run plan instead of committing. */
   get canWrite() {
     return this.gh.canWrite;
   }
@@ -79,6 +82,7 @@ export class Publisher {
     return null;
   }
 
+  /** Path-check, then commit on drafts/<slug> and reuse or open its draft PR (or plan, without a token). */
   private async write(slug: string, message: string, files: FileWrite[], pr: { title: string; body: string }): Promise<WriteResult> {
     for (const f of files) assertWritablePath(f.path, slug);
     const branch = branchFor(slug);
@@ -107,6 +111,7 @@ export class Publisher {
     return { dryRun: false, branch, commit, pr: prRef };
   }
 
+  /** New draft on a new drafts/<slug> branch; refuses published slugs and existing branches. */
   async createDraft(input: DraftInput, meta: { taskId: string }): Promise<WriteResult> {
     const problems = validateDraft(input);
     if (!meta.taskId?.trim()) problems.push("taskId (Linear issue, e.g. AGE-1234) is required — Linear-first rule");
@@ -146,6 +151,7 @@ export class Publisher {
     });
   }
 
+  /** Commit a raster image under public/blog/<slug>/ and return the markdown that embeds it. */
   async uploadImage(slug: string, filename: string, base64: string, alt: string, meta: { taskId: string }) {
     const path = imagePath(slug, filename);
     const bytes = Uint8Array.from(Buffer.from(base64, "base64"));
@@ -191,6 +197,7 @@ export class Publisher {
   }
 }
 
+/** Draft PR description: what the post claims and how it becomes public. */
 function prBody(d: DraftInput, taskId: string): string {
   return `Opened by the abdur-ai publish core (MCP / admin). Linear: ${taskId}
 
