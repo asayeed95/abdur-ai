@@ -91,7 +91,7 @@ export function ResumeSheet() {
       id="sheet"
       className="bg-bg-2 border-y border-border py-12 md:py-16 flex flex-col items-center gap-4 px-3 md:px-6"
     >
-      <p className="font-mono text-[10px] tracking-widest uppercase text-muted-3">
+      <p className="font-mono text-[10px] tracking-widest uppercase text-meta">
         abdur.ai/hire · US Letter · one page
       </p>
 
