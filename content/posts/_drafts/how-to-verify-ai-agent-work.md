@@ -1,0 +1,208 @@
+---
+slug: how-to-verify-ai-agent-work
+title: "How do you verify an AI agent's work before you trust it?"
+seo_title: "How to verify an AI agent's work"
+subtitle: "A checklist for the gap between what an agent reports and what it actually did"
+description: "Don't trust an AI agent's report. Read the diff, re-run the check, confirm it ran, trace claims to commits, and measure what shipped. Commands included."
+dek: "Every gate in my repo cleanup returned green, and ten of twelve dispositions were wrong. Here is the checklist I run now before I trust an agent's work: what to check, the command for each, and what verification still can't catch."
+tldr: "Don't verify an AI agent's work by reading its report; check the artifacts the report points at. Read the diff instead of the summary. Re-run the gate yourself and read the exit code. Confirm the check actually executed, because a skipped CI job can satisfy a required check. Trace every claim to a primary source: a commit SHA, the file at that SHA, ancestry on main. Reject any verification artifact that can't name its verifier, time, and source. Measure the shipped output, not the source file. And check that your gates don't all read the same upstream input, because N checks fed one artifact are one check. Verification catches false claims; it doesn't replace judgment about whether the change was the right one."
+date: 2026-10-06T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Agent Systems"
+register: argued
+status_note: "A how-to that stakes a position: check artifacts, not reports. Argued from incidents written up on this site, not from a study. The commands are ones I run; your stack will need its own equivalents."
+flagship: false
+pinned: false
+featured: false
+tags:
+  - ai-agents
+  - verification
+  - agents
+  - ci
+citation_preferred: "Sayeed, Abdur Rahman. 'How do you verify an AI agent's work before you trust it?' abdur.ai, 2026."
+related:
+  - the-night-the-doctrine-failed
+  - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
+  - meta-description-length-truncated-snippets
+---
+
+{/*
+REVIEW DRAFT, not published. This file is content/posts/_drafts/*.md, so the
+loader skips it and the publish gate never sees it.
+
+PUBLISH BLOCKERS:
+  - A `content-publish-override: content/posts/how-to-verify-ai-agent-work.mdx`
+    entry in docs/superpowers/specs/overrides.md, approved by Abdur.
+
+To publish after founder review:
+  1. Rename to how-to-verify-ai-agent-work.mdx and move to content/posts/
+  2. Set `date:` to the real publish date and update citation_preferred to match
+  3. Confirm register/status_note still hold
+  4. Add the content-publish-override entry above
+  5. npm run check:content-engine and ./scripts/check-phase.sh --hard must pass
+  6. Delete this comment block
+*/}
+
+I once ran a repo cleanup through a seven-rule protocol, five rounds of adversarial audit, and an independent cross-verifier. Every gate returned green. When I re-checked the close candidates against primary sources, ten of the twelve dispositions were wrong. The first close I had approved would have destroyed the only fix for a production bug. That's [The night the doctrine failed](/writing/the-night-the-doctrine-failed). This post is the checklist I run because of it.
+
+**Short answer:** Don't verify an agent's report; verify the artifacts it points at. Read the diff, not the summary. Re-run the check yourself and read the exit code. Confirm the check actually ran. Trace each claim to a commit you can open. Measure what shipped, not the source. And make sure your checks don't all trust the same input.
+
+## Why can't you trust an AI agent's own report?
+
+Because the report is another output of the same process you're trying to check. An agent that misread a file will describe the misreading confidently. An agent that skipped a step will often say the step passed, because a passing step is what the plan said should happen.
+
+The failure that cost me the most wasn't a lie. It was a verification file that existed, matched its schema, and contained nothing: twenty-one rows written before the verifier was even authenticated, echoing the table they were supposed to check. The gate loaded it and passed. I call that Potemkin verification. It's shaped like proof, and it isn't proof.
+
+So the rule is simple to say: the agent's summary tells you where to look. It's never the thing you look at.
+
+## What should you check before you trust an agent's work?
+
+The loop is **claim → exact revision → primary artifact → executed check → decision**. A failure or missing evidence sends the work back for investigation. A pass establishes only what that check measured; after a code or base change, rerun the affected checks against the new revision.
+
+Seven checks, in the order I run them.
+
+### 1. Read the diff, not the summary
+
+The summary is the agent's opinion of the diff. Read the diff itself.
+
+```bash
+git fetch origin || exit 1
+REVIEW_SHA=$(git rev-parse --verify 'HEAD^{commit}') || exit 1
+BASE_SHA=$(git rev-parse --verify 'origin/main^{commit}') || exit 1
+git diff --stat "$BASE_SHA...$REVIEW_SHA"
+git diff "$BASE_SHA...$REVIEW_SHA" -- lib/
+```
+
+Run these commands in the checkout you intend to review. They compare committed revisions; inspect `git diff` and `git diff --cached` separately for uncommitted changes. Keep `REVIEW_SHA` and `BASE_SHA` in the same shell for the later examples. If the summary says "small refactor" and the stat shows forty files, you've learned something before reading a line.
+
+### 2. Re-run the gate yourself and read the exit code
+
+"Tests pass" is a claim. An exit code is evidence.
+
+```bash
+if ./scripts/check-phase.sh --hard; then
+  echo "gate passed"
+else
+  result=$?
+  echo "gate failed: exit=$result" >&2
+  exit "$result"
+fi
+```
+
+Use your project's actual gate command; this repository's gate already runs the build. Watch for pipelines that hide the producer's failure: without `pipefail`, `cmd | grep -q ok` can return success if `cmd` prints "ok" and then fails. A grep miss itself returns nonzero; a later successful command can mask that status if the script keeps going. Inspect both the producer and the script's final exit status.
+
+### 3. Confirm the check actually ran
+
+A green check and a check that never executed can look the same. I had a path-authorization script survive 29 adversarial review rounds while no CI job invoked it; wiring it in, I then found a skipped job satisfying a required status check. That's [29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran).
+
+```bash
+REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner) || exit 1
+gh api --paginate "repos/$REPO/commits/$REVIEW_SHA/check-runs?per_page=100" \
+  --jq '.check_runs[] | "\(.name)\t\(.status)\t\(.conclusion)"' || exit 1
+```
+
+`skipped` is not `success`. This command lists check runs; it does not assert that an expected job exists. Match the expected job names and revision, then inspect their logs for the actual test command and result. No output is missing evidence, not a pass. Legacy commit statuses are a separate API, and even a successful status can represent a bot that skipped review.
+
+### 4. Trace every claim to a primary source
+
+"This PR is superseded by main" is a claim about git history. Check it against git history.
+
+```bash
+if git merge-base --is-ancestor "$REVIEW_SHA" "$BASE_SHA"; then
+  echo "reviewed commit is an ancestor of the captured base"
+else
+  result=$?
+  if [ "$result" -eq 1 ]; then
+    echo "reviewed commit is not an ancestor of the captured base"
+  else
+    echo "ancestry check failed: exit=$result" >&2
+    exit "$result"
+  fi
+fi
+git show "$REVIEW_SHA:lib/posts.ts"   # replace with the claimed file
+# Read the corresponding file on the base too:
+git show "$BASE_SHA:lib/posts.ts"
+```
+
+Ancestry proves commit inclusion, not equivalent content: a squash or cherry-pick changes the commit identity, and a later commit can revert an included change. Inspect the claimed behavior on the captured base even when the ancestry check passes. In my cleanup, the claim was that a migration repaired a field. Opening the migration at its SHA showed it never touched that field. One command, and a production fix would have survived on evidence instead of luck.
+
+### 5. Reject verification artifacts without provenance
+
+If a gate consumes a verification file, check each row for who verified it, when, and against what source. A row missing any of those is data shaped like a verification.
+
+```bash
+jq -e -s '
+  def nonblank: if type == "string" then test("\\S") else false end;
+  def utc_time:
+    if type == "string" then
+      . as $value | try ((fromdateiso8601 | todateiso8601) == $value) catch false
+    else false end;
+  def full_sha:
+    if type == "string" then test("^([0-9a-f]{40}|[0-9a-f]{64})$") else false end;
+  length > 0 and all(.[];
+    type == "object" and
+    (.verifier | nonblank) and
+    (.timestamp | utc_time) and
+    (.source_sha | full_sha)
+  )
+' verify.jsonl >/dev/null || {
+  echo "Invalid or empty verification artifact" >&2
+  exit 1
+}
+```
+
+This executable example requires a nonblank verifier, a UTC timestamp in `YYYY-MM-DDTHH:MM:SSZ` form, and a full lowercase Git object ID. It rejects empty input, missing fields, wrong types and malformed JSON with a nonzero exit. Adapt the schema deliberately. It reads the whole artifact, so use it for small review manifests.
+
+Passing this shape check is only the first step. Resolve each SHA in the intended repository, compare it with the reviewed revision, check the timestamp against the run, and follow the verifier identity to actual logs or a signed receipt. Well-formatted invented fields are still invented evidence.
+
+### 6. Measure what shipped, not the source
+
+Source files are intentions. Rendered pages, built bundles, and deployed responses are facts. When I audited this site's metadata, the numbers that mattered were in the built HTML, not the frontmatter; that's [12 of my 15 meta descriptions were too long for search](/writing/meta-description-length-truncated-snippets).
+
+```bash
+PAGE=$(mktemp) || exit 1
+trap 'rm -f "$PAGE"' EXIT
+curl --fail --silent --show-error --location \
+  --connect-timeout 10 --max-time 30 \
+  https://abdur.ai/writing/the-night-the-doctrine-failed -o "$PAGE" || exit 1
+grep -Fq 'The night the doctrine failed' "$PAGE" || {
+  echo "Expected article text missing" >&2
+  exit 1
+}
+```
+
+The example proves reachability and an expected text match, not the deployed revision or a complete user journey. For a release claim, verify an immutable build identifier or the exact changed behavior too. A login redirect ending in HTTP 200 is not the intended page; a successful API response is not proof of downstream delivery.
+
+### 7. Make sure your checks don't share one input
+
+Three checks that all read the same agent-written table are one check wearing three hats. If that table is wrong, all three agree with it. For each gate, ask what it reads. If two gates read the same upstream artifact, at least one of them should read the primary source instead.
+
+## How do you make verification a habit instead of a heroic act?
+
+Put it where you can't skip it. In this repo, one gate script runs the claims check, typecheck, lint, and build, and the pre-commit hook runs it in hard mode. The process doc has a rule I hold agents and myself to: don't write "done," "deployed," or a number unless a command you ran this turn produced it.
+
+That rule does more work than any single check. It turns "the agent said so" into "show me the command."
+
+## What can't verification catch?
+
+Whether the change was the right one. Every check above catches false claims: the file didn't change, the test didn't run, the commit isn't on main. None of them tells you the design was sound. In my cleanup, what saved the production fix was a model deciding to read the actual code instead of trusting the table. That's judgment, and it isn't something scaffolding can guarantee. I wrote about where that judgment has to live in [who owns the architecture when the AI writes the code](/writing/who-owns-the-architecture-when-ai-writes-the-code).
+
+## FAQ
+
+### How do I know if an AI agent actually ran the tests?
+
+Re-run them yourself and read the exit code, or read the CI check run's conclusion for that exact commit. Don't accept "tests pass" in a summary, and treat a skipped job as not run.
+
+### Should a second AI model verify the first one's work?
+
+It can help, if the second model reads primary sources (the diff, the files at named commits) and not the first model's summary. A verifier fed the summary is the summary speaking twice.
+
+### What's the fastest check if I only have a minute?
+
+`git diff --stat` against the base branch, then re-run the one command that proves the change works. The stat catches scope surprises; the re-run catches false passes.
+
+### Does this apply to non-code agent work?
+
+Yes. Swap the commands for the domain's primary sources: the provider receipt for an accepted email (and a delivery receipt if delivery is the claim), the row in the database, the page at its live URL. The rule is the same: check the artifact, not the account of it.
+
+<NewsletterCTA />

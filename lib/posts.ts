@@ -179,6 +179,43 @@ export function getPostSource(slug: string): string | null {
 }
 
 /**
+ * Up to `limit` posts for the "Related" block. Slugs the post names in its
+ * `related:` frontmatter come first, in the order declared (unknown slugs are
+ * skipped, so a link to an unpublished draft is a no-op, not a 404). Remaining
+ * slots fill by overlap: one point per shared tag, one for the same section,
+ * newest first on a tie. The post itself is never included.
+ */
+export function getRelatedPosts(post: PostMeta, limit = 3): PostMeta[] {
+  if (!Number.isFinite(limit) || limit < 1) return [];
+  limit = Math.floor(limit);
+  const others = getAllPosts().filter((p) => p.slug !== post.slug);
+  const bySlug = new Map(others.map((p) => [p.slug, p]));
+  const picked: PostMeta[] = [];
+  for (const slug of Array.isArray(post.related) ? post.related : []) {
+    const p = bySlug.get(slug);
+    if (p && !picked.includes(p)) picked.push(p);
+    if (picked.length >= limit) return picked;
+  }
+  const tags = new Set((post.tags ?? []).map((t) => t.toLowerCase()));
+  const scored = others
+    .filter((p) => !picked.includes(p))
+    .map((p) => ({
+      p,
+      score:
+        (p.tags ?? []).filter((t) => tags.has(t.toLowerCase())).length +
+        (post.section && p.section === post.section ? 1 : 0),
+    }))
+    .filter((s) => s.score > 0)
+    // getAllPosts() is newest-first and Array.sort is stable, so ties keep it.
+    .sort((a, b) => b.score - a.score);
+  for (const { p } of scored) {
+    if (picked.length >= limit) break;
+    picked.push(p);
+  }
+  return picked;
+}
+
+/**
  * Newer/older neighbours for the prev/next footer. `getAllPosts()` is sorted
  * newest-first, so the *next* index is the older post.
  */

@@ -6,7 +6,7 @@ import { MnemixCTA, AsecWaitlistCTA, NewsletterCTA } from "@/components/post/Lea
 import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
 import { RegisterBadge, RegisterNote } from "@/components/post/RegisterNote";
-import { postPath, type PostMeta } from "@/lib/posts";
+import { getRelatedPosts, postPath, type PostMeta } from "@/lib/posts";
 import { ogImageForPost } from "@/lib/og";
 import { SITE } from "@/lib/site";
 
@@ -29,6 +29,7 @@ export function PostArticle({
   next: PostMeta | null;
 }) {
   const canonical = `${SITE.url}${postPath(post.slug)}`;
+  const related = getRelatedPosts(post);
 
   return (
     <article className="max-w-content mx-auto px-6 md:px-10 pt-32 pb-20">
@@ -59,6 +60,21 @@ export function PostArticle({
               name: "abdur.ai writing",
               url: `${SITE.url}/writing`,
             },
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "@id": `${canonical}#breadcrumb`,
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: `${SITE.url}/` },
+              { "@type": "ListItem", position: 2, name: "Writing", item: `${SITE.url}/writing` },
+              { "@type": "ListItem", position: 3, name: post.title, item: canonical },
+            ],
           }),
         }}
       />
@@ -138,6 +154,31 @@ export function PostArticle({
           <div />
         )}
       </nav>
+
+      {related.length > 0 && (
+        <section aria-labelledby="related-heading" className="max-w-prose mx-auto mt-12">
+          <h2 id="related-heading" className="eyebrow mb-4">
+            Related
+          </h2>
+          <ul className="grid gap-4">
+            {related.map((r) => (
+              <li key={r.slug}>
+                <Link
+                  href={postPath(r.slug)}
+                  className="group block bg-surface border border-border rounded-lg p-5 hover:border-clay transition-colors"
+                >
+                  <p className="font-display text-lg text-text group-hover:text-clay transition-colors leading-tight">
+                    {r.title}
+                  </p>
+                  {r.description && (
+                    <p className="mt-2 text-sm text-text-soft leading-relaxed">{r.description}</p>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </article>
   );
 }
