@@ -47,7 +47,7 @@ export function Library() {
       <h2 className="font-display text-4xl md:text-6xl tracking-tight text-text mb-3">
         Things you can buy today.
       </h2>
-      <p className="text-muted text-lg max-w-[640px] mb-12">
+      <p className="text-meta text-lg max-w-[640px] mb-12">
         Self-serve products with real prices. Northsun itself is invite-only —
         everything here you can start right now.
       </p>
@@ -59,11 +59,11 @@ export function Library() {
             className="flex flex-col bg-surface border border-border rounded-lg p-6 hover:border-clay hover:-translate-y-1.5 transition-all"
           >
             <div className="flex-1">
-              <div className="font-mono text-[10px] tracking-wider uppercase text-muted-2 mb-3">
+              <div className="font-mono text-[10px] tracking-wider uppercase text-meta mb-3">
                 {p.kind}
               </div>
               <h3 className="font-display text-2xl text-text mb-3">{p.name}</h3>
-              <p className="text-sm text-muted leading-relaxed">{p.desc}</p>
+              <p className="text-sm text-meta leading-relaxed">{p.desc}</p>
             </div>
             <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
               <span className="font-mono text-sm text-text">{p.price}</span>
