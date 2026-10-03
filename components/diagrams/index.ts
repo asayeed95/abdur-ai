@@ -11,3 +11,7 @@ export { RetryStormDiagram } from "./RetryStormDiagram";
 export { CacheHitMeterDiagram } from "./CacheHitMeterDiagram";
 export { NothingRanGateDiagram } from "./NothingRanGateDiagram";
 export { SilentAnalyticsDiagram } from "./SilentAnalyticsDiagram";
+export { PagerIsNotCustomerDiagram } from "./PagerIsNotCustomerDiagram";
+export { NumberIsNotThePersonDiagram } from "./NumberIsNotThePersonDiagram";
+export { CrossVideoRetentionDiagram } from "./CrossVideoRetentionDiagram";
+export { MetaDescriptionTruncationDiagram } from "./MetaDescriptionTruncationDiagram";
