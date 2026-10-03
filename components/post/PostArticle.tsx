@@ -6,7 +6,7 @@ import { MnemixCTA, AsecWaitlistCTA, NewsletterCTA } from "@/components/post/Lea
 import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
 import { RegisterBadge, RegisterNote } from "@/components/post/RegisterNote";
-import { postPath, type PostMeta } from "@/lib/posts";
+import { postPath, resolveRelated, type PostMeta } from "@/lib/posts";
 import { ogImageForPost } from "@/lib/og";
 import { SITE } from "@/lib/site";
 
@@ -29,6 +29,18 @@ export function PostArticle({
   next: PostMeta | null;
 }) {
   const canonical = `${SITE.url}${postPath(post.slug)}`;
+  const related = resolveRelated(post);
+  const isPartOf = [
+    {
+      "@type": "Blog",
+      "@id": `${SITE.url}/writing#blog`,
+      name: "abdur.ai writing",
+      url: `${SITE.url}/writing`,
+    },
+    ...(post.series
+      ? [{ "@type": "CreativeWorkSeries", name: post.series, url: `${SITE.url}/writing` }]
+      : []),
+  ];
 
   return (
     <article className="max-w-content mx-auto px-6 md:px-10 pt-32 pb-20">
@@ -53,17 +65,21 @@ export function PostArticle({
             publisher: { "@id": `${SITE.url}/#abdur` },
             mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
             url: canonical,
-            isPartOf: {
-              "@type": "Blog",
-              "@id": `${SITE.url}/writing#blog`,
-              name: "abdur.ai writing",
-              url: `${SITE.url}/writing`,
-            },
+            isPartOf,
+            ...(post.citation ? { citation: post.citation } : {}),
+            ...(related.length
+              ? { relatedLink: related.map((item) => `${SITE.url}${postPath(item.slug)}`) }
+              : {}),
           }),
         }}
       />
 
       <header className="max-w-prose mx-auto">
+        {post.series ? (
+          <p className="font-mono text-[10px] tracking-widest uppercase text-clay mb-3">
+            {post.series}
+          </p>
+        ) : null}
         <p className="eyebrow mb-6">{(post.tags || []).slice(0, 4).join(" · ")}</p>
         <h1 className="font-display text-4xl md:text-6xl tracking-tight text-text leading-[1.04] mb-6">
           {post.title}
@@ -105,6 +121,31 @@ export function PostArticle({
           }}
         />
       </div>
+
+      {(post.citation || related.length > 0) && (
+        <footer className="max-w-prose mx-auto mt-16 pt-8 border-t border-border space-y-8">
+          {post.citation ? (
+            <div>
+              <p className="eyebrow mb-3">Preferred citation</p>
+              <p className="font-mono text-sm text-muted">{post.citation}</p>
+            </div>
+          ) : null}
+          {related.length > 0 ? (
+            <div>
+              <p className="eyebrow mb-3">Related</p>
+              <ul className="space-y-2">
+                {related.map((item) => (
+                  <li key={item.slug}>
+                    <Link href={postPath(item.slug)} className="text-text hover:text-clay">
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </footer>
+      )}
 
       <nav aria-label="Previous and next post" className="max-w-prose mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
         {prev ? (

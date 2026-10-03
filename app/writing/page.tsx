@@ -11,7 +11,13 @@ export const metadata: Metadata = {
   title: "Writing",
   description:
     "Evidence-anchored builder logs, designs, and arguments from Abdur Rahman Sayeed. Every piece declares whether it is reported, designed, or argued.",
-  alternates: { canonical: `${SITE.url}/writing` },
+  alternates: {
+    canonical: `${SITE.url}/writing`,
+    types: {
+      "application/rss+xml": `${SITE.url}/writing/rss.xml`,
+      "application/feed+json": `${SITE.url}/writing/feed.json`,
+    },
+  },
 };
 
 export default function WritingIndexPage() {

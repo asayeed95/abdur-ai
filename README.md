@@ -33,6 +33,10 @@ npm run dev
 | `/sitemap.xml` | Auto-generated |
 | `/robots.txt` | Auto-generated (welcomes AI crawlers explicitly) |
 | `/llms.txt` | AI-readable site summary with post index |
+| `/llms-full.txt` | Full text of published posts for agents |
+| `/writing/rss.xml` | Canonical full-text RSS |
+| `/writing/feed.json` | JSON Feed; body is markdown in `content_text` |
+| `/writing/[slug].md` | Markdown twin of a published post |
 | `/aitldr/rss.xml` | RSS feed |
 | `/api/subscribe` | Newsletter signup (POST `{email, list?}`) |
 | `/api/ingest/now` | Agent webhook for Now panel (Bearer auth) |

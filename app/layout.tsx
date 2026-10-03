@@ -62,6 +62,7 @@ export const metadata: Metadata = {
     canonical: SITE.url,
     types: {
       "application/rss+xml": `${SITE.url}/writing/rss.xml`,
+      "application/feed+json": `${SITE.url}/writing/feed.json`,
     },
   },
   robots: {

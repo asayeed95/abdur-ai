@@ -1,49 +1,17 @@
-import { Feed } from "feed";
-import { SITE } from "@/lib/site";
-import { getAllPosts, postPath } from "@/lib/posts";
+import { buildRssFeed } from "@/lib/legibility";
 import { ogImageForHome } from "@/lib/og";
+import { SITE } from "@/lib/site";
 
 export const dynamic = "force-static";
 
-/** Retained legacy feed. Items link to the canonical /writing URLs. */
-
+/** Retained legacy feed. Items link to canonical /writing URLs and carry the same body. */
 export async function GET() {
-  const posts = getAllPosts();
-
-  const feed = new Feed({
+  const xml = buildRssFeed({
     title: "abdur.ai builder logs",
-    description: SITE.description,
-    id: `${SITE.url}/`,
-    link: SITE.url,
-    language: "en",
+    rssUrl: `${SITE.url}/aitldr/rss.xml`,
     image: ogImageForHome().url,
-    favicon: `${SITE.url}/favicon.ico`,
-    copyright: `© ${new Date().getFullYear()} ${SITE.author}`,
-    updated: posts[0] ? new Date(posts[0].date) : new Date(),
-    feedLinks: {
-      rss2: `${SITE.url}/aitldr/rss.xml`,
-    },
-    author: {
-      name: SITE.author,
-      email: SITE.email,
-      link: SITE.url,
-    },
   });
-
-  posts.forEach((p) => {
-    feed.addItem({
-      title: p.title,
-      id: `${SITE.url}${postPath(p.slug)}`,
-      link: `${SITE.url}${postPath(p.slug)}`,
-      description: p.dek || p.description,
-      content: p.description,
-      author: [{ name: p.author, link: SITE.url }],
-      date: new Date(p.date),
-      category: (p.tags || []).map((t) => ({ name: t })),
-    });
-  });
-
-  return new Response(feed.rss2(), {
+  return new Response(xml, {
     headers: { "Content-Type": "application/rss+xml; charset=utf-8" },
   });
 }
