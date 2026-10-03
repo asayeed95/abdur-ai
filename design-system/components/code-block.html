@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CodeBlock — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/type.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../components/components.css">
+<link rel="stylesheet" href="../assets/preview.css">
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head">
+    <div><nav class="ds-crumbs" aria-label="Design system"><a href="../index.html">Index</a><a href="../foundations.html">Foundations</a><a href="../tests/contrast.test.html">Contrast test</a></nav><h1>CodeBlock</h1><p>Inline code and the fenced block, both on surface with a hairline border.</p><p class="ds-src">Source: app/globals.css (.prose-clay code, pre)</p></div>
+  </div>
+  <div class="ds-panels">
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div class="ds-stack">
+      <p class="ds-p">Opacity composes from the token: <code class="code-inline">rgb(var(--c-clay) / 0.4)</code>.</p>
+      <pre class="code-block"><code>:root[data-theme="light"] {
+  --c-clay: 174 83 56;
+}
+
+.eyebrow {
+  @apply font-mono text-xs tracking-widest text-clay uppercase;
+}</code></pre>
+    </div></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div class="ds-stack">
+      <p class="ds-p">Opacity composes from the token: <code class="code-inline">rgb(var(--c-clay) / 0.4)</code>.</p>
+      <pre class="code-block"><code>:root[data-theme="light"] {
+  --c-clay: 174 83 56;
+}
+
+.eyebrow {
+  @apply font-mono text-xs tracking-widest text-clay uppercase;
+}</code></pre>
+    </div></section>
+  </div>
+  <ul class="ds-guide"><li><strong>Inline</strong> (<code>.code-inline</code>): mono <code>sm</code>, <code>text</code> on <code>surface</code>, <code>border</code>, <code>radius</code> (4px).</li><li><strong>Block</strong> (<code>.code-block</code> / <code>.prose-clay pre</code>): mono <code>sm</code>, <code>surface</code>, <code>border</code>, <code>radius-lg</code>, 20px padding, horizontal scroll.</li><li>No syntax-highlight palette exists. Code is set in <code>text</code>, and nothing else in the palette may stand in for one.</li></ul>
+</div>
+</body>
+</html>

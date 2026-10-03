@@ -76,7 +76,7 @@ export function About() {
         <div className="mt-10">
           <Link
             href="/about"
-            className="font-mono text-xs tracking-widest uppercase text-muted hover:text-clay transition-colors border-b border-transparent hover:border-clay pb-1"
+            className="font-mono text-xs tracking-widest uppercase text-meta hover:text-clay transition-colors border-b border-transparent hover:border-clay pb-1"
           >
             More on /whoami →
           </Link>

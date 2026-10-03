@@ -24,7 +24,7 @@ export default function NowPage() {
         <h1 className="font-display text-5xl md:text-7xl tracking-tight text-text mb-4">
           /now
         </h1>
-        <p className="font-mono text-sm text-muted mb-16">Last updated · {updated}</p>
+        <p className="font-mono text-sm text-meta mb-16">Last updated · {updated}</p>
 
         <div className="max-w-prose space-y-8 text-text-soft text-lg leading-relaxed">
           <section>
@@ -56,7 +56,7 @@ export default function NowPage() {
             </ul>
           </section>
 
-          <p className="text-muted pt-8 border-t border-border">
+          <p className="text-meta pt-8 border-t border-border">
             This is a <a href="https://nownownow.com/about" className="text-clay">now page</a> — a snapshot of what has my focus right now, not a résumé. If it&apos;s stale, ping me and tell me to update it.
           </p>
         </div>

@@ -11,7 +11,7 @@ const PRINCIPLES = [
 
 export function Principles() {
   return (
-    <Reveal as="section" id="principles" className="border-y border-border bg-bg-2">
+    <Reveal as="section" id="principles" className="border-y border-border bg-band">
       <div className="max-w-content mx-auto px-6 md:px-10 py-24 md:py-28">
         <p className="eyebrow mb-4">/// HOW I WORK</p>
         <h2 className="font-display text-4xl md:text-6xl tracking-tight text-text mb-16">
@@ -27,7 +27,7 @@ export function Principles() {
               <h3 className="font-display text-xl text-text mb-3 tracking-tight">
                 {p.title}
               </h3>
-              <p className="text-base text-muted leading-relaxed">{p.body}</p>
+              <p className="text-base text-meta leading-relaxed">{p.body}</p>
             </div>
           ))}
         </div>

@@ -79,7 +79,7 @@ export function ToolsGrid() {
       <h2 className="font-display text-4xl md:text-6xl tracking-tight text-text mb-3">
         The stand
       </h2>
-      <p className="text-muted text-lg max-w-[640px] mb-12">
+      <p className="text-meta text-lg max-w-[640px] mb-12">
         Where the portfolio stands today — Northsun is the spine, these are the
         products on top.
       </p>
@@ -100,7 +100,7 @@ export function ToolsGrid() {
             <h3 className="font-display text-xl text-text group-hover:text-clay transition-colors mb-2">
               {t.name}
             </h3>
-            <p className="text-sm text-muted leading-relaxed">{t.desc}</p>
+            <p className="text-sm text-meta leading-relaxed">{t.desc}</p>
           </Link>
         ))}
       </div>

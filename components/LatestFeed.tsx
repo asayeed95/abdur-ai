@@ -23,7 +23,7 @@ export function LatestFeed() {
 
       <ul className="divide-y divide-border border-y border-border">
         {posts.length === 0 && (
-          <li className="py-8 text-muted font-mono text-sm">
+          <li className="py-8 text-meta font-mono text-sm">
             No posts yet. Drop MDX files in /content/posts.
           </li>
         )}
@@ -43,7 +43,7 @@ export function LatestFeed() {
                     {p.title}
                   </h3>
                   {p.dek && (
-                    <p className="text-base text-muted leading-relaxed mt-2 max-w-[60ch]">
+                    <p className="text-base text-meta leading-relaxed mt-2 max-w-[60ch]">
                       {p.dek}
                     </p>
                   )}
@@ -52,7 +52,7 @@ export function LatestFeed() {
                       {p.tags.map((t) => (
                         <span
                           key={t}
-                          className="font-mono text-[10px] tracking-wider uppercase text-muted-2"
+                          className="font-mono text-[10px] tracking-wider uppercase text-meta"
                         >
                           #{t}
                         </span>
