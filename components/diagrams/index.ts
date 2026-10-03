@@ -6,6 +6,15 @@
  */
 export { AppendOnlyMemoryDiagram } from "./AppendOnlyMemoryDiagram";
 export { VerificationLoopDiagram } from "./VerificationLoopDiagram";
+export { RlsDashboardQueryDiagram } from "./RlsDashboardQueryDiagram";
+export { RetryStormDiagram } from "./RetryStormDiagram";
+export { CacheHitMeterDiagram } from "./CacheHitMeterDiagram";
+export { NothingRanGateDiagram } from "./NothingRanGateDiagram";
+export { SilentAnalyticsDiagram } from "./SilentAnalyticsDiagram";
+export { PagerIsNotCustomerDiagram } from "./PagerIsNotCustomerDiagram";
+export { NumberIsNotThePersonDiagram } from "./NumberIsNotThePersonDiagram";
+export { CrossVideoRetentionDiagram } from "./CrossVideoRetentionDiagram";
+export { MetaDescriptionTruncationDiagram } from "./MetaDescriptionTruncationDiagram";
 export { DoctrineFailureDiagram } from "./DoctrineFailureDiagram";
 export { DoctrineSharedInputDiagram } from "./DoctrineSharedInputDiagram";
 export { MemoryLayerDiagram } from "./MemoryLayerDiagram";

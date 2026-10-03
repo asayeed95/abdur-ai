@@ -6,6 +6,7 @@ subtitle: "Retention curves are gold — and trapped per-video"
 description: "YouTube retention curves stay trapped one video at a time, so the same structural mistake repeats invisibly across a channel. How I would surface it."
 dek: "The audience tells you, second by second, where you lost them — but the signal is siloed one video at a time, so the same structural mistake repeats invisibly across a whole channel."
 date: 2026-07-02T10:00:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "Analytics"
 register: designed
@@ -46,6 +47,24 @@ This week I'm building cross-video pattern detection into Retention Lab. The ide
 Instead of "this video lost people at 0:45," you get "across your last 30 videos, you consistently lose 18% of viewers in the first 15 seconds, and it's worse on videos that open with a logo animation." That's a pattern you can fix once and benefit from on everything you ship after.
 
 The mechanics: pull retention curves across the channel, normalize them so videos of different lengths are comparable, then cluster the shapes to find the drop-off signatures that repeat. The output isn't another dashboard — it's a short list of the structural mistakes you're making over and over.
+
+<StepThrough label="Walk the design (not shipped)">
+<Figure label="Figure 1" caption="The planned pipeline, from per-video curves to one short list. Design, not shipped.">
+<CrossVideoRetentionDiagram />
+</Figure>
+<Step title="Today: one video at a time" highlight="curves">
+Each retention curve lives per-video, in isolation. The signal exists; the insight doesn't.
+</Step>
+<Step title="Pull across the channel" highlight="pull normalize">
+Planned: pull the curves across the whole channel and normalize them so videos of different lengths are comparable.
+</Step>
+<Step title="Cluster the shapes" highlight="cluster">
+Planned: cluster the shapes to find the drop-off signatures that repeat.
+</Step>
+<Step title="A short list, not a dashboard" highlight="list">
+Planned output: a short list of the structural mistakes you're making over and over.
+</Step>
+</StepThrough>
 
 ## Why this matters beyond YouTube
 
