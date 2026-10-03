@@ -281,3 +281,7 @@ every article's h1 and body prose are untouched.
   design-token-override: tailwind.config.ts
   reason: registers the three aliases above as Tailwind colours (meta, good-text, band). No existing colour changes.
   approved-by: Abdur / live session ("apply all 8 fixes") / 2026-10-02 18:29 EDT
+- task-id: AGE-2391
+  content-publish-override: content/posts/next-public-env-var-ignored-a-restart.mdx
+  reason: publish the 2026-09-27 Mistakes TLDR draft, revived 2026-10-03 (reported; receipts dd7d2b2 (RETRO.md entry + lib/supabase.ts comment, W-1 / AGE-1578 / #40) re-read against git history; reproduction re-run 2026-10-03 on main c7bc07f with Next.js 15.5.19 against fake .invalid hosts, build-time host found in .next/server and named in the ENOTFOUND error). Next.js env-variable docs re-read 2026-10-03. No price, benchmark, customer, integration or Northsun claim. Content approved by Claude under Abdur's delegated approval authority; merge left to Abdur.
+  approved-by: Claude (delegated) / Abdur, Slack C0BT932R70U ts 1790347021.244939 ("We need to keep publishing in abdur.ai both in TLRDs and writings ... Use claude for approval.") and ts 1790605195.447939 ("Claude you are always good to publish."), both re-read first-hand 2026-10-03 / 2026-10-03
