@@ -6,3 +6,8 @@
  */
 export { AppendOnlyMemoryDiagram } from "./AppendOnlyMemoryDiagram";
 export { VerificationLoopDiagram } from "./VerificationLoopDiagram";
+export { RlsDashboardQueryDiagram } from "./RlsDashboardQueryDiagram";
+export { RetryStormDiagram } from "./RetryStormDiagram";
+export { CacheHitMeterDiagram } from "./CacheHitMeterDiagram";
+export { NothingRanGateDiagram } from "./NothingRanGateDiagram";
+export { SilentAnalyticsDiagram } from "./SilentAnalyticsDiagram";

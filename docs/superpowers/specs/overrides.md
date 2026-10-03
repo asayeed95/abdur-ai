@@ -281,3 +281,11 @@ every article's h1 and body prose are untouched.
   design-token-override: tailwind.config.ts
   reason: registers the three aliases above as Tailwind colours (meta, good-text, band). No existing colour changes.
   approved-by: Abdur / live session ("apply all 8 fixes") / 2026-10-02 18:29 EDT
+- task-id: AGE-2844
+  content-publish-override: content/posts/the-dashboard-query-rls-wouldnt-let-through.mdx
+  content-publish-override: content/posts/the-health-check-that-became-a-retry-storm.mdx
+  content-publish-override: content/posts/the-meter-that-counted-cache-hits-as-cash.mdx
+  content-publish-override: content/posts/29-review-rounds-hardened-a-ci-gate-that-nothing-ran.mdx
+  content-publish-override: content/posts/the-analytics-call-that-couldnt-fail.mdx
+  reason: post-visuals retrofit, group B. Scope: additive visuals only; no existing copy changed. Each post gains one on-system diagram (RlsDashboardQueryDiagram, RetryStormDiagram, CacheHitMeterDiagram, NothingRanGateDiagram, SilentAnalyticsDiagram) and one interactive block, inserted between existing paragraphs: a <StepThrough> walking the incident over the diagram on four posts; a captioned <Figure> plus a <Quiz> on the analytics post; frontmatter gains only `updated: 2026-10-03`. Every caption, step, label and quiz line restates the post or its receipts; no new facts, numbers, customers, benchmarks, prices or integrations.
+  approved-by: Abdur / Slack 2026-10-03 'implement artifacts and interactive HTML blocks within the blogs and visual diagrams to all our previous writings'

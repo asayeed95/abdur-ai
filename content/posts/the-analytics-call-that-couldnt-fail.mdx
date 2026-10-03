@@ -7,6 +7,7 @@ description: "My CTA tracking called window.plausible?.() with no analytics scri
 dek: "Every CTA on this site fired an analytics event from the first commit. None of them went anywhere. No provider was installed, optional chaining swallowed the miss, and a type-checker directive kept the compiler quiet about it."
 tldr: "From the first commit on 2026-06-28, abdur.ai's in-post CTAs called window.plausible?.(name) and window.va?.('event', { name }) behind two @ts-expect-error comments. No analytics package was installed and no provider script was loaded, so neither global ever existed. Optional chaining turned every call into undefined instead of an error, and @ts-expect-error told TypeScript to stay quiet about the missing declarations. Every build passed. The fix (e8c24ac, 2026-09-04) installed @vercel/analytics, mounted <Analytics /> in the root layout, and routed every event through one typed wrapper, so a missing provider now fails the build instead of doing nothing. A follow-up (6c284f7) typed event names against a catalog and documented that Vercel custom events need a Pro plan: on Hobby they are dropped silently. Whether events land in the dashboard is still unverified. The rule: no analytics call site ships until the provider is proven to load."
 date: 2026-09-25T09:00:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "Mistakes TLDR"
 register: reported
@@ -77,6 +78,10 @@ Three layers each did their job exactly as written, and together they made the f
 
 **The config looked done.** An env var named for a provider, a comment pointing at a wrapper file. Both read as "this is set up." Neither was checked by anything.
 
+<Figure label="Figure 1" caption="With no provider loaded, optional chaining turns every event into undefined.">
+<SilentAnalyticsDiagram />
+</Figure>
+
 ## Who this bites
 
 Anyone who adds analytics call sites before the provider exists, which is a normal order to build in. You write the CTA, add a `track()` call so it's ready, and plan to wire the provider later. It also bites code you inherit or generate: a `?.()` on a vendor global plus a type suppression is a very plausible-looking pattern, and it passes lint, typecheck, and build.
@@ -96,6 +101,15 @@ A day later, `6c284f7` added two more things. Event names are now typed against 
 The fix is code-side. The build-plan row for A-1 says dashboard verification happens after deploy: enable Analytics in the Vercel project and confirm events land. Until one known event shows up in the dashboard, "tracking works" is the same unproven claim the old code was making. The wrapper also can't see an ad blocker. The SDK's `track` is a no-op when its script is blocked, so counts will under-report. The README says to treat them as directional.
 
 ## How to check your own site
+
+<Quiz label="Check first" question="Events never show up and nothing errors. What do you check first?">
+<Choice>The error tracker.</Choice>
+<Choice>The build output.</Choice>
+<Choice correct>`typeof window.plausible` on the live page.</Choice>
+<Answer>
+Ask the global directly, in the console on the production page. If it says `"undefined"`, every call to it does nothing. A missing provider throws nothing for an error tracker to catch, and every build passed the whole time.
+</Answer>
+</Quiz>
 
 1. **Open the production page and ask the global directly.** In the browser console, run `typeof window.plausible` (or whichever global your call sites use). If it says `"undefined"`, every call to it does nothing.
 2. **Search for the pattern.** Grep for `window.` followed by `?.(`, and for `@ts-expect-error` or `as any` next to analytics calls. Each hit is a place where a missing provider turns into silence.
