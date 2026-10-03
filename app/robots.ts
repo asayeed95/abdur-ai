@@ -6,9 +6,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       // Card crawlers (Twitterbot, LinkedInBot, Slackbot…) are not named below, so
       // they inherit this group and obey it. Every post's og:image is /api/og?…,
-      // so it needs its own Allow: the longest matching rule wins, which keeps the
+      // so exact-path and query-prefix Allow rules keep it reachable while keeping the
       // rest of /api/ closed. scripts/check-robots.mjs guards this on the built file.
-      { userAgent: "*", allow: ["/", "/api/og"], disallow: ["/api/"] },
+      { userAgent: "*", allow: ["/", "/api/og$", "/api/og?"], disallow: ["/api/"] },
       // AI crawlers — explicitly welcomed
       { userAgent: "GPTBot", allow: "/" },
       { userAgent: "ClaudeBot", allow: "/" },

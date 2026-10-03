@@ -40,7 +40,7 @@ const CARD_BOTS = [
   "WhatsApp",
   "TelegramBot",
 ];
-const MUST_STAY_CLOSED = ["/api/subscribe", "/api/ingest/now", "/api/ingest/ship"];
+const MUST_STAY_CLOSED = ["/api/subscribe", "/api/ingest/now", "/api/ingest/ship", "/api/og-debug", "/api/og/private", "/api/og-image?title=x"];
 const MUST_STAY_OPEN = ["/", "/writing", "/writing/the-night-the-doctrine-failed"];
 
 /** Parse robots.txt into groups: { agents: string[], rules: { type, pattern }[] }. */
@@ -48,7 +48,7 @@ function parse(text) {
   const groups = [];
   let cur = null;
   let lastWasAgent = false;
-  for (const raw of text.split(/\r?\n/)) {
+  for (const raw of text.split(/\r\n|\r|\n/)) {
     const line = raw.replace(/#.*$/, "").trim();
     if (!line) continue;
     const i = line.indexOf(":");
@@ -64,8 +64,11 @@ function parse(text) {
       lastWasAgent = true;
       continue;
     }
-    lastWasAgent = false;
-    if ((field === "allow" || field === "disallow") && cur) cur.rules.push({ type: field, pattern: value });
+    // Unsupported records (including sitemap) do not terminate an agent group.
+    if ((field === "allow" || field === "disallow") && cur) {
+      lastWasAgent = false;
+      cur.rules.push({ type: field, pattern: value });
+    }
   }
   return groups;
 }
@@ -83,8 +86,16 @@ function toRegex(pattern) {
 /** A crawler obeys the group naming its product token; only if none does, the `*` group. */
 function rulesFor(groups, botToken) {
   const t = botToken.toLowerCase();
-  const named = groups.filter((g) => g.agents.includes(t));
-  return (named.length ? named : groups.filter((g) => g.agents.includes("*"))).flatMap((g) => g.rules);
+  const scored = groups.map((group) => ({
+    group,
+    specificity: Math.max(0, ...group.agents
+      .filter((agent) => agent !== "*" && agent !== "" && t.startsWith(agent))
+      .map((agent) => agent.length)),
+  }));
+  const best = Math.max(0, ...scored.map(({ specificity }) => specificity));
+  return scored.filter(({ group, specificity }) => best > 0
+    ? specificity === best
+    : group.agents.includes("*")).flatMap(({ group }) => group.rules);
 }
 
 function verdict(groups, botToken, urlPath) {
@@ -119,10 +130,12 @@ let assertions = 0;
 if (ogMatch) {
   const cardUrl = `${ogMatch[1]}?title=A%20title&excerpt=An%20excerpt&path=abdur.ai/writing/x&kicker=ABDUR%20R%20SAYEED&tag=AI%20TLDR&meta=SEP%202026`;
   for (const bot of CARD_BOTS) {
-    assertions++;
-    const v = verdict(groups, bot, cardUrl);
-    if (!v.allowed) {
-      fail(`${bot} may NOT fetch the share card ${ogMatch[1]}?… (blocked by "${v.rule.type}: ${v.rule.pattern}") — a crawler that honours robots.txt will preview posts with no image`);
+    for (const cardPath of [ogMatch[1], cardUrl]) {
+      assertions++;
+      const v = verdict(groups, bot, cardPath);
+      if (!v.allowed) {
+        fail(`${bot} may NOT fetch the share card ${cardPath} (blocked by "${v.rule.type}: ${v.rule.pattern}") — a crawler that honours robots.txt will preview posts with no image`);
+      }
     }
   }
 }
