@@ -96,6 +96,14 @@ export function PostArticle({
             },
           }}
           components={{
+            // A wide table must scroll inside its own box, never widen the page: on a
+            // 390 px phone an unwrapped four-column table pushed the layout viewport
+            // out to 406 px. Keyboard-focusable so it can be scrolled without a pointer.
+            table: (props: React.ComponentProps<"table">) => (
+              <div className="overflow-x-auto" role="region" aria-label="Table, scrolls sideways" tabIndex={0}>
+                <table {...props} />
+              </div>
+            ),
             MnemixCTA,
             AsecWaitlistCTA,
             NewsletterCTA,

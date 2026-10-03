@@ -51,6 +51,12 @@ const MUTANTS = [
     to: "{ headers: { Authorization: `Bearer ${apiKey}` } },",
   },
   {
+    name: "tables no longer wrapped in a scroll container",
+    file: ARTICLE,
+    from: '<div className="overflow-x-auto" role="region"',
+    to: '<div className="" role="region"',
+  },
+  {
     name: "inline article signup removed",
     file: ARTICLE,
     from: '{!source.includes("<NewsletterCTA") && <PostSubscribe />}',

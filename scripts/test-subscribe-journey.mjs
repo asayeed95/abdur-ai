@@ -108,9 +108,12 @@ function startSite({ port, mockPort, withConfig = true }) {
   }
   env.RESEND_API_BASE_URL = `http://127.0.0.1:${mockPort}`;
   const logs = [];
+  // detached => its own process group, so stopSite() can kill `next` AND the next-server it forks;
+  // killing only the CLI left an orphaned server behind after every run.
   const child = spawn(process.execPath, [require.resolve("next/dist/bin/next"), "start", "-p", String(port)], {
     env,
     stdio: ["ignore", "pipe", "pipe"],
+    detached: true,
   });
   child.stdout.on("data", (d) => logs.push(String(d)));
   child.stderr.on("data", (d) => logs.push(String(d)));
@@ -353,6 +356,19 @@ try {
     assert(bad.length === 0, bad.join("; "));
   });
 
+  await scenario("every table in every article scrolls inside its own wrapper (no sideways page overflow)", "render (app only)", async () => {
+    const sitemap = await (await fetch(`${site.base}/sitemap.xml`)).text();
+    const urls = [...sitemap.matchAll(/<loc>(https:\/\/abdur\.ai\/writing\/[^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+    const bad = [];
+    for (const p of urls) {
+      const html = await (await fetch(`${site.base}${p}`)).text();
+      const tables = (html.match(/<table[\s>]/g) ?? []).length;
+      const wrapped = (html.match(/<div class="overflow-x-auto"[^>]*><table[\s>]/g) ?? []).length;
+      if (tables !== wrapped) bad.push(`${p} (tables=${tables}, wrapped=${wrapped})`);
+    }
+    assert(bad.length === 0, bad.join("; "));
+  });
+
   await scenario("sitemap: static pages carry no fabricated lastmod; Person JSON-LD has no dead image", "render (app only)", async () => {
     const xml = await (await fetch(`${site.base}/sitemap.xml`)).text();
     const entries = xml.split("<url>").slice(1);
@@ -365,8 +381,9 @@ try {
     assert(!home.includes("abdur.jpg"), "Person image still points at /abdur.jpg");
   });
 } finally {
-  site.child.kill();
-  noConfig.child.kill();
+  for (const { child } of [site, noConfig]) {
+    try { process.kill(-child.pid, "SIGTERM"); } catch { /* already gone */ }
+  }
   mock.close();
 }
 

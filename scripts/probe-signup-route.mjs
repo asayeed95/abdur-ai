@@ -31,7 +31,7 @@ const mock = http.createServer((q, res) => {
 await new Promise((r) => mock.listen(0, "127.0.0.1", r));
 const port = await free();
 const env = { ...process.env, NODE_ENV: "production", RESEND_API_KEY: "re_test_not_a_real_key", RESEND_AUDIENCE_TLDR: "aud", RESEND_API_BASE_URL: `http://127.0.0.1:${mock.address().port}`, NEXT_TELEMETRY_DISABLED: "1" };
-const child = spawn(process.execPath, [require.resolve("next/dist/bin/next"), "start", "-p", String(port)], { env, cwd: dir, stdio: "ignore" });
+const child = spawn(process.execPath, [require.resolve("next/dist/bin/next"), "start", "-p", String(port)], { env, cwd: dir, stdio: "ignore", detached: true });
 const base = `http://127.0.0.1:${port}`;
 for (let i = 0; i < 80; i++) { try { if ((await fetch(`${base}/subscribe`)).status === 200) break; } catch { /* starting */ } await new Promise((r) => setTimeout(r, 250)); }
 
@@ -50,4 +50,5 @@ r = await fetch(`${base}/api/subscribe`, { method: "POST", redirect: "manual", h
 console.log("4. native form post       ->", r.status, "content-type:", r.headers.get("content-type"), "body:", JSON.stringify((await r.text()).slice(0, 40)), "location:", r.headers.get("location"));
 const mail = seen.find((s) => s.u === "/emails");
 console.log("5. welcome body fields    ->", mail ? Object.keys(mail.b).join(", ") : "(no welcome sent)");
-child.kill(); mock.close();
+try { process.kill(-child.pid, "SIGTERM"); } catch { /* gone */ }
+mock.close();
