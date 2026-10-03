@@ -1,0 +1,24 @@
+{
+  "name": "abdur-ai-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server: draft, update, illustrate and prepare abdur.ai posts as GitHub PRs.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx server.ts",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.0",
+    "tsx": "4.23.15",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.9.0",
+    "typescript": "5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
