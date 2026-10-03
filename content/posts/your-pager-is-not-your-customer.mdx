@@ -4,6 +4,7 @@ title: "Your pager is not your customer"
 description: "A synthetic health check that fatals inside its own warn budget pages for days without proving anyone was hurt. Keep four evidence states separate."
 dek: "A synthetic check that fatals inside its own warn budget will page for days without proving anyone is hurt. Keep signal, diagnosis, mitigation, and recovery as four evidence states."
 date: 2026-08-22T09:00:00-04:00
+updated: 2026-10-03
 register: reported
 receipts:
   - path: "Sentry — production synthetic health cron"
@@ -42,6 +43,10 @@ You write a slow-warn budget you believe in. A lower-level client cancels much s
 
 If abort is tighter than warn, the page is about your client policy, not customer impact, until you prove otherwise.
 
+<Figure label="Figure 1" caption="The abort kills the probe at about 100ms; the page proves a check fired, not that a customer felt it.">
+<PagerIsNotCustomerDiagram />
+</Figure>
+
 ## Four evidence states
 
 ![Four evidence states: signal, diagnosis, mitigation, recovery; abort 100ms vs warn 2000ms.](/blog/your-pager-is-not-your-customer/four-evidence-states-variant-b.svg)
@@ -54,6 +59,16 @@ I want these on the incident template, not in a slide deck after the fact.
 4. **Recovery.** A second independent probe, later, that would have failed during the incident. The absence of the original exception is not this box.
 
 Quiet Slack is not box 4.
+
+<Quiz question="You muted the cron and Slack went quiet. Which evidence state is that?">
+<Choice>Signal</Choice>
+<Choice>Diagnosis</Choice>
+<Choice correct>Mitigation</Choice>
+<Choice>Recovery</Choice>
+<Answer>
+Muting a cron is mitigation. It is not recovery. Recovery is a second independent probe, later, that would have failed during the incident.
+</Answer>
+</Quiz>
 
 ## What I refuse to say from this packet
 

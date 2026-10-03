@@ -6,3 +6,7 @@
  */
 export { AppendOnlyMemoryDiagram } from "./AppendOnlyMemoryDiagram";
 export { VerificationLoopDiagram } from "./VerificationLoopDiagram";
+export { PagerIsNotCustomerDiagram } from "./PagerIsNotCustomerDiagram";
+export { NumberIsNotThePersonDiagram } from "./NumberIsNotThePersonDiagram";
+export { CrossVideoRetentionDiagram } from "./CrossVideoRetentionDiagram";
+export { MetaDescriptionTruncationDiagram } from "./MetaDescriptionTruncationDiagram";

@@ -281,3 +281,11 @@ every article's h1 and body prose are untouched.
   design-token-override: tailwind.config.ts
   reason: registers the three aliases above as Tailwind colours (meta, good-text, band). No existing colour changes.
   approved-by: Abdur / live session ("apply all 8 fixes") / 2026-10-02 18:29 EDT
+- task-id: AGE-2844
+  content-publish-override: content/posts/your-pager-is-not-your-customer.mdx
+  content-publish-override: content/posts/the-number-is-not-the-person.mdx
+  content-publish-override: content/posts/cross-video-retention-pattern-detection.mdx
+  content-publish-override: content/posts/meta-description-length-truncated-snippets.mdx
+  scope: additive visuals only; no existing copy changed
+  reason: post-visuals retrofit, group C. Each post gains one captioned diagram (PagerIsNotCustomerDiagram, NumberIsNotThePersonDiagram, CrossVideoRetentionDiagram, MetaDescriptionTruncationDiagram) and one interactive block (Quiz, Tabs, StepThrough, Checklist), inserted between existing paragraphs. Captions, step bodies, quiz, tab and checklist text restate the post; the only numbers used are ones the post already states (100ms / 2000ms; 271, 141 to 152, ~155). cross-video stays register designed and every stage is labelled "Design, not shipped". Frontmatter: only `updated: 2026-10-03` added.
+  approved-by: Abdur / Slack 2026-10-03 'implement artifacts and interactive HTML blocks within the blogs and visual diagrams to all our previous writings'
