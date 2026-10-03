@@ -81,8 +81,8 @@ const EYEBROW = "font-mono text-xs tracking-[0.2em] uppercase text-clay mb-4";
 const H2 = "font-display text-[30px] md:text-[44px] leading-[1.06] tracking-tight text-text";
 const CARD = "bg-surface border border-border rounded-md p-[18px] hover:border-clay transition-colors";
 const CARD_LABEL = "font-mono text-[11px] tracking-wider uppercase text-clay mb-2";
-const CARD_BODY = "text-[13px] leading-relaxed text-muted text-pretty";
-const LEDE = "text-[17px] leading-relaxed text-muted max-w-[760px] text-pretty mb-9";
+const CARD_BODY = "text-[13px] leading-relaxed text-meta text-pretty";
+const LEDE = "text-[17px] leading-relaxed text-meta max-w-[760px] text-pretty mb-9";
 
 const WHAT_I_BUILD = [
   {
@@ -244,7 +244,7 @@ export default function HirePage() {
               /// Hire
             </p>
             {OPEN_TO_ROLES && (
-              <span className="font-mono text-[10px] tracking-wider uppercase text-gold border border-border-2 px-2 py-0.5 rounded-sm">
+              <span className="font-mono text-[10px] tracking-wider uppercase text-gold bg-surface border border-border-2 px-2 py-0.5 rounded-sm">
                 Open to roles
               </span>
             )}
@@ -255,7 +255,7 @@ export default function HirePage() {
             <br />A site full of proof.
           </h1>
           <div className="w-[60px] h-0.5 bg-clay mt-8 mb-6" />
-          <p className="max-w-[620px] text-base md:text-lg leading-relaxed text-muted text-pretty">
+          <p className="max-w-[620px] text-base md:text-lg leading-relaxed text-meta text-pretty">
             Applied AI engineer · forward deployed · client delivery. I build agent systems and the
             machinery that proves they work — deploy gates, evidence ledgers, rollback paths. Status labels
             below are literal — shipped means shipped, and a prototype says so.
@@ -296,12 +296,12 @@ export default function HirePage() {
           <h2 className={`${H2} max-w-[20ch] mb-6`}>Twelve reviews to learn one thing.</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
             <div>
-              <p className="text-[17px] leading-relaxed text-muted text-pretty mb-[18px]">
+              <p className="text-[17px] leading-relaxed text-meta text-pretty mb-[18px]">
                 I wrote an operating charter for a fleet of agents and put it through twelve independent
                 adversarial reviews — each a fresh context, each on a different provider from the one that
                 wrote the document. Substantive findings per pass:
               </p>
-              <div className="border border-border rounded-sm bg-bg-2 pt-4 px-[18px] pb-3">
+              <div className="border border-border rounded-sm bg-band pt-4 px-[18px] pb-3">
                 <div className="grid grid-cols-12 gap-1.5 items-end">
                   {REVIEW_FINDINGS.map((n, i) => {
                     const peak = n === PEAK;
@@ -316,13 +316,13 @@ export default function HirePage() {
                     );
                   })}
                 </div>
-                <p className="font-mono text-[9.5px] tracking-wider uppercase text-muted-3 mt-3">
+                <p className="font-mono text-[9.5px] tracking-wider uppercase text-meta mt-3">
                   substantive findings · pass 1 → 12
                 </p>
               </div>
             </div>
             <div className="flex flex-col gap-[18px]">
-              <p className="text-[17px] leading-relaxed text-muted text-pretty">
+              <p className="text-[17px] leading-relaxed text-meta text-pretty">
                 It never converged, and the reason was the finding. Every surviving objection had the same
                 shape. A daily cap that prose &ldquo;enforces&rdquo; is not atomic. A safety check that must
                 run &ldquo;immediately before sending&rdquo; cannot run inside a third-party scheduler.
@@ -336,7 +336,7 @@ export default function HirePage() {
                 a sentence cannot. The document got shorter and the system got safer.
               </p>
               <div className="border-t border-border pt-[18px]">
-                <p className="text-[15.5px] leading-relaxed text-muted text-pretty">
+                <p className="text-[15.5px] leading-relaxed text-meta text-pretty">
                   The audit that made the point concrete: I inventoried the automations across five roots and
                   found that none of them had an independent witness. Every one could have died silently and
                   reported nothing — an unwatched automation is indistinguishable from a dead one.
@@ -380,11 +380,11 @@ export default function HirePage() {
               >
                 <div className="flex justify-between items-baseline gap-4 flex-wrap">
                   <p className="font-display text-[22px] leading-tight text-text">{d.title}</p>
-                  <span className="font-mono text-[10px] tracking-wider uppercase text-muted-3 whitespace-nowrap">
+                  <span className="font-mono text-[10px] tracking-wider uppercase text-meta whitespace-nowrap">
                     {d.dates}
                   </span>
                 </div>
-                <p className="text-sm leading-relaxed text-muted text-pretty">{d.body}</p>
+                <p className="text-sm leading-relaxed text-meta text-pretty">{d.body}</p>
               </div>
             ))}
           </div>
@@ -394,7 +394,7 @@ export default function HirePage() {
         <section className={SECTION}>
           <p className={EYEBROW}>/// Selected systems</p>
           <h2 className={`${H2} max-w-[20ch] mb-3.5`}>Five systems, labeled honestly.</h2>
-          <p className="text-[17px] leading-relaxed text-muted max-w-[680px] text-pretty mb-9">
+          <p className="text-[17px] leading-relaxed text-meta max-w-[680px] text-pretty mb-9">
             Status labels are literal. Shipped means shipped; a prototype says so.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
@@ -409,7 +409,7 @@ export default function HirePage() {
                     {s.status}
                   </StatusPill>
                 </div>
-                <p className="text-[13.5px] leading-relaxed text-muted text-pretty">{s.body}</p>
+                <p className="text-[13.5px] leading-relaxed text-meta text-pretty">{s.body}</p>
               </div>
             ))}
           </div>
@@ -422,10 +422,10 @@ export default function HirePage() {
             Memory as governance, not a bolt-on.
           </h2>
           {/* Dual-brand law: Mnemix appears only as the Memory Lab / Forgetting Test. */}
-          <p className="font-mono text-[11.5px] leading-relaxed text-muted-3 max-w-[640px] mb-[18px]">
+          <p className="font-mono text-[11.5px] leading-relaxed text-meta max-w-[640px] mb-[18px]">
             Northsun is the memory and enrichment layer for AI agents. Mnemix is the Memory Lab / Forgetting Test — a free diagnostic from Northsun.
           </p>
-          <p className="text-[17px] leading-relaxed text-muted max-w-[660px] text-pretty mb-12">
+          <p className="text-[17px] leading-relaxed text-meta max-w-[660px] text-pretty mb-12">
             Gate-first, router-second. The architecture is designed so no write lands until it clears the
             gate, and corrections deprecate old beliefs rather than silently overwriting them. BEAD is the
             spine: two clocks on every fact — when it was true, and when it was learned — so a retrieval can
@@ -438,7 +438,7 @@ export default function HirePage() {
                 {INTAKE.map((i) => (
                   <div key={i.k} className="bg-surface border border-border rounded-md px-4 py-3.5">
                     <p className="font-mono text-[11px] text-text">{i.k}</p>
-                    <p className="text-xs text-muted mt-1">{i.v}</p>
+                    <p className="text-xs text-meta mt-1">{i.v}</p>
                   </div>
                 ))}
               </div>
@@ -450,11 +450,11 @@ export default function HirePage() {
               <div className="bg-surface border border-clay rounded-md px-5 py-4">
                 <div className="flex justify-between items-baseline gap-3 flex-wrap">
                   <p className="font-mono text-xs tracking-wider uppercase text-clay">the gate</p>
-                  <p className="font-mono text-[10px] tracking-wide uppercase text-muted-3">
+                  <p className="font-mono text-[10px] tracking-wide uppercase text-meta">
                     gate-first · router-second
                   </p>
                 </div>
-                <p className="text-[13px] leading-snug text-muted mt-2">
+                <p className="text-[13px] leading-snug text-meta mt-2">
                   Designed so no write lands until it clears the gate. Corrections deprecate old beliefs —
                   nothing is silently overwritten.
                 </p>
@@ -462,17 +462,17 @@ export default function HirePage() {
               <div className="flex justify-center py-1.5">
                 <span className="font-mono text-xs text-clay">▼</span>
               </div>
-              <div className="bg-bg-2 border border-border-2 rounded-md px-5 py-[18px] flex-1">
+              <div className="bg-band border border-border-2 rounded-md px-5 py-[18px] flex-1">
                 <div className="flex justify-between items-baseline gap-3 flex-wrap">
                   <p className="font-display text-[22px] text-text">
                     BEAD{" "}
-                    <span className="font-body text-[13px] text-muted">
+                    <span className="font-body text-[13px] text-meta">
                       — bi-temporal, evidence-anchored decisions
                     </span>
                   </p>
                   <p className="font-mono text-[10px] tracking-wide uppercase text-gold">the memory spine</p>
                 </div>
-                <p className="text-[13px] leading-snug text-muted mt-2 mb-3.5">
+                <p className="text-[13px] leading-snug text-meta mt-2 mb-3.5">
                   Two clocks on every fact — when it was true, when it was learned — so any retrieval can be
                   replayed, audited, and graded against reality.
                 </p>
@@ -480,7 +480,7 @@ export default function HirePage() {
                   {STACK.map((s) => (
                     <span
                       key={s}
-                      className="font-mono text-[10px] text-muted border border-border rounded-sm px-2 py-1"
+                      className="font-mono text-[10px] text-meta border border-border rounded-sm px-2 py-1"
                     >
                       {s}
                     </span>
@@ -490,24 +490,24 @@ export default function HirePage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <p className="font-mono text-[10px] tracking-widest uppercase text-muted-3">
+              <p className="font-mono text-[10px] tracking-widest uppercase text-meta">
                 read path — returns enriched
               </p>
               <div className="bg-surface border border-border rounded-md px-4 py-3.5">
                 <p className="font-display text-[17px] text-text">recall</p>
                 <p className="font-mono text-[10.5px] text-clay mt-0.5 mb-1.5">POST /v1/recall_and_enrich</p>
-                <p className="text-[12.5px] leading-snug text-muted">
+                <p className="text-[12.5px] leading-snug text-meta">
                   The right memory for this moment, already enriched and ranked.
                 </p>
               </div>
               <div className="bg-surface border border-border rounded-md px-4 py-3.5">
                 <p className="font-display text-[17px] text-text">enrich</p>
                 <p className="font-mono text-[10.5px] text-clay mt-0.5 mb-1.5">Trestle · Twilio Lookup</p>
-                <p className="text-[12.5px] leading-snug text-muted">
+                <p className="text-[12.5px] leading-snug text-meta">
                   A caller resolved into real context before the agent ever speaks.
                 </p>
               </div>
-              <p className="font-mono text-[10.5px] leading-loose text-muted-3 mt-0.5">
+              <p className="font-mono text-[10.5px] leading-loose text-meta mt-0.5">
                 Only shipped endpoints are listed. Anything still in development stays off this page until it
                 deploys.
               </p>
@@ -515,7 +515,7 @@ export default function HirePage() {
           </div>
 
           <div className="mt-8 border-t border-border pt-5">
-            <p className="font-mono text-[10px] tracking-widest uppercase text-muted-3 mb-4">
+            <p className="font-mono text-[10px] tracking-widest uppercase text-meta mb-4">
               Counted in the repository · main · 2026-09-03
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border border border-border rounded-sm overflow-hidden">
@@ -524,7 +524,7 @@ export default function HirePage() {
                   <p className={`font-mono ${c.clay ? "text-[12.5px] text-clay" : "text-[17px] text-text"}`}>
                     {c.value}
                   </p>
-                  <p className="font-mono text-[10px] tracking-wide text-muted-3 mt-1">{c.note}</p>
+                  <p className="font-mono text-[10px] tracking-wide text-meta mt-1">{c.note}</p>
                 </div>
               ))}
             </div>
@@ -542,13 +542,13 @@ export default function HirePage() {
             The hard part of a content pipeline is not the writing.
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
-            <p className="text-[17px] leading-relaxed text-muted text-pretty">
+            <p className="text-[17px] leading-relaxed text-meta text-pretty">
               An event-driven pipeline that turns merged engineering work into published writing: extract the
               evidence from a merge, draft against a claims policy, review on a different provider, publish,
               measure, and feed the result back to whoever writes next.
             </p>
             <div className="flex flex-col gap-[18px]">
-              <p className="text-[17px] leading-relaxed text-muted text-pretty">
+              <p className="text-[17px] leading-relaxed text-meta text-pretty">
                 Generation is the easy half. The hard half is that publishing is an{" "}
                 <em className="italic text-text-soft">outward</em> action, so every stage needs a lease, a
                 receipt, an idempotency key, a kill switch, and a named human gate — and none of that can live

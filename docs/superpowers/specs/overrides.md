@@ -273,3 +273,11 @@ every article's h1 and body prose are untouched.
   content-publish-override: content/posts/what-is-an-agent-memory-layer.mdx
   reason: publish the 2026-09-29 Agent Systems explainer (argued; no receipts owed, status_note names what is not claimed). AEO definition post for "agent memory layer". Northsun mentions use only the verbatim identity line, the allowed latency string and the verbatim closer. No price, benchmark, customer or integration claim. External source (Martin Fowler, "Bitemporal History") re-read 2026-09-29.
   approved-by: Abdur / Slack C0BT932R70U ts 1790605195.447939, reply in the daily-post thread 1790605131.863759 (":white_check_mark: Claude you are always good to publish. Go go go keep shipping it.") / 2026-09-28; thread re-read first-hand 2026-09-29
+- task-id: AGE-2844
+  design-token-override: app/globals.css
+  reason: Design System 1.1 contrast fixes. Adds three semantic aliases over EXISTING values (--c-meta = muted dark / text-soft light; --c-good-text = good dark / good-3 light; --c-band = bg-2 dark / surface light); status-near gets a surface fill so gold text only sits on surface; status-flight uses good-text; the AITLDR-LAYOUT-001 tokens move from :root[data-theme="dark"] to :root so they exist in light. Also scopes `.prose-clay a` to `:not(.not-prose *)`: the rule out-ranked `text-bg` on in-post CTA buttons and rendered them clay-on-clay (1.00:1, measured on the production build in both themes). No existing --c-* value changes. Result: every text pair the site uses holds 4.5:1 in both themes (was 37/74).
+  approved-by: Abdur / live session ("apply all 8 fixes") / 2026-10-02 18:29 EDT
+- task-id: AGE-2844
+  design-token-override: tailwind.config.ts
+  reason: registers the three aliases above as Tailwind colours (meta, good-text, band). No existing colour changes.
+  approved-by: Abdur / live session ("apply all 8 fixes") / 2026-10-02 18:29 EDT

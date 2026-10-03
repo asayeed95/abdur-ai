@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/type.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../components/components.css">
+<link rel="stylesheet" href="../assets/preview.css">
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head">
+    <div><nav class="ds-crumbs" aria-label="Design system"><a href="../index.html">Index</a><a href="../foundations.html">Foundations</a><a href="../tests/contrast.test.html">Contrast test</a></nav><h1>Card</h1><p>A surface tile that lifts and picks up a clay border on hover.</p><p class="ds-src">Source: components/ToolsGrid.tsx</p></div>
+  </div>
+  <div class="ds-panels">
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div class="ds-matrix" style="--cols:4"><span></span><span class="ds-col">default</span><span class="ds-col">hover</span><span class="ds-col">focus</span><span class="ds-col">disabled</span><span class="ds-row">card</span><div class="ds-cell"><a href="#" class="card" style="width:200px"><h3 class="card-title">Northsun</h3><p class="card-body">The memory and enrichment layer for AI agents.</p></a></div><div class="ds-cell"><a href="#" class="card is-hover" style="width:200px"><h3 class="card-title">Northsun</h3><p class="card-body">The memory and enrichment layer for AI agents.</p></a></div><div class="ds-cell"><a href="#" class="card is-focus" style="width:200px"><h3 class="card-title">Northsun</h3><p class="card-body">The memory and enrichment layer for AI agents.</p></a></div><div class="ds-cell"><a href="#" class="card" aria-disabled="true" style="width:200px"><h3 class="card-title">Northsun</h3><p class="card-body">The memory and enrichment layer for AI agents.</p></a></div></div></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div class="ds-matrix" style="--cols:4"><span></span><span class="ds-col">default</span><span class="ds-col">hover</span><span class="ds-col">focus</span><span class="ds-col">disabled</span><span class="ds-row">card</span><div class="ds-cell"><a href="#" class="card" style="width:200px"><h3 class="card-title">Northsun</h3><p class="card-body">The memory and enrichment layer for AI agents.</p></a></div><div class="ds-cell"><a href="#" class="card is-hover" style="width:200px"><h3 class="card-title">Northsun</h3><p class="card-body">The memory and enrichment layer for AI agents.</p></a></div><div class="ds-cell"><a href="#" class="card is-focus" style="width:200px"><h3 class="card-title">Northsun</h3><p class="card-body">The memory and enrichment layer for AI agents.</p></a></div><div class="ds-cell"><a href="#" class="card" aria-disabled="true" style="width:200px"><h3 class="card-title">Northsun</h3><p class="card-body">The memory and enrichment layer for AI agents.</p></a></div></div></section>
+  </div>
+  <ul class="ds-guide"><li><code>.card</code>: <code>surface</code> fill, <code>border</code> hairline, <code>radius-lg</code>, 24px padding. Title in Playfair <code>xl</code> (<code>.card-title</code>), body <code>sm</code> <code>meta</code> (<code>.card-body</code>).</li><li>Hover: border and title turn <code>clay</code>, the card lifts 6px and casts <code>shadow-card-hover</code>.</li><li><code>aria-disabled="true"</code> renders at 80% opacity, the code's treatment for a tool still building.</li><li>The consumer supplies title, one-line description and <code>href</code>; a status pill may sit top-right.</li></ul>
+</div>
+</body>
+</html>

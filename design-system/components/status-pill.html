@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StatusPill — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/type.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../components/components.css">
+<link rel="stylesheet" href="../assets/preview.css">
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head">
+    <div><nav class="ds-crumbs" aria-label="Design system"><a href="../index.html">Index</a><a href="../foundations.html">Foundations</a><a href="../tests/contrast.test.html">Contrast test</a></nav><h1>StatusPill</h1><p>The four product-status pills: live, near, flight, building.</p><p class="ds-src">Source: app/globals.css (.status-pill), components/ToolsGrid.tsx</p></div>
+  </div>
+  <div class="ds-panels">
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div class="ds-line">
+      <span class="status-pill status-live">Live</span>
+      <span class="status-pill status-near">Near-launch</span>
+      <span class="status-pill status-flight">TestFlight</span>
+      <span class="status-pill status-building">Building</span>
+    </div></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div class="ds-line">
+      <span class="status-pill status-live">Live</span>
+      <span class="status-pill status-near">Near-launch</span>
+      <span class="status-pill status-flight">TestFlight</span>
+      <span class="status-pill status-building">Building</span>
+    </div></section>
+  </div>
+  <ul class="ds-guide"><li><code>.status-pill</code> + one variant. Mono 10px uppercase, 2px radius, 1px border.</li><li><strong>live</strong>: <code>bg</code> on a <code>clay</code> fill. <strong>near</strong>: <code>gold</code> text on a <code>surface</code> fill, <code>border-2</code> border. <strong>flight</strong>: <code>good-text</code>, <code>good-3</code> border. <strong>building</strong>: <code>meta</code> text, <code>border</code> border.</li><li>The label must be literal and true. A pill is a public claim about a product's state.</li><li>No red, amber or info variants exist. Don't add them.</li></ul>
+</div>
+</body>
+</html>

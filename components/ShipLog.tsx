@@ -25,7 +25,7 @@ export async function ShipLog() {
             Ship log
           </h2>
         </div>
-        <p className="font-mono text-xs text-muted-3">
+        <p className="font-mono text-xs text-meta">
           git log --oneline · pushed by my agents
         </p>
       </div>
@@ -38,7 +38,7 @@ export async function ShipLog() {
           >
             <span className="text-clay tracking-widest text-xs">{e.date}</span>
             <span className="text-text-soft leading-relaxed">{e.text}</span>
-            <span className="text-muted-3 text-xs tracking-wider">#{e.tag}</span>
+            <span className="text-meta text-xs tracking-wider">#{e.tag}</span>
           </li>
         ))}
       </ul>
