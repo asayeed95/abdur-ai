@@ -1,0 +1,212 @@
+---
+slug: worker-next-to-database-fail-open-budget
+title: "A fail-open latency budget hid our slow database read. The fix was one line of config."
+seo_title: "Cloudflare Worker slow Postgres? Check placement"
+subtitle: "How a voice-memory read kept returning nothing, why the code could not tell us, and the witness-and-control test that proved the fix"
+description: "A fail-open time budget silently dropped our voice agent's memory. The cause was the Worker-to-Postgres round trip. How we fixed it and proved it."
+dek: "Northsun's voice route reads a caller's stored facts under a hard time budget and fails open. In production it kept failing open, and nothing said so, because a read that loses the race is thrown away. Here is how we found the cause, the one-line fix, and how we tested it."
+tldr: "Northsun's voice route reads a returning caller's stored facts under a hard time budget and fails open: if the read misses the budget, the response goes out with facts: null. In production that happened on most returning-caller calls in a small sample, and nothing complained, because a read that loses the race is discarded and nobody records what it would have cost. We added a log line on every settlement, late ones included, and ruled out query shape and database compute: the plan was all cache hits. The cause was the network path. The Worker had no placement, so each sequential query crossed from wherever the caller entered to a single-region database. A one-line placement hint to the database's region fixed it. We tested with predictions written before the deploy, and kept request-path rows (the witness) apart from scheduled-probe rows (the control). Acceptance was first marked met, then corrected to partial, because callers far from the pinned region pay the other side of the trade. Our own timings are not published here. The method is."
+date: 2026-10-03T11:25:00-04:00
+author: Abdur Rahman Sayeed
+section: "Builder Logs"
+register: reported
+tags:
+  - northsun
+  - cloudflare-workers
+  - postgres
+  - latency
+  - observability
+  - voice-ai
+  - reliability
+receipts:
+  - path: "wrangler.jsonc"
+    sha: "e7334d65"
+    note: "PR #1089, merged 2026-09-21. Adds a placement region hint so the Worker runs in the database's cloud region. A deterministic hint, not Smart Placement. Rollback is removing the key and redeploying. Repository: asayeed95/mnemix (private)."
+  - path: "src/routes/voice.ts"
+    sha: "62a1470e"
+    note: "PR #1066, merged 2026-09-19. Folds the governed read into one statement (a caller CTE over the unchanged facts statement) and logs memory_unification.read.timing with elapsed_ms, budget_ms and budget_fired on every settlement, including the one that lands after the budget has fired."
+  - path: "src/routes/voice.ts"
+    sha: "e7dd247f"
+    note: "PR #1102, merged 2026-09-22. Makes the read budget an environment-tunable, ceiling-clamped safety valve. The default is unchanged: the measurement after placement did not call for an amendment."
+  - path: "docs/decisions-log/2026-09-21-age-2362-worker-placement.md"
+    sha: "e36219a0"
+    note: "The decision record at the merge of PR #1104 (2026-09-22): options chosen and rejected, the stated trade-off, falsifiable expectations written before the deploy, the after-measurement with its limits, and the far-region constraint. Its own figures are marked internal and are not reproduced in this post."
+  - path: "INFRA-TOPOLOGY.md"
+    sha: "e36219a0"
+    note: "Records the consequence for callers far from the pinned region: a regional Worker alone does not help while the database and its pooler stay in one region."
+  - path: "web/src/content/docs/architecture.md"
+    sha: "e7334d65"
+    note: "Public architecture page, corrected in the same PR to say the Worker is configured with a placement hint for the database's region."
+citation_preferred: "Sayeed, Abdur Rahman. 'A fail-open latency budget hid our slow database read. The fix was one line of config.' abdur.ai, 3 October 2026."
+related:
+  - voice-ai-memory-latency-is-a-dead-argument
+  - the-analytics-call-that-couldnt-fail
+  - what-is-an-agent-memory-layer
+---
+
+**Short answer:** if a database read is cheap inside the database but slow from your Cloudflare Worker, look at the network path before you touch compute. A Worker with no placement hint runs near whoever called it, and every sequential query then crosses the distance to a database that lives in one region. Cloudflare puts the cost at ["20-30ms from a distant region, or 1-3ms when placed nearby"](https://developers.cloudflare.com/hyperdrive/concepts/how-hyperdrive-works/) per query (vendor-stated). Pin the Worker to the database's region with a placement hint, then check the result with a witness and a control instead of a hunch.
+
+That is the one-line fix. The part that took longer was finding out the read was slow at all, because the code was built so that slowness could never show up.
+
+## What happened
+
+Northsun is the memory and enrichment layer for AI agents.
+
+Its voice route answers a call-start request with a returning caller's stored facts. Voice is the hard case for memory, because a person is waiting on the line. So the read of those facts runs under a time budget, and the route **fails open**: if the read has not finished when the budget runs out, the response goes out with `facts: null` and the call carries on without the memory. Northsun is [designed for sub-300ms voice recall](/writing/voice-ai-memory-latency-is-a-dead-argument). That is a design target, not a measured claim, and this post is about what the first production measurements taught us.
+
+They showed the fail-open path being taken a lot. A synthetic probe had been reporting an earlier, two-statement form of the read as incomplete on nearly every run for a week. After that read was folded into a single statement, a small dogfood sample still came back with no facts on most calls from a returning caller. Every one of those reads finished. None errored. They were slow, they lost the race to the timer, and their results were thrown away.
+
+## Why nothing told us
+
+The budget is a fixed figure, and our own rule says it can be changed only on a production measurement. But a read that loses the race is discarded before anyone learns what it would have cost, so that measurement could never exist. The mechanism that protects the caller from a slow read also made the slow read invisible. It is the same shape as [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail): a path built so that a miss looks like a quiet success.
+
+The first fix was an instrument, not an optimisation. Record the read's real elapsed time on every settlement, including one that lands after the budget has fired:
+
+```ts
+export async function readWithBudget<T>(
+  read: () => Promise<T>,
+  budgetMs: number,
+  log: (line: Record<string, unknown>) => void,
+): Promise<T | null> {
+  const startedAt = Date.now();
+  let budgetFired = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const timeout = new Promise<null>((resolve) => {
+    timer = setTimeout(() => {
+      budgetFired = true; // set by the timer itself, not re-derived from clocks
+      resolve(null); //      fail open: the caller carries on without the data
+    }, budgetMs);
+  });
+
+  // Observe EVERY settlement, including one that lands after the budget fired.
+  const observed = read().then(
+    (value) => {
+      log({ result: "settled", elapsed_ms: Date.now() - startedAt, budget_ms: budgetMs, budget_fired: budgetFired });
+      return value;
+    },
+    (error) => {
+      log({ result: "errored", elapsed_ms: Date.now() - startedAt, budget_ms: budgetMs, budget_fired: budgetFired });
+      throw error;
+    },
+  );
+
+  try {
+    return await Promise.race([observed, timeout]);
+  } catch {
+    return null; // a failing read must not take the response down with it
+  } finally {
+    clearTimeout(timer);
+  }
+}
+```
+
+Before this listing was published, it was run against three stand-in reads. A fast one returned its value and logged `budget_fired: false`. A slow one returned `null` to the caller, and still logged its real elapsed time with `budget_fired: true` once it settled. A slow, failing one returned `null` and logged `result: "errored"`. In a Worker, hand `observed` to `ctx.waitUntil` so the late log line is not cut off when the response goes out.
+
+## The wrong suspects came first
+
+Once every read reported its real time, the obvious suspects were on the database side. We checked two.
+
+- **Query shape.** The read used to be two sequential statements: phone number to entity, then the facts. It had already been folded into one statement, so one round trip. That helped. It was not enough.
+- **Database compute.** The investigating agent reported that `EXPLAIN (ANALYZE, BUFFERS)` on the hottest caller showed an index scan where every page was a cache hit and nothing came off disk, with execution time a small fraction of the budget. That figure is recorded in the investigation, not re-run for this post. The database's compute tier had also been raised in the meantime, and the budget still fired on a warm database.
+
+That left the path between the Worker and the database.
+
+## The cause: no placement
+
+The Worker had no placement hint, so Cloudflare ran it close to whoever called. The database sat in one region. The route's hot path is sequential: authenticate the key, look up the contact, read the facts. Each step is a round trip from the Worker to Postgres through the connection pooler.
+
+```text
+before   caller ─► edge near caller ─► Worker runs here ──┬─ auth ──────┐
+                                                           ├─ contact ───┼─► Postgres (one region)
+                                                           └─ facts ─────┘     three cross-region round trips
+
+after    caller ─► edge near caller ─► Worker runs beside the database ─► same three queries, short hops
+```
+
+With a budget of a few tens of milliseconds, three round trips at Cloudflare's distant-region figure can spend it more than once over. Cloudflare's guidance has a limit worth knowing: ["If your Worker makes only one query per request, placement does not improve end-to-end latency."](https://developers.cloudflare.com/hyperdrive/concepts/how-hyperdrive-works/) Ours made three.
+
+The fix, in `wrangler.jsonc`:
+
+```jsonc
+{
+  // Run the Worker in the same cloud region as the database behind the pooler.
+  // The region string is a placeholder: use the region your database reports.
+  "placement": { "region": "aws:<database-region>" }
+}
+```
+
+We chose an explicit hint over [Smart Placement](https://developers.cloudflare.com/workers/configuration/placement/). Cloudflare describes Smart Placement as analysing traffic over time and needing consistent traffic from several locations, with analysis taking up to 15 minutes. Our volume is low, so it might never activate. A region hint is deterministic. The change is reversible: remove the key and redeploy. We had also considered raising the budget first and rejected that, because a budget locked in on a misplaced Worker describes a misconfiguration.
+
+## Proving it: a witness and a control
+
+Shipping the line was not the end. We wrote the predictions down before the deploy, so the measurement could refute them, and we split the evidence into two populations that must never be pooled:
+
+| Population | What it is | Why it is in the test |
+|---|---|---|
+| Request-path rows, split by the location the request entered | Real calls handled by the Worker's `fetch` handler, so they are placed | The **witness**. This is the behaviour we want to change. |
+| Scheduled-probe rows | A cron-triggered synthetic call to the same route | The **control**. Cloudflare says placement affects only `fetch` handlers, so the scheduled invocation itself is not placed. Compare a scheduled "before" only with a scheduled "after". |
+
+The predictions: (a) after the deploy, every request-path row should look like the rows that already entered nearest the database; (b) if that holds, the budget needs no amendment, and the new environment variable stays as a safety valve; (c) an open question, whether a call that a scheduled handler makes through a service binding inherits placement.
+
+The method was read-only: tail the Worker's logs as JSON, filter on the timing line, and pull the entry location, `elapsed_ms` and `budget_fired` from each row.
+
+```bash
+wrangler tail <worker-name> --format json --search "read.timing"
+```
+
+**What we observed.** In a 90-minute window after the deploy, the budget fired on none of the request-path rows we captured. That included the entry location whose rows had fired every time before. The scheduled control cleared as well, which answered the open question: sub-requests made through the service binding were placed too, even though the scheduled invocation was not. The probe's first runs after the deploy served the facts where the runs before had not. The budget figure stayed where it was.
+
+**What this does not show.** It is a small sample from two entry locations, on dogfood traffic, so it is not a benchmark. The timing is the Worker's read time, not what a caller experiences. The window spanned three builds, and an unrelated change to the same route landed in the middle, though the read cleared the budget on both sides of it. We are not publishing our own timings: they are internal measurements from a small sample, and the claim we can stand behind is the method.
+
+## The cost on the other side
+
+We first wrote the acceptance up as met. Two automated review passes flagged that the issue's own acceptance named caller-perceived latency, while a Worker-side tail measures only the read. The verdict was corrected to partial, and the open item stayed open until it was measured. A fix cannot narrow its acceptance after the fact.
+
+Pinning a Worker beside its database moves the distance to a different leg. The Worker-to-database hop gets short, and the caller-to-Worker hop gets longer for anyone far from that region. We measured that side with a public probe network: plain HTTP requests to a public health endpoint from Europe, Asia-Pacific and North America, with no credentials and no customer data. The far-region cost was real, and it was recorded as an infrastructure constraint, not a footnote.
+
+The consequence is the part worth taking away. A second Worker in another region does not fix it while the database and its pooler stay where they are, because the far Worker would just recreate the cross-region read. **To serve far callers, move the data, not just the Worker.** That is an engineering consequence we recorded in our infrastructure notes. It is not a product commitment, and so far the real traffic we captured comes from callers on the same continent as the database.
+
+## How to check your own Worker
+
+1. **Time every settlement, not just the winner.** If you fail open, log the elapsed time of the read that lost the race. Otherwise you cannot tell slow from broken.
+2. **Find where the database lives and where the Worker runs.** Cloudflare's docs describe a `cf-placement` header for checking placement, and warn it may be removed before Smart Placement leaves beta.
+3. **Count the sequential queries on the hot path.** With one query, placement will not help. With several, it can matter a lot.
+4. **Choose the hint to match the topology.** One backend in a known cloud region and modest traffic: an explicit region hint. Several backends and steady traffic from many places: Smart Placement.
+5. **Write the predictions before you deploy.** Include the result that would make you revert.
+6. **Keep `fetch` and scheduled rows apart.** Compare like with like.
+7. **Measure the far side too.** A public probe network will tell you what callers in other regions pay, without touching your secrets.
+
+## FAQ
+
+### Why is my Cloudflare Worker slow to query Postgres when the query is fast in the database?
+
+Often the query is not the slow part. Each query is a network round trip between where the Worker runs and where the database lives. Cloudflare's guidance puts a sequential query at 20-30ms from a distant region and 1-3ms when placed nearby. Several sequential queries multiply that. Measure the round trip before you scale the database.
+
+### Does Smart Placement work for a low-traffic Worker?
+
+It may not activate. Cloudflare says Smart Placement needs consistent traffic from multiple locations and up to 15 minutes of analysis. For a single backend in a known cloud region, an explicit region hint avoids the wait and the traffic requirement.
+
+### Does placement apply to cron (scheduled) handlers?
+
+Not to the scheduled invocation itself. Cloudflare says placement affects only `fetch` handlers. In our deployment, a `fetch` made from a scheduled handler through a service binding was placed. That was an observation on our setup, so test yours.
+
+### Should I raise my timeout budget instead?
+
+Not first. A budget is a statement about what the caller can wait for. Raising it to fit a misplaced Worker hides the cost without paying it. Find what the budget is actually measuring, fix that, and then decide whether the figure needs to change.
+
+### Is a fail-open timeout a bad pattern?
+
+No. Failing open is the right call when a slow read must not hold up a person on the line. The problem was that failing open also removed the evidence. Keep the behaviour and record every settlement.
+
+## The receipts
+
+The Northsun repository is private, so these are paths and merge commits for anyone with access to check. The decision record carries the internal figures, which this post leaves out.
+
+<ReceiptsBlock />
+
+The work in this post was done by Northsun's delivery agents, which are AI sessions (Claude for building and coordinating, with Codex and CodeRabbit among the reviewers) working under written rules: one owner per change, predictions before measurement, independent review passes. The deploy was checked against the live version endpoint at the time. The production measurements were not re-run for this post.
+
+For the argument this measurement tests, read [the latency objection for voice-AI memory is a dead argument](/writing/voice-ai-memory-latency-is-a-dead-argument). For what a memory layer has to do before latency matters at all, read [What is an agent memory layer?](/writing/what-is-an-agent-memory-layer). If you want the next field report in your inbox, [subscribe here](/subscribe).
+
+<NewsletterCTA />
