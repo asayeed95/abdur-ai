@@ -5,7 +5,7 @@ seo_title: "Test a newsletter signup end to end"
 subtitle: "Five more observations sit between a success response and a subscriber. The audit could make one of them, and only against a stand-in."
 description: "A 200 from your signup endpoint only proves your handler returned. Five more observations stand between it and a subscriber; this audit made one."
 dek: "I had an AI coding agent audit this site's newsletter signup on a local build, against a stand-in for the provider. The success path returned {ok:true}. Around it: a 312-character address forwarded, a dropped connection answered with an empty 500, and a field the provider doesn't document."
-tldr: "A 200 from a signup endpoint proves one thing: the handler returned. Five more observations sit between it and a subscriber who can read your next email: the app sent the right request, the provider accepted the contact and the message, the message was delivered, a person received it and can unsubscribe, and the signup was counted once as a subscriber. An AI coding agent audited abdur.ai's own Next.js and Resend signup on a local build and could make only the second, against a local stand-in for the provider, never the real API. That was enough to find seven defects, among them a welcome-email body field that Resend's send-email documentation does not list, a provider failure that became an empty HTTP 500, raw validation JSON returned as the error string, native no-JS posts answered with a JSON document, and nine of thirteen published articles that ended with no newsletter signup. The checks now run as twenty-one scenarios in the gate script and are wired into CI, and a committed mutation script reintroduces eight defects, each caught. Real provider acceptance, delivery, inbox receipt, hosted unsubscribe and the real subscriber count remain unobserved."
+tldr: "A 200 from a signup endpoint proves one thing: the handler returned. Five more observations sit between it and a subscriber who can read your next email: the app sent the right request, the provider accepted the contact and the message, the message was delivered, a person received it and can unsubscribe, and the signup was counted once as a subscriber. An AI coding agent audited abdur.ai's own Next.js and Resend signup on a local build and could make only the second, against a local stand-in for the provider, never the real API. That was enough to find seven defects, among them a welcome-email body field that Resend's send-email documentation does not list, a provider failure that became an empty HTTP 500, raw validation JSON returned as the error string, native no-JS posts answered with a JSON document, and nine of thirteen published articles that ended with no newsletter signup. The checks now run as twenty-two scenarios in the gate script and are wired into CI, and a committed mutation script reintroduces nine defects, each caught. Real provider acceptance, delivery, inbox receipt, hosted unsubscribe and the real subscriber count remain unobserved."
 date: 2026-10-03T11:30:00-04:00
 author: Abdur Rahman Sayeed
 section: "Builder Logs"
@@ -28,13 +28,13 @@ receipts:
     sha: "d28ad56"
     note: "The route after: `List-Unsubscribe` through the documented `headers` field, timeouts on the contact, welcome, backfill and property-declaration calls with a JSON 502 on failure, one friendly validation message, a 303 redirect for native form posts, a 254-character cap, and a hashed idempotency key."
   - path: "scripts/test-subscribe-journey.mjs"
-    sha: "d28ad56"
-    note: "The twenty-one scenarios, the Resend stand-in that records every request, and the check that the welcome body uses only fields from a hand-copied list of Resend's documented top-level parameters."
+    sha: "ab38e15"
+    note: "The twenty-two scenarios, the Resend stand-in that records every request, and the check that the welcome body uses only fields from a hand-copied list of Resend's documented top-level parameters."
   - path: "scripts/test-subscribe-mutants.mjs"
-    sha: "d28ad56"
-    note: "Reintroduces eight defects one at a time, rebuilds, and reports which scenarios catch each. Run with `npm run test:subscribe:mutants`."
+    sha: "ab38e15"
+    note: "Reintroduces nine defects one at a time, rebuilds, and reports which scenarios catch each. Run with `npm run test:subscribe:mutants`."
   - path: "scripts/repro-prefix-signup.sh"
-    sha: "d28ad56"
+    sha: "ab38e15"
     note: "Rebuilds the route as it stood at c7bc07f, patched only to reach the stand-in, and prints what it did for five requests (with scripts/probe-signup-route.mjs). Source of the 'observed before the fix' results below."
   - path: "components/post/PostArticle.tsx"
     sha: "bf42386"
@@ -98,9 +98,9 @@ assert(unknown.length === 0, `undocumented fields sent: ${unknown.join(", ")}`);
 
 `DOCUMENTED_SEND_FIELDS` is a hand-copied list of the provider's documented top-level fields. That's a weaker check than validating against a schema, and it will go stale if the provider changes.
 
-Twenty-one scenarios cover the boundaries one at a time, including: valid input, whitespace and capitals in the address, malformed and missing input, the native-form path, duplicates, three simultaneous signups for one new address (exactly one welcome goes out), a filled honeypot, a visitor whose clock is ahead of the server, a provider 500, a dropped connection, a provider that never answers on the contact call or on the backfill, a failed welcome send (the signup still succeeds and the logs hold no address), missing configuration, a welcome request that carries no raw address in its idempotency key, one h1 on the page, and exactly one signup path on every article.
+Twenty-two scenarios cover the boundaries one at a time, including: valid input, whitespace and capitals in the address, malformed and missing input, the native-form path, duplicates, three simultaneous signups for one new address (exactly one welcome goes out), a filled honeypot, a visitor whose clock is ahead of the server, a provider 500, a dropped connection, a provider that never answers on the contact call or on the backfill, a failed welcome send (the signup still succeeds and the logs hold no address), missing configuration, a welcome request that carries no raw address in its idempotency key, one h1 on the page, exactly one signup path on every article, and every table in an article inside its own scrolling box.
 
-A test you've never seen fail is a test you haven't checked. So there is a committed mutation script, `npm run test:subscribe:mutants`. It reintroduces eight defects one at a time, rebuilds, and runs the suite. Each mutant is caught. Seven fail exactly one scenario; the native-form defect fails three, because three scenarios use that path.
+A test you've never seen fail is a test you haven't checked. So there is a committed mutation script, `npm run test:subscribe:mutants`. It reintroduces nine defects one at a time, rebuilds, and runs the suite. Each mutant is caught. Eight fail exactly one scenario; the native-form defect fails three, because three scenarios use that path.
 
 The suite takes about fifteen seconds including server startup, and thirteen of those belong to the two scenarios that wait for a provider timeout. It is wired into the gate script and the CI workflow, and it hadn't run in CI yet when I wrote this.
 
