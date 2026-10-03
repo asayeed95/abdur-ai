@@ -5,6 +5,7 @@ import rehypeSlug from "rehype-slug";
 import { MnemixCTA, AsecWaitlistCTA, NewsletterCTA } from "@/components/post/LeadMagnets";
 import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
+import { POST_VISUALS } from "@/components/post/mdx-components";
 import { RegisterBadge, RegisterNote } from "@/components/post/RegisterNote";
 import { postPath, type PostMeta } from "@/lib/posts";
 import { ogImageForPost } from "@/lib/og";
@@ -95,6 +96,7 @@ export function PostArticle({
             },
           }}
           components={{
+            ...POST_VISUALS,
             MnemixCTA,
             AsecWaitlistCTA,
             NewsletterCTA,
