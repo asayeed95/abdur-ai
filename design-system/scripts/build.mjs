@@ -17,6 +17,7 @@ import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 import { COMPONENTS } from "./components.mjs";
 import { TEMPLATES } from "./templates.mjs";
+import { scanUsage } from "./usage.mjs";
 
 const DS = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REPO = path.resolve(DS, "..");
@@ -252,22 +253,31 @@ write(path.join(DS, "index.html"), `${head("Index", 0)}
 
 // ---------- Usage scan: the 1.1 contrast rules, enforced in the app ----------
 // Each rule names a class pattern that would put a token on a ground it fails on.
+// `pair` rules need two classes in a parent/child relationship; in .tsx they are
+// checked across the JSX tree by scripts/usage.mjs, and line-based elsewhere.
+// --usage-dir DIR (repeatable) replaces the default dirs (used by tests/usage-hierarchy.test.mjs).
 const USAGE_RULES = [
   { re: /(?<![\w-])text-muted(-[234])?(?![\w-])/, msg: "muted ramp used for text — use text-meta" },
   { re: /(?<![\w-])text-good(?![\w-])/, msg: "text-good fails in light (1.56–1.87:1) — use text-good-text" },
-  { re: /(?<![\w-])bg-(bg-2|surface-2)(?![\w-]).*(?<![\w-])(text-clay|text-gold|eyebrow)(?![\w-])|(?<![\w-])(text-clay|text-gold|eyebrow)(?![\w-]).*(?<![\w-])bg-(bg-2|surface-2)(?![\w-])/, msg: "clay/gold text on bg-2/surface-2 fails in light — use bg-band" },
-  { re: /focus:border-clay/, also: /(?<![\w-])border-border(?![\w-])/, msg: "input boundary in border fails 3:1 — use border-muted" },
+  { pair: true, re: /(?<![\w-])bg-(bg-2|surface-2)(?![\w-]).*(?<![\w-])(text-clay|text-gold|eyebrow)(?![\w-])|(?<![\w-])(text-clay|text-gold|eyebrow)(?![\w-]).*(?<![\w-])bg-(bg-2|surface-2)(?![\w-])/, msg: "clay/gold text on bg-2/surface-2 fails in light — use bg-band" },
+  { pair: true, re: /focus:border-clay/, also: /(?<![\w-])border-border(?![\w-])/, msg: "input boundary in border fails 3:1 — use border-muted" },
 ];
-for (const dir of ["app", "components", "lib"]) {
-  for (const f of walk(path.join(REPO, dir))) {
+const usageDirs = process.argv.flatMap((a, i) => (a === "--usage-dir" && process.argv[i + 1] ? [path.resolve(process.argv[i + 1])] : []));
+const tsxFiles = [];
+for (const dir of usageDirs.length ? usageDirs : ["app", "components", "lib"].map((d) => path.join(REPO, d))) {
+  for (const f of walk(dir)) {
     if (!/\.(tsx?|css|mdx?)$/.test(f)) continue;
+    const isTsx = f.endsWith(".tsx");
+    if (isTsx) tsxFiles.push(f);
     read(f).split("\n").forEach((line, i) => {
       for (const r of USAGE_RULES) {
+        if (r.pair && isTsx) continue;
         if (r.re.test(line) && (!r.also || r.also.test(line))) errors.push(`usage: ${path.relative(REPO, f)}:${i + 1} ${r.msg}`);
       }
     });
   }
 }
+errors.push(...scanUsage(tsxFiles, { colorNames: Object.keys(color.tokens), rel: (f) => path.relative(REPO, f) }));
 
 // ---------- 3. Hex check ----------
 const HEX = /(?<![&\w])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z_-])/g;

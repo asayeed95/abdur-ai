@@ -57,22 +57,31 @@
   root.auditSite = async function (routes, themes) {
     routes = routes || ROUTES; themes = themes || ["dark", "light"];
     var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
-    var out = {};
-    for (var ti = 0; ti < themes.length; ti++) {
-      for (var ri = 0; ri < routes.length; ri++) {
-        try { localStorage.setItem("abdur-theme", themes[ti]); } catch (e) { /* storage blocked */ }
-        var f = document.createElement("iframe");
-        f.style.cssText = "position:absolute;left:-10000px;top:0;width:1280px;height:900px";
-        f.src = routes[ri]; document.body.appendChild(f);
-        await new Promise(function (r) { f.onload = r; });
-        await wait(400);
-        f.contentDocument.querySelectorAll("[data-reveal]").forEach(function (e) { e.classList.add("in"); });
-        await wait(750);
-        out[themes[ti] + " " + routes[ri]] = auditWindow(f.contentWindow);
-        f.remove();
+    var out = {}, f = null, saved = null;
+    // Keep the operator's own theme choice: read it now, put it back (or clear it if there was none) in finally.
+    try { saved = localStorage.getItem("abdur-theme"); } catch (e) { /* storage blocked */ }
+    try {
+      for (var ti = 0; ti < themes.length; ti++) {
+        for (var ri = 0; ri < routes.length; ri++) {
+          try { localStorage.setItem("abdur-theme", themes[ti]); } catch (e) { /* storage blocked */ }
+          f = document.createElement("iframe");
+          f.style.cssText = "position:absolute;left:-10000px;top:0;width:1280px;height:900px";
+          f.src = routes[ri]; document.body.appendChild(f);
+          await new Promise(function (r) { f.onload = r; });
+          await wait(400);
+          f.contentDocument.querySelectorAll("[data-reveal]").forEach(function (e) { e.classList.add("in"); });
+          await wait(750);
+          out[themes[ti] + " " + routes[ri]] = auditWindow(f.contentWindow);
+          f.remove(); f = null;
+        }
       }
+    } finally {
+      if (f) f.remove();
+      try {
+        if (saved === null) localStorage.removeItem("abdur-theme");
+        else localStorage.setItem("abdur-theme", saved);
+      } catch (e) { /* storage blocked */ }
     }
-    try { localStorage.removeItem("abdur-theme"); } catch (e) { /* storage blocked */ }
     return out;
   };
   root.auditWindow = auditWindow;

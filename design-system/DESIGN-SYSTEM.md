@@ -62,6 +62,8 @@ The design system locks what `app/globals.css` and `tailwind.config.ts` already 
 | `tests/contrast.test.html` | In-browser contrast pass and the known-risk checks |
 | `tests/contrast-results.json` | The same pass, written by the build |
 | `scripts/build.mjs` | Builds tokens.json and the pages, runs the drift, hex and contrast checks. `--artifact DIR` exports the Design System artifact. |
+| `scripts/usage.mjs` | Hierarchy-aware usage check for `.tsx`: walks the JSX tree (TypeScript compiler API) so a ground on a parent and clay/gold text on a child are checked as one pair, and input boundaries are checked on the field or its `focus-within` wrapper. Opaque `className` values never fail. |
+| `tests/usage-hierarchy.test.mjs` | Negative test: scratch parent/child fixtures must fail the build; safe patterns must pass. |
 
 ## Contrast rules (1.1)
 

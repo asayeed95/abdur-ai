@@ -189,7 +189,7 @@ ${body}
   .rule { fill: var(--clay); }
   .r { rx: var(--radius-sm); }
   .name { position: absolute; left: 40px; top: 152px; width: 880px; margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 64px; line-height: 0.95; letter-spacing: -0.025em; color: var(--text); white-space: nowrap; }
-  .tagline { position: absolute; left: 40px; top: 232px; margin: 0; max-width: 440px; font-family: var(--font-body); font-size: 14px; line-height: 20px; color: var(--muted); }
+  .tagline { position: absolute; left: 40px; top: 232px; margin: 0; max-width: 440px; font-family: var(--font-body); font-size: 14px; line-height: 20px; color: var(--meta); }
 </style>
 </head>
 <body>

@@ -98,8 +98,9 @@
           rows.push({ theme: theme, kind: p.kind, fg: p.fg, bg: p.bg, min: p.min, use: p.use, ratio: null, pass: false, missing: true });
           return;
         }
-        var r = r2(ratio(f, b));
-        rows.push({ theme: theme, kind: p.kind, fg: p.fg, bg: p.bg, min: p.min, use: p.use, ratio: r, pass: r >= p.min, large: r >= 3, fgHex: toHex(f), bgHex: toHex(b) });
+        // Judge the unrounded ratio: r2() is for display only (4.496 must not round up to a 4.50 pass).
+        var raw = ratio(f, b);
+        rows.push({ theme: theme, kind: p.kind, fg: p.fg, bg: p.bg, min: p.min, use: p.use, ratio: r2(raw), pass: raw >= p.min, large: raw >= 3, fgHex: toHex(f), bgHex: toHex(b) });
       });
     });
     return rows;
