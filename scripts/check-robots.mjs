@@ -1,22 +1,17 @@
 #!/usr/bin/env node
 /**
- * AGE-2585 — share-card crawlers must be able to fetch /api/og.
+ * AGE-2585 — check share-card policy eligibility in rendered robots.txt.
  *
- * Every post's og:image / twitter:image is https://abdur.ai/api/og?…, and
- * app/robots.ts disallows /api/ for `*`. Twitterbot, LinkedInBot, Slackbot and
- * the other preview fetchers are not named in robots.txt, so they inherit `*`.
- * X documents (and developer reports show) that Twitterbot obeys robots.txt and
- * drops the image when its URL is disallowed. `check:og` cannot see this: it
- * proves the tags exist and the route answers 200 to a plain fetch, which is
- * exactly the kind of fetch that ignores robots.txt.
+ * The checker applies the matching semantics below to nine agent tokens. It
+ * does not establish how those services fetch previews or obey robots.txt;
+ * Slack tokens are policy test inputs, not evidence of Slack compliance.
+ * Unlike an HTTP fetch, this checks the rendered policy and asserts:
+ *   1. bare/query share-card URLs are allowed for the tested tokens;
+ *   2. the selected API and near-miss paths are disallowed for those tokens;
+ *   3. the selected public paths are allowed.
  *
- * This check reads the RENDERED robots.txt (what `next build` emits, not the
- * source) and applies Google's matching rules: the longest matching rule wins
- * and Allow wins a tie. It asserts:
- *   1. the share-card route (read from lib/og.ts, never retyped here) is
- *      fetchable by every card crawler below;
- *   2. the private API routes stay closed to those same crawlers;
- *   3. the public pages stay open.
+ * This is a focused policy regression check, not a complete crawler emulator
+ * or proof of preview rendering. Longest matching rules win; Allow wins ties.
  *
  * Usage: node scripts/check-robots.mjs [path-to-robots.txt]
  *   default: .next/server/app/robots.txt.body  (run `npm run build` first)
@@ -28,7 +23,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const target = process.argv[2] ?? path.join(ROOT, ".next/server/app/robots.txt.body");
 
-// Preview/card fetchers. None is named in app/robots.ts, so each inherits `*`.
+// Agent tokens used to test policy eligibility; actual fetching behavior varies.
 const CARD_BOTS = [
   "Twitterbot",
   "LinkedInBot",
@@ -83,7 +78,7 @@ function toRegex(pattern) {
   return new RegExp(`^${body}${anchored ? "$" : ""}`);
 }
 
-/** A crawler obeys the group naming its product token; only if none does, the `*` group. */
+/** Select the most specific matching token group, falling back to `*`. */
 function rulesFor(groups, botToken) {
   const t = botToken.toLowerCase();
   const scored = groups.map((group) => ({
@@ -134,7 +129,7 @@ if (ogMatch) {
       assertions++;
       const v = verdict(groups, bot, cardPath);
       if (!v.allowed) {
-        fail(`${bot} may NOT fetch the share card ${cardPath} (blocked by "${v.rule.type}: ${v.rule.pattern}") — a crawler that honours robots.txt will preview posts with no image`);
+        fail(`${bot} may NOT fetch the share card ${cardPath} (blocked by "${v.rule.type}: ${v.rule.pattern}") — rejected under the tested policy semantics`);
       }
     }
   }

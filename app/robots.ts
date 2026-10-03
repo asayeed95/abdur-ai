@@ -4,10 +4,9 @@ import { SITE } from "@/lib/site";
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      // Card crawlers (Twitterbot, LinkedInBot, Slackbot…) are not named below, so
-      // they inherit this group and obey it. Every post's og:image is /api/og?…,
-      // so exact-path and query-prefix Allow rules keep it reachable while keeping the
-      // rest of /api/ closed. scripts/check-robots.mjs guards this on the built file.
+      // Permit bare/query /api/og URLs under the wildcard group's policy.
+      // The rendered-policy check covers selected API and near-miss paths for
+      // nine agent tokens; it does not prove crawler compliance or real previews.
       { userAgent: "*", allow: ["/", "/api/og$", "/api/og?"], disallow: ["/api/"] },
       // AI crawlers — explicitly welcomed
       { userAgent: "GPTBot", allow: "/" },
