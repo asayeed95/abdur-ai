@@ -7,9 +7,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // `lastModified` must say when the page's content last changed. It used to be
   // `new Date()` for every static page, i.e. "changed at build time" on every
   // deploy, which search engines learn to ignore. The index pages change when
-  // the newest post does; the rest have no reliable change date, so they omit it.
-  const newest = posts[0];
-  const newestChange = newest ? new Date(newest.updated || newest.date) : undefined;
+  // the latest post change does; the rest have no reliable change date, so they
+  // omit it. getAllPosts() sorts by publication date, so an older post updated
+  // after the newest one was published would be missed by posts[0]: take the
+  // latest `updated` (falling back to `date`) across every post instead.
+  const changeTimes = posts
+    .map((p) => new Date(p.updated || p.date).getTime())
+    .filter((t) => !Number.isNaN(t));
+  const newestChange = changeTimes.length ? new Date(Math.max(...changeTimes)) : undefined;
 
   const staticPages = [
     { url: `${SITE.url}/`, lastModified: newestChange, priority: 1.0, changeFrequency: "weekly" as const },

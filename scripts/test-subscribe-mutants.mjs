@@ -16,6 +16,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const ROUTE = "app/api/subscribe/route.ts";
 const ARTICLE = "components/post/PostArticle.tsx";
+const SITEMAP = "app/sitemap.ts";
+const RESEND_BASE = "lib/resend-base.ts";
 
 const MUTANTS = [
   {
@@ -62,9 +64,21 @@ const MUTANTS = [
     from: '{!source.includes("<NewsletterCTA") && <PostSubscribe />}',
     to: "{null}",
   },
+  {
+    name: "RESEND_API_BASE_URL honoured for any https host again",
+    file: RESEND_BASE,
+    from: "if (u.origin === RESEND_API_ORIGIN) return u.origin;",
+    to: 'if (u.protocol === "https:") return u.origin;',
+  },
+  {
+    name: "index pages report build time as lastmod (F10)",
+    file: SITEMAP,
+    from: "const newestChange = changeTimes.length ? new Date(Math.max(...changeTimes)) : undefined;",
+    to: "const newestChange = new Date();",
+  },
 ];
 
-const original = new Map([ROUTE, ARTICLE].map((f) => [f, readFileSync(f, "utf8")]));
+const original = new Map([ROUTE, ARTICLE, SITEMAP, RESEND_BASE].map((f) => [f, readFileSync(f, "utf8")]));
 const restore = () => original.forEach((text, f) => writeFileSync(f, text));
 process.on("SIGINT", () => { restore(); process.exit(130); });
 process.on("exit", restore);

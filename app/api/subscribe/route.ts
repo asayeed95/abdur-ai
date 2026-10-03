@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
+import { resolveResendBase } from "@/lib/resend-base";
 import { SITE } from "@/lib/site";
 import { z } from "zod";
 
@@ -52,26 +53,11 @@ const AUDIENCE_ENV: Record<string, string | undefined> = {
 };
 
 /**
- * Resend API origin. `RESEND_API_BASE_URL` exists so the signup journey can be
- * tested against a local stand-in (scripts/test-subscribe-journey.mjs); it is
- * honoured only for https or loopback, so a typo cannot send the API key to
- * an arbitrary plain-http host.
+ * Resend API origin. `RESEND_API_BASE_URL` is a test-only override, honoured
+ * only for loopback or the real https://api.resend.com origin; see
+ * lib/resend-base.ts for why (the key and addresses travel with every call).
  */
-const RESEND = resendBase();
-function resendBase(): string {
-  const override = process.env.RESEND_API_BASE_URL;
-  if (override) {
-    try {
-      const u = new URL(override);
-      if (u.protocol === "https:" || u.hostname === "127.0.0.1" || u.hostname === "localhost") {
-        return u.origin;
-      }
-    } catch {
-      // fall through to the real API
-    }
-  }
-  return "https://api.resend.com";
-}
+const RESEND = resolveResendBase(process.env.RESEND_API_BASE_URL);
 
 /** Short, non-reversible tag for logs and idempotency keys — no raw addresses. */
 function emailTag(email: string): string {

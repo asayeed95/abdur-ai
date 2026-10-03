@@ -158,6 +158,7 @@ const form = (base, fields) =>
     redirect: "manual",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams(fields).toString(),
+    signal: AbortSignal.timeout(20_000), // same bound as post(): a hung native-form request fails its scenario, not the suite
   });
 const slow = () => Date.now() - 6000; // a human-plausible render time
 const contactCalls = () => calls.filter((c) => /\/audiences\/.+\/contacts$/.test(c.path) && c.method === "POST");
@@ -369,6 +370,29 @@ try {
     assert(bad.length === 0, bad.join("; "));
   });
 
+  await scenario("RESEND_API_BASE_URL override honoured only for loopback or api.resend.com", "config guard (app only)", async () => {
+    const { resolveResendBase, RESEND_API_ORIGIN } = await import("../lib/resend-base.ts");
+    const cases = [
+      [undefined, RESEND_API_ORIGIN],
+      ["", RESEND_API_ORIGIN],
+      ["not a url", RESEND_API_ORIGIN],
+      [`http://127.0.0.1:${mockPort}`, `http://127.0.0.1:${mockPort}`],
+      ["http://localhost:4010/x", "http://localhost:4010"],
+      ["http://[::1]:4010", "http://[::1]:4010"],
+      ["https://api.resend.com/", RESEND_API_ORIGIN],
+      ["https://evil.example", RESEND_API_ORIGIN],
+      ["https://api.resend.com.evil.example", RESEND_API_ORIGIN],
+      ["https://api.resnd.com", RESEND_API_ORIGIN],
+      ["http://api.resend.com", RESEND_API_ORIGIN],
+      ["http://10.0.0.5:8080", RESEND_API_ORIGIN],
+      ["ftp://127.0.0.1", RESEND_API_ORIGIN],
+    ];
+    for (const [input, want] of cases) {
+      const got = resolveResendBase(input);
+      assert(got === want, `resolveResendBase(${JSON.stringify(input)}) = ${got}, want ${want}`);
+    }
+  });
+
   await scenario("sitemap: static pages carry no fabricated lastmod; Person JSON-LD has no dead image", "render (app only)", async () => {
     const xml = await (await fetch(`${site.base}/sitemap.xml`)).text();
     const entries = xml.split("<url>").slice(1);
@@ -377,6 +401,19 @@ try {
     assert(!about.includes("<lastmod>"), "/about still has a lastmod");
     const post = entries.find((e) => e.includes("/writing/what-is-an-agent-memory-layer"));
     assert(post?.includes("<lastmod>"), "a post lost its lastmod");
+    // The two index pages must report the latest post change, not build time
+    // (`new Date()` on every deploy) and not just posts[0]'s date.
+    const lastmod = (e) => {
+      const m = e?.match(/<lastmod>([^<]+)<\/lastmod>/);
+      return m ? new Date(m[1]).getTime() : NaN;
+    };
+    const postTimes = entries.filter((e) => /<loc>https:\/\/abdur\.ai\/writing\/[^<]+<\/loc>/.test(e)).map(lastmod);
+    assert(postTimes.length >= 10 && postTimes.every((t) => !Number.isNaN(t)), "post lastmods missing or unparseable");
+    const latestPost = Math.max(...postTimes);
+    for (const loc of ["https://abdur.ai/", "https://abdur.ai/writing"]) {
+      const t = lastmod(entries.find((e) => e.includes(`<loc>${loc}</loc>`)));
+      assert(t === latestPost, `${loc} lastmod ${Number.isNaN(t) ? "missing" : new Date(t).toISOString()} != latest post change ${new Date(latestPost).toISOString()}`);
+    }
     const home = await (await fetch(`${site.base}/`)).text();
     assert(!home.includes("abdur.jpg"), "Person image still points at /abdur.jpg");
   });
