@@ -48,13 +48,14 @@ const freePort = () =>
 const calls = []; // every provider request, in order
 const contacts = new Set();
 const idempotency = new Map();
-const mode = { contact: "ok", emails: "ok" };
+const mode = { contact: "ok", emails: "ok", backfill: "ok" };
 function resetMock() {
   calls.length = 0;
   contacts.clear();
   idempotency.clear();
   mode.contact = "ok";
   mode.emails = "ok";
+  mode.backfill = "ok";
 }
 
 const mock = http.createServer((req, res) => {
@@ -79,7 +80,10 @@ const mock = http.createServer((req, res) => {
       contacts.add(e);
       return json(201, { id: `c_${contacts.size}` });
     }
-    if (req.method === "GET" && req.url.startsWith("/contacts/")) return json(200, { properties: {} });
+    if (req.method === "GET" && req.url.startsWith("/contacts/")) {
+      if (mode.backfill === "hang") return; // never answer
+      return json(200, { properties: {} });
+    }
     if (req.method === "PATCH" && req.url.startsWith("/contacts/")) return json(200, { id: "c" });
     if (req.method === "POST" && req.url === "/emails") {
       if (mode.emails === "500") return json(500, { message: "send failed" });
@@ -143,6 +147,7 @@ const post = (base, body, headers = {}) =>
     redirect: "manual",
     headers: { "content-type": "application/json", ...headers },
     body: typeof body === "string" ? body : JSON.stringify(body),
+    signal: AbortSignal.timeout(20_000), // a removed server-side timeout must fail a scenario, not hang the suite
   });
 const form = (base, fields) =>
   fetch(`${base}/api/subscribe`, {
@@ -295,6 +300,18 @@ try {
     const took = Date.now() - t0;
     assert(r.status === 502, `status ${r.status}`);
     assert(took < 12_000, `took ${took}ms`);
+  });
+
+  await scenario("existing contact + provider hangs on the attribution backfill → still answered, bounded", "failure handling (stand-in)", async () => {
+    resetMock();
+    await post(site.base, { email: "backfill@example.com", rendered_at: slow() });
+    mode.backfill = "hang";
+    const t0 = Date.now();
+    const r = await post(site.base, { email: "backfill@example.com", rendered_at: slow(), source_path: "/writing/x" });
+    const took = Date.now() - t0;
+    assert(r.status === 200, `status ${r.status}`);
+    assert(took < 9_000, `took ${took}ms`);
+    assert(emailCalls().length === 1, `welcome sends: ${emailCalls().length} (want 1)`);
   });
 
   await scenario("welcome send fails → signup still succeeds; logs contain no raw address", "failure handling (stand-in)", async () => {

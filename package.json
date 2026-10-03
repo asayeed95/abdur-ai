@@ -12,7 +12,8 @@
     "validate:apply": "node scripts/validate-applications.mjs",
     "check:og": "node scripts/check-og-meta.mjs",
     "subscribers:sources": "node scripts/subscriber-sources.mjs",
-    "test:subscribe": "node scripts/test-subscribe-journey.mjs"
+    "test:subscribe": "node scripts/test-subscribe-journey.mjs",
+    "test:subscribe:mutants": "node scripts/test-subscribe-mutants.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "3.1.0",

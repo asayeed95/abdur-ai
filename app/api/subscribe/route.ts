@@ -41,6 +41,9 @@ const MIN_FILL_MS = 1500;
 /** Bound every provider call: a hung Resend request must not hold a signup open. */
 const CONTACT_TIMEOUT_MS = 8000;
 const WELCOME_TIMEOUT_MS = 5000;
+/** The existing-contact backfill and the one-time property declarations are best-effort and bounded too. */
+const BACKFILL_TIMEOUT_MS = 5000;
+const DECLARE_TIMEOUT_MS = 4000;
 
 const AUDIENCE_ENV: Record<string, string | undefined> = {
   tldr: process.env.RESEND_AUDIENCE_TLDR,
@@ -278,6 +281,7 @@ function ensureAttributionProperties(apiKey: string): Promise<void> {
             method: "POST",
             headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({ key, type: "string" }),
+            signal: AbortSignal.timeout(DECLARE_TIMEOUT_MS),
           });
           // 409/422 = already declared on a previous run; that's success.
           if (!res.ok && res.status !== 409 && res.status !== 422) {
@@ -319,7 +323,7 @@ async function backfillAttribution({
   try {
     const getRes = await fetch(
       `${RESEND}/contacts/${encodeURIComponent(email)}?audience_id=${audienceId}`,
-      { headers: { Authorization: `Bearer ${apiKey}` } },
+      { headers: { Authorization: `Bearer ${apiKey}` }, signal: AbortSignal.timeout(BACKFILL_TIMEOUT_MS) },
     );
     if (!getRes.ok) {
       const detail = await getRes.text().catch(() => "");
@@ -345,6 +349,7 @@ async function backfillAttribution({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ audience_id: audienceId, properties: patch }),
+      signal: AbortSignal.timeout(BACKFILL_TIMEOUT_MS),
     });
     if (!patchRes.ok) {
       const detail = await patchRes.text().catch(() => "");
