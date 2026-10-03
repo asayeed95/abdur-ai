@@ -21,6 +21,8 @@ This file was (re)written 2026-07-08 during a build-discipline retrofit, cross-c
 
 ### Open
 
+- **AGE-2992 — publish-gate field anchoring:** review — 2026-10-03. Authority lever: quoted prose cannot authorize publication. `python3 scripts/tests/test_check_phase_publish.py` reproduces both prose false positives on the old gate and passes all three cases after anchoring.
+
 | task-id | what | notes | status |
 |---|---|---|---|
 | W-1 | Persist `/api/ingest/now` and `/api/ingest/ship` to Supabase | Done on branch `feat/w1-ingest-supabase` (Linear AGE-1578). Migration `supabase/migrations/20260904000000_now_state_ship_log.sql` applied live to project `northsun` (ref `rfbjfpuzzszfzabjruit`): `now_state` (pk `profile_id`, wholesale upsert), `ship_log` (append, partial unique index on `(profile_id, client_id)` for retried-delivery idempotency, `(profile_id, created_at desc)` index), RLS enabled on both with no public policies (service-role-only access). Routes persist via raw PostgREST (`lib/supabase.ts`), 502 `persist_failed` on write failure, `revalidateTag('now'/'ship')`; components are async server components with seed fallback on empty/down. Live-verified 2026-09-04: 401/400 rejections write nothing, real POSTs persisted + visible, dedup retry = 1 row, homepage served live data after revalidate without redeploy, Supabase-down → 200 with seeds. | done — 2026-09-04 (not deployed) |
