@@ -48,6 +48,8 @@ export type PostMeta = {
   receipts?: Array<{ path: string; sha?: string; lines?: string; note?: string }>;
   citation?: string;
   related?: string[];
+  /** `comments: true` opts the post into reader comments (AGE-2972). Off by default. */
+  comments?: boolean;
 };
 
 const POSTS_DIR = path.join(process.cwd(), "content", "posts");
@@ -155,6 +157,7 @@ export function getAllPosts(): PostMeta[] {
         receipts: data.receipts,
         citation: data.citation_preferred,
         related: data.related,
+        comments: data.comments === true,
       };
       return meta;
     })
