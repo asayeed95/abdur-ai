@@ -6,13 +6,15 @@
  * publish without a human-quoted approval. See README.md.
  *
  * Env: ABDUR_PUBLISH_GITHUB_TOKEN (optional — without it writes are dry
- * runs), ABDUR_PUBLISH_REPO (default asayeed95/abdur-ai).
+ * runs), ABDUR_PUBLISH_REPO (default asayeed95/abdur-ai),
+ * ABDUR_PUBLISH_UPLOAD_DIR (the only directory filePath uploads may read
+ * from; default the working directory).
  */
-import { readFile } from "node:fs/promises";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { configFromEnv, DraftError, Publisher, validateDraft, type DraftInput } from "../../lib/publish/index";
+import { readUploadFile } from "../../lib/publish/upload";
 import { REGISTERS } from "../../lib/registers";
 
 const publisher = new Publisher(configFromEnv());
@@ -136,11 +138,16 @@ server.registerTool(
       filename: z.string().describe("e.g. retry-timeline.png"),
       alt: z.string().describe("alt text describing the image for screen readers"),
       base64: z.string().optional(),
-      filePath: z.string().optional().describe("local path readable by this server process"),
+      filePath: z
+        .string()
+        .optional()
+        .describe("local image path inside the upload root (ABDUR_PUBLISH_UPLOAD_DIR, default the working directory)"),
     },
   },
   run(async (a: { slug: string; taskId: string; filename: string; alt: string; base64?: string; filePath?: string }) => {
-    const b64 = a.base64 ?? (a.filePath ? (await readFile(a.filePath)).toString("base64") : undefined);
+    // filePath reads are confined to the upload root and size-checked before
+    // reading: the repo is public, so an upload is a publication.
+    const b64 = a.base64 ?? (a.filePath ? await readUploadFile(a.filePath) : undefined);
     if (!b64) throw new DraftError(["pass base64 or filePath"]);
     return publisher.uploadImage(a.slug, a.filename, b64, a.alt, { taskId: a.taskId });
   }),

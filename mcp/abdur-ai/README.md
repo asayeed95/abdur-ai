@@ -13,7 +13,7 @@ The logic lives in `lib/publish/` and is shared with `/admin` (AGE-2974). This d
 | `abdur_validate_draft` | no | Reports every content-law problem at once: register, receipts for `reported`, slug, a description of at most 160 chars, no MDX `import`/`export`. |
 | `abdur_create_draft` | branch + draft PR | Writes `content/posts/_drafts/<slug>.mdx`. Refuses a slug that is already published. |
 | `abdur_update_draft` | commit | Patches fields; the whole draft is re-validated. |
-| `abdur_upload_image` | commit | Adds a PNG/JPEG/WebP/GIF of at most 5 MB to `public/blog/<slug>/` and returns the `![alt](…)` markdown. The bytes must match the extension. SVG is refused because it can carry same-origin script. |
+| `abdur_upload_image` | commit | Adds a PNG/JPEG/WebP/GIF of at most 5 MB to `public/blog/<slug>/` and returns the `![alt](…)` markdown. The bytes must match the extension. SVG is refused because it can carry same-origin script. A `filePath` is read only if it resolves (following symlinks) inside the upload root, `ABDUR_PUBLISH_UPLOAD_DIR` (default: the working directory), and is under the size limit. The repo is public, so an upload is a publication. |
 | `abdur_prepare_publish` | commit | Moves the draft into `content/posts/` and appends a `content-publish-override:` entry. `approvedBy` must quote a real human approval (who, where, when); placeholders such as "pending" or "self" are refused. |
 
 Every write tool requires `taskId`, a Linear issue such as `AGE-1234`, because the repo's Linear-first rule applies. Writes can only touch `content/posts/_drafts/<slug>.mdx`, `content/posts/<slug>.mdx`, `public/blog/<slug>/*` and the overrides file. Branch updates are fast-forward only, so a concurrent push fails the call instead of being overwritten.

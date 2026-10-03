@@ -253,3 +253,32 @@ test("a concurrent push to the draft branch fails instead of being overwritten",
     await assert.rejects(pub.updateDraft(base.slug, { body: "mine" }, { taskId: "AGE-1" }), /not a fast forward/);
   });
 });
+
+// ---------- local upload intake (filePath) ----------
+
+import { mkdtemp, writeFile, symlink, mkdir } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { readUploadFile } from "../../../lib/publish/upload";
+import { IMAGE_MAX_BYTES } from "../../../lib/publish/draft";
+
+test("filePath uploads are confined to the upload root, symlinks resolved, size checked first", async () => {
+  const base = await mkdtemp(join(tmpdir(), "abdur-upload-"));
+  const root = join(base, "root");
+  const outside = join(base, "outside");
+  await mkdir(root);
+  await mkdir(outside);
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 1, 2, 3]);
+  await writeFile(join(root, "ok.png"), png);
+  await writeFile(join(outside, "secret.png"), png);
+  await symlink(join(outside, "secret.png"), join(root, "link.png"));
+  await writeFile(join(root, "huge.png"), Buffer.alloc(IMAGE_MAX_BYTES + 1));
+
+  assert.equal(await readUploadFile(join(root, "ok.png"), root), png.toString("base64"));
+  await assert.rejects(readUploadFile(join(outside, "secret.png"), root), /inside the upload root/);
+  await assert.rejects(readUploadFile(join(root, "..", "outside", "secret.png"), root), /inside the upload root/);
+  await assert.rejects(readUploadFile(join(root, "link.png"), root), /inside the upload root/, "a symlink out of the root is refused");
+  await assert.rejects(readUploadFile(join(root, "huge.png"), root), /limit is/);
+  await assert.rejects(readUploadFile(root, root), /not a regular file/);
+  await assert.rejects(readUploadFile(join(root, "missing.png"), root), /not found/);
+});
