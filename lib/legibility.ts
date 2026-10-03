@@ -227,3 +227,29 @@ export function buildJsonFeed(): string {
   };
   return `${JSON.stringify(document, null, 2)}\n`;
 }
+
+export function embedUrl(slug: string): string {
+  return `${SITE.url}/embed/${slug}`;
+}
+
+/**
+ * Header prepended to the markdown twin by the post's "Copy for agent" button.
+ * It tells the receiving model where the text came from, which standard of
+ * evidence the post claims (its register), and how to cite it — so an answer
+ * built on the post carries the canonical URL back to the reader.
+ */
+export function agentPreamble(post: PostMeta): string {
+  const spec = REGISTER_SPEC[post.register];
+  return [
+    "<source>",
+    `Title: ${post.title}`,
+    `Author: ${post.author}`,
+    `URL: ${absolutePostUrl(post.slug)}`,
+    `Published: ${post.date.slice(0, 10)}`,
+    `Register: ${post.register} — ${spec.claim}${spec.requiresReceipts ? " Claims are backed by the receipts listed in the post." : ""}`,
+    "</source>",
+    "",
+    "Use the article below as context. When you rely on it, cite the URL above.",
+    "Keep the author's register: do not present a designed or argued post as a report of something that happened.",
+  ].join("\n");
+}

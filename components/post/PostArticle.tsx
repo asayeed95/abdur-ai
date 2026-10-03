@@ -6,6 +6,8 @@ import { MnemixCTA, AsecWaitlistCTA, NewsletterCTA } from "@/components/post/Lea
 import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
 import { RegisterBadge, RegisterNote } from "@/components/post/RegisterNote";
+import { PostActions } from "@/components/post/PostActions";
+import { agentPreamble, embedUrl, markdownTwinPath } from "@/lib/legibility";
 import { postPath, resolveRelated, type PostMeta } from "@/lib/posts";
 import { ogImageForPost } from "@/lib/og";
 import { SITE } from "@/lib/site";
@@ -100,6 +102,15 @@ export function PostArticle({
         <div className="w-[60px] h-[2px] bg-clay mt-8" />
         <RegisterNote register={post.register} note={post.statusNote} />
       </header>
+
+      <PostActions
+        slug={post.slug}
+        title={post.title}
+        canonical={canonical}
+        markdownUrl={markdownTwinPath(post.slug)}
+        embedUrl={embedUrl(post.slug)}
+        agentPreamble={agentPreamble(post)}
+      />
 
       <div className="prose-clay max-w-prose mx-auto mt-12">
         <MDXRemote

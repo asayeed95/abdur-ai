@@ -9,7 +9,7 @@ export function ReceiptsBlock({ items }: { items: Item[] }) {
       <ul className="space-y-3 font-mono text-sm">
         {items.map((it, i) => (
           <li key={i} className="leading-relaxed text-text-soft">
-            <code className="text-text bg-bg px-1.5 py-0.5 rounded border border-border">
+            <code className="text-text bg-bg px-1.5 py-0.5 rounded border border-border break-all">
               {it.path}
             </code>
             {it.lines && <span className="text-meta"> {it.lines}</span>}
