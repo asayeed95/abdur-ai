@@ -32,3 +32,5 @@ jobs:
       - name: Check OG share cards
         run: npm run check:og
       - run: npm run build
+      - name: Signup journey (stand-in provider)
+        run: npm run test:subscribe
