@@ -92,7 +92,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if [ -n "$STAGED_PUBLISHED" ]; then
     UNCOVERED=""
     for f in $STAGED_PUBLISHED; do
-      if printf "%s" "$OVERRIDES_STAGED" | grep -qE "content-publish-override:[[:space:]]*${f}([[:space:]]|\$|#)"; then
+      if printf "%s" "$OVERRIDES_STAGED" | grep -qE "^[[:space:]]*content-publish-override:[[:space:]]*${f}([[:space:]]|\$|#)"; then
         :
       else
         UNCOVERED="$UNCOVERED $f"
