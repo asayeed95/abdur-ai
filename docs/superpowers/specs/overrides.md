@@ -281,3 +281,10 @@ every article's h1 and body prose are untouched.
   design-token-override: tailwind.config.ts
   reason: registers the three aliases above as Tailwind colours (meta, good-text, band). No existing colour changes.
   approved-by: Abdur / live session ("apply all 8 fixes") / 2026-10-02 18:29 EDT
+- task-id: AGE-2844
+  content-publish-override: content/posts/the-night-the-doctrine-failed.mdx
+  content-publish-override: content/posts/what-is-an-agent-memory-layer.mdx
+  content-publish-override: content/posts/voice-ai-memory-latency-is-a-dead-argument.mdx
+  content-publish-override: content/posts/who-owns-the-architecture-when-ai-writes-the-code.mdx
+  reason: post-visuals retrofit, group A. Scope: additive visuals only; no existing copy changed. Inserts on-system diagrams (DoctrineFailureDiagram, DoctrineSharedInputDiagram, MemoryLayerDiagram, VoiceMemoryLatencyDiagram, ArchitectureOwnershipDiagram) and interactive blocks (StepThrough, Figure, Tabs, Quiz) between existing paragraphs. Captions, steps, tab and quiz text restate what each post already says; no new facts, numbers, customers, benchmarks, prices or integrations. Only frontmatter change: updated: 2026-10-03.
+  approved-by: Abdur / Slack 2026-10-03 'implement artifacts and interactive HTML blocks within the blogs and visual diagrams to all our previous writings'

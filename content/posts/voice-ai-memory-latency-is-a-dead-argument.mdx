@@ -6,6 +6,7 @@ subtitle: "The warm path fits inside silence you're already paying for"
 description: "Memory is not too slow for voice agents — the objection is an architecture problem. Why recall fits inside silence the call already pays for."
 dek: "Voice agents already wait through voice activity detection on every turn. Memory designed to return inside that window need not add a separate pause. The objection isn't a physics problem — it's an architecture problem."
 date: 2026-07-02T09:00:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "Voice AI"
 register: argued
@@ -46,6 +47,19 @@ Here's how Mnemix is designed for sub-300ms voice recall on the warm path:
 3. Verify that the context returned is useful enough to justify its time cost.
 
 Mnemix is designed for sub-300ms voice recall on the warm path. That target is intended to fit inside the VAD silence the agent was going to wait through regardless. The lookup is designed to happen during silence that already existed rather than adding a separate pause.
+
+<Tabs label="Where the lookup sits in a turn">
+<Tab title="The objection">
+<VoiceMemoryLatencyDiagram variant="objection" />
+
+A memory lookup mid-call adds a pause, and the conversation falls apart.
+</Tab>
+<Tab title="The design">
+<VoiceMemoryLatencyDiagram variant="design" />
+
+The lookup is designed to happen inside the VAD silence the agent was going to wait through regardless, not as a separate pause.
+</Tab>
+</Tabs>
 
 ## Where the argument actually lives
 

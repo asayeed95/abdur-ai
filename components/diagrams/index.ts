@@ -6,3 +6,8 @@
  */
 export { AppendOnlyMemoryDiagram } from "./AppendOnlyMemoryDiagram";
 export { VerificationLoopDiagram } from "./VerificationLoopDiagram";
+export { DoctrineFailureDiagram } from "./DoctrineFailureDiagram";
+export { DoctrineSharedInputDiagram } from "./DoctrineSharedInputDiagram";
+export { MemoryLayerDiagram } from "./MemoryLayerDiagram";
+export { VoiceMemoryLatencyDiagram } from "./VoiceMemoryLatencyDiagram";
+export { ArchitectureOwnershipDiagram } from "./ArchitectureOwnershipDiagram";

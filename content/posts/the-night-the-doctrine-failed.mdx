@@ -5,6 +5,7 @@ subtitle: "A near-miss postmortem on agent-driven repo cleanup"
 description: "A seven-rule batch protocol, five rounds of adversarial audit, an independent cross-verifier. Every gate returned green. None of them were real."
 dek: "Seven-rule batch protocol. Five rounds of adversarial audit. An independent cross-verifier as the final gate. Every gate returned green. None of them were real. A 75% false-close rate."
 date: 2026-06-25T03:30:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "Agent Systems"
 register: reported
@@ -117,6 +118,31 @@ What it found, in roughly this order:
 
 Closing #53 would have destroyed a production fix. Every gate had cleared it.
 
+<StepThrough label="Walk the near-miss on PR #53">
+<DoctrineFailureDiagram />
+<Step title="Phase A says R4" highlight="phaseA">
+Phase A returned R4, close-superseded. Migration 024 was the load-bearing artifact behind the verdict: the disposition table claimed it repaired `enrichment_data`.
+</Step>
+<Step title="The verifier agrees" highlight="verifier">
+The independent cross-verifier returned AGREE.
+</Step>
+<Step title="The rescue path clears" highlight="rescue">
+Thirteen safety checks confirmed the rescue bundle would be written outside the product repo, outside all ten live worktrees, and not inside any git repo.
+</Step>
+<Step title="I approve" highlight="approve gates">
+I approved with `53 approve`. Every gate had cleared it.
+</Step>
+<Step title="Opus reads main" highlight="read">
+Executing Phase B, Opus read the actual code in main rather than trusting the disposition table. It was not strictly instructed to.
+</Step>
+<Step title="The only fix" highlight="found">
+Migration 024 never touches `enrichment_data`. `lookup.ts` in main still did bare `Object.keys(enrichment_data)`. PR #53 was the only fix for AGE-82 and AGE-88.
+</Step>
+<Step title="Hold the batch" highlight="hold">
+I held the batch and re-ran cross-verification on all twelve close candidates, from primary sources only. Ten were wrong-bucket.
+</Step>
+</StepThrough>
+
 ## Potemkin verification (P-011)
 
 When Opus traced backward to understand why the independent cross-verifier had returned AGREE on a verdict that was demonstrably wrong, it opened the verifier's output file. The artifact was `gemini-verify.jsonl`.
@@ -164,6 +190,10 @@ These are committed as files in `mnemix-learning`. They are load-bearing in MOLL
 **P-011 — Verification artifacts on disk can be Potemkin.** Schema-conforming, semantically empty, written by an upstream process that was never actually a verifier. Gate logic consuming verification files must verify provenance per row: verifier identity, timestamp, prompt reference, run count, primary-source SHAs. A row missing any of these is not a verification; it is data shaped like one.
 
 **P-012 — N safety layers consuming the same upstream artifact are one gate wearing N hats.** Audit doctrine that clears an irreversible action on N safety layers can still fail catastrophically if all N layers consume the same upstream artifact. Independence of layers must be verified at the input level, not asserted at the layer level. The prescription is a source-independence check on every multi-gate verification: do gates 1..N share an input that, if corrupted, corrupts them all? If yes, they are one gate.
+
+<Figure label="Figure 1" caption="P-012: gates that share one upstream artifact are one gate wearing N hats.">
+<DoctrineSharedInputDiagram />
+</Figure>
 
 <PatternsBlock />
 
