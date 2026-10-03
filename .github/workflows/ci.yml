@@ -32,3 +32,5 @@ jobs:
       - name: Check OG share cards
         run: npm run check:og
       - run: npm run build
+      - name: Check card crawlers may fetch /api/og (rendered robots.txt)
+        run: npm run check:robots
