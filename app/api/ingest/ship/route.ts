@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { insertShipLog } from "@/lib/supabase";
+import { requireAgentToken } from "@/lib/ingest-auth";
 
 /**
  * POST /api/ingest/ship
  *
  * Webhook endpoint for the ship log. Agents post a new line whenever
- * something ships. Auth: Bearer `AGENT_TOKEN`.
+ * something ships. Auth: Bearer `AGENT_TOKEN` (`lib/ingest-auth.ts`; fails
+ * closed with 500 if the token is not configured).
  *
  * Storage: inserts into Supabase `ship_log` via PostgREST
  * (`Prefer: return=minimal`), then `revalidateTag('ship')`.
@@ -30,10 +32,8 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
-  const auth = req.headers.get("authorization");
-  if (!auth || auth !== `Bearer ${process.env.AGENT_TOKEN}`) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
+  const denied = requireAgentToken(req, "ingest/ship");
+  if (denied) return denied;
 
   let body: unknown;
   try {

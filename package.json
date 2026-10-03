@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./tests/ingest-auth/register.mjs --test \"tests/**/*.test.mjs\"",
     "validate:apply": "node scripts/validate-applications.mjs",
     "check:og": "node scripts/check-og-meta.mjs",
     "subscribers:sources": "node scripts/subscriber-sources.mjs"
