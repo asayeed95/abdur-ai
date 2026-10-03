@@ -66,6 +66,9 @@ async function probe(question, key) {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
     body: JSON.stringify({ model: MODEL, messages: [{ role: "user", content: question }] }),
+    // A stalled request must not stop the remaining probes; the caller's
+    // catch records the TimeoutError and moves on.
+    signal: AbortSignal.timeout(60_000),
   });
   if (!response.ok) {
     // Status only: never echo headers or request details.
@@ -98,13 +101,17 @@ async function main() {
     errors: results.length - answered.length,
     site_cited: answered.filter((r) => r.site_cited).length,
   };
-  const date = new Date().toISOString().slice(0, 10);
+  const stamp = new Date().toISOString();
+  const date = stamp.slice(0, 10);
   const dir = process.env.PPLX_BASELINE_OUT_DIR || path.join(ROOT, "scratch", "out");
   fs.mkdirSync(dir, { recursive: true });
-  const file = path.join(dir, `pplx-baseline-${date}.json`);
+  // One file per run (time-stamped, created exclusively): a second run on the
+  // same day must never overwrite the first run's baseline evidence.
+  const file = path.join(dir, `pplx-baseline-${stamp.replace(/[:.]/g, "-")}.json`);
   fs.writeFileSync(
     file,
-    `${JSON.stringify({ date, model: MODEL, site: SITE_HOST, summary, results }, null, 2)}\n`,
+    `${JSON.stringify({ date, run_at: stamp, model: MODEL, site: SITE_HOST, summary, results }, null, 2)}\n`,
+    { flag: "wx" },
   );
   console.log(`pplx-baseline wrote ${path.relative(ROOT, file)}`);
   console.log(`raw counts: ${JSON.stringify(summary)}`);

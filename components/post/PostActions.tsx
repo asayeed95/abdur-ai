@@ -31,7 +31,7 @@ type Copied = "agent" | "markdown" | "link" | "embed" | null;
 
 export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, agentPreamble }: Props) {
   const [copied, setCopied] = useState<Copied>(null);
-  const [failed, setFailed] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [embedOpen, setEmbedOpen] = useState(false);
   const twin = useRef<string | null>(null);
@@ -39,6 +39,7 @@ export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, age
   const shareRef = useRef<HTMLDivElement>(null);
   const embedTrigger = useRef<HTMLButtonElement>(null);
   const embedField = useRef<HTMLTextAreaElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const embedSnippet = `<iframe src="${embedUrl}" title="${title.replace(/"/g, "&quot;")} — abdur.ai" width="100%" height="230" style="border:0;max-width:640px" loading="lazy"></iframe>`;
 
@@ -62,19 +63,21 @@ export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, age
     return pending.current;
   }, [markdownUrl]);
 
+  const BLOCKED = "Copy blocked by the browser — use .md instead";
+
   const flash = (what: Exclude<Copied, null>) => {
-    setFailed(false);
+    setNotice(null);
     setCopied(what);
   };
 
   useEffect(() => {
-    if (!copied && !failed) return;
+    if (!copied && !notice) return;
     const t = setTimeout(() => {
       setCopied(null);
-      setFailed(false);
-    }, 2000);
+      setNotice(null);
+    }, 2500);
     return () => clearTimeout(t);
-  }, [copied, failed]);
+  }, [copied, notice]);
 
   /** Copy text that may still be loading. Never reports success it did not get. */
   const copyAsync = async (build: (md: string) => string, what: "agent" | "markdown") => {
@@ -86,13 +89,19 @@ export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, age
         const blob = loadTwin().then((md) => new Blob([build(md)], { type: "text/plain" }));
         await navigator.clipboard.write([new ClipboardItem({ "text/plain": blob })]);
       } else {
-        await navigator.clipboard.writeText(build(await loadTwin()));
+        // No ClipboardItem: a write after awaiting the fetch can fall outside
+        // the click's user activation and be refused. Load now; the next click
+        // hits the cached path above.
+        loadTwin().catch(() => undefined);
+        setCopied(null);
+        setNotice("Loading — click again to copy");
+        return;
       }
       flash(what);
       trackEvent(what === "agent" ? "post:copy-agent" : "post:copy-markdown", { slug });
     } catch {
       setCopied(null);
-      setFailed(true);
+      setNotice(BLOCKED);
     }
   };
 
@@ -106,7 +115,7 @@ export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, age
         ...(what === "link" ? { channel: "copy-link" } : {}),
       });
     } catch {
-      setFailed(true);
+      setNotice(BLOCKED);
       if (what === "embed") embedField.current?.select(); // let the reader copy by hand
     }
   };
@@ -130,7 +139,23 @@ export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, age
   useEffect(() => {
     if (!embedOpen) return;
     const trigger = embedTrigger.current;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setEmbedOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return setEmbedOpen(false);
+      if (e.key !== "Tab" || !dialogRef.current) return;
+      // aria-modal promises focus stays inside: wrap Tab / Shift+Tab.
+      const items = dialogRef.current.querySelectorAll<HTMLElement>("button, a[href], textarea, [tabindex]:not([tabindex='-1'])");
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !dialogRef.current.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !dialogRef.current.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -139,7 +164,8 @@ export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, age
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
       clearTimeout(t);
-      trigger?.focus();
+      // After React removes the dialog, or the focus move is lost.
+      requestAnimationFrame(() => trigger?.focus());
     };
   }, [embedOpen]);
 
@@ -231,7 +257,7 @@ export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, age
         </button>
 
         <span aria-live="polite" className="font-mono text-[11px] text-meta">
-          {failed ? "Copy blocked by the browser — use .md instead" : ""}
+          {notice ?? ""}
         </span>
       </div>
 
@@ -241,6 +267,7 @@ export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, age
           onMouseDown={(e) => e.target === e.currentTarget && setEmbedOpen(false)}
         >
           <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby={`embed-title-${slug}`}
