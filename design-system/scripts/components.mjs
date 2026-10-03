@@ -29,16 +29,19 @@ const toggle = (icon, label, cls = "") =>
     icon === "sun" ? '<span class="icon-sun" aria-hidden="true"></span>' : '<span class="icon-moon" aria-hidden="true"></span>'
   }</span><span class="theme-toggle-label">${label}</span></button>`;
 
-const navBar = (scrolled) => `<nav class="nav" data-scrolled="${scrolled}">
+// Mirrors components/Nav.tsx + lib/site.ts NAV: aria-current only when the route equals an item's
+// path-only href (hash links like /#about are never current). The component sheet passes no route
+// and keeps the forced hover so the state is documented there, not on page templates.
+const NAV_ITEMS = [["/writing", "Writing"], ["/#log", "Ship log"], ["/#tools", "Tools"], ["/#projects", "Northsun"], ["/#about", "About"], ["/hire", "Hire"]];
+const navBar = (scrolled, route = null) => `<nav class="nav" data-scrolled="${scrolled}">
   <div class="nav-inner">
     <a href="#" class="brand"><span class="dot animate-pulse-clay" aria-hidden="true"></span><span>abdur.ai</span></a>
     <ul class="nav-links">
-      <li><a href="#" class="link-nav" aria-current="page">Writing</a></li>
-      <li><a href="#" class="link-nav">Ship log</a></li>
-      <li><a href="#" class="link-nav is-hover">Tools</a></li>
-      <li><a href="#" class="link-nav">Northsun</a></li>
-      <li><a href="#" class="link-nav">About</a></li>
-      <li><a href="#" class="link-nav">Hire</a></li>
+${NAV_ITEMS.map(([href, label]) => {
+  const current = route === null ? label === "Writing" : !href.includes("#") && href === route;
+  const hover = route === null && label === "Tools" ? " is-hover" : "";
+  return `      <li><a href="#" class="link-nav${hover}"${current ? ' aria-current="page"' : ""}>${label}</a></li>`;
+}).join("\n")}
     </ul>
     <div class="nav-actions">${toggle("moon", "Auto · Dark")}<a href="#" class="btn btn-nav">Subscribe</a></div>
   </div>

@@ -143,11 +143,11 @@
       return '<tr><td>' + t.fg + '</td>' + C.GROUNDS.map(function (g) {
         var r = rows.filter(function (x) { return x.theme === th && x.kind === "text" && x.fg === t.fg && x.bg === g; })[0];
         if (!r) return '<td><span class="ds-na">not allowed</span></td>';
-        return '<td><span class="cell-sample" style="background:rgb(var(--c-' + g + '));color:rgb(var(--c-' + t.fg + '))">Aa</span><span class="' + (r.pass ? "v-pass" : "v-fail") + '">' + r.ratio.toFixed(2) + (r.pass ? "" : (r.large ? " · large only" : " · fail")) + '</span></td>';
+        return '<td><span class="cell-sample" style="background:rgb(var(--c-' + g + '));color:rgb(var(--c-' + t.fg + '))">Aa</span><span class="' + (r.pass ? "v-pass" : "v-fail") + '">' + (r.ratio == null ? "missing" : r.ratio.toFixed(2)) + (r.pass ? "" : (r.large ? " · large only" : " · fail")) + '</span></td>';
       }).join("") + '</tr>';
     }).join("");
     var clay = rows.filter(function (x) { return x.theme === th && x.fg === "bg" && x.bg === "clay"; })[0];
-    body += '<tr><td>bg on clay</td><td colspan="5"><span class="cell-sample" style="background:rgb(var(--c-clay));color:rgb(var(--c-bg))">Subscribe</span><span class="' + (clay.pass ? "v-pass" : "v-fail") + '">' + clay.ratio.toFixed(2) + '</span></td></tr>';
+    body += '<tr><td>bg on clay</td><td colspan="5"><span class="cell-sample" style="background:rgb(var(--c-clay));color:rgb(var(--c-bg))">Subscribe</span><span class="' + (clay && clay.pass ? "v-pass" : "v-fail") + '">' + (clay && clay.ratio != null ? clay.ratio.toFixed(2) : "missing") + '</span></td></tr>';
     document.querySelector('[data-matrix="' + th + '"]').innerHTML = '<table class="cm">' + head + body + '</table>';
   });
 

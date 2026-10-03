@@ -5,7 +5,7 @@
 
 import { POSTS, CLOSER, navBar, footerHtml, postRow, flagshipCard, badge } from "./components.mjs";
 
-const page = (inner) => `${navBar(true)}\n<main>\n${inner}\n</main>\n${footerHtml}`;
+const page = (route, inner) => `${navBar(true, route)}\n<main>\n${inner}\n</main>\n${footerHtml}`;
 
 const subscribeSection = `<section style="border-top:1px solid rgb(var(--c-border));background:rgb(var(--c-band))">
   <div class="container" style="padding-top:var(--space-16);padding-bottom:var(--space-16)">
@@ -29,7 +29,7 @@ export function TEMPLATES({ postCount }) {
   return [
     {
       slug: "home", name: "Home", route: "/", source: "app/page.tsx (Hero, LatestFeed, ToolsGrid, Subscribe)", height: 1000,
-      html: page(`
+      html: page("/", `
 <section class="container" style="position:relative;padding-top:160px;padding-bottom:128px">
   <div aria-hidden="true" style="position:absolute;top:80px;right:40px;font-family:var(--font-display);font-size:200px;line-height:1;color:rgb(var(--c-clay) / 0.06);user-select:none;pointer-events:none">AS</div>
   <p class="eyebrow" style="margin-bottom:var(--space-8)"><span class="dot animate-pulse-clay" style="margin-right:var(--space-2);vertical-align:middle" aria-hidden="true"></span>Solo AI founder · Prospect Park, NJ · NYC metro</p>
@@ -58,7 +58,7 @@ ${subscribeSection}`),
     },
     {
       slug: "post", name: "Post page", route: "/writing/[slug]", source: "components/post/PostArticle.tsx", height: 1000,
-      html: page(`
+      html: page("/writing/[slug]", `
 <article class="container" style="padding-top:128px;padding-bottom:80px">
   <header style="max-width:var(--prose-max);margin:0 auto">
     <p class="eyebrow" style="margin-bottom:var(--space-6)">ai-agents · agent-memory · memory · architecture</p>
@@ -87,7 +87,7 @@ ${subscribeSection}`),
     },
     {
       slug: "aitldr", name: "Feed list", route: "/aitldr", source: "app/aitldr/page.tsx", height: 1000,
-      html: page(`
+      html: page("/aitldr", `
 <div class="container" style="padding-top:128px;padding-bottom:96px">
   <p class="eyebrow" style="margin-bottom:var(--space-4)">/// AITLDR</p>
   <h1 class="h-page" style="margin-bottom:var(--space-4)">The logbook.</h1>
@@ -99,14 +99,14 @@ ${subscribeSection}`),
     },
     {
       slug: "about", name: "About", route: "/about", source: "app/about/page.tsx", height: 1000,
-      html: page(`
+      html: page("/about", `
 <div class="container" style="padding-top:128px;padding-bottom:96px">
   <p class="eyebrow" style="margin-bottom:var(--space-4)">/// /whoami</p>
   <h1 class="h-page" style="margin-bottom:var(--space-12)">Who is this person?</h1>
   <div class="prose-clay">
     <p>I'm Abdur Rahman Sayeed. I build production AI systems by myself, from Prospect Park, NJ · NYC metro, and I write down exactly how they work.</p>
     <h2>What I build</h2>
-    <p>Everything I make sits under <strong>Northsun</strong> — the memory and enrichment layer for AI agents. ${CLOSER}</p>
+    <p>Everything I make sits under <strong>Northsun</strong> — the memory and enrichment layer for AI agents. Memory, RAG, and <strong>BEAD</strong>: bi-temporal, evidence-anchored decisions, so a system can answer not just &ldquo;what&apos;s true&rdquo; but &ldquo;what did we know, and when.&rdquo;</p>
     <h2>How I actually work</h2>
     ${placeholder("app/about/page.tsx")}
     <h2>What I'm aiming at</h2>
@@ -116,7 +116,7 @@ ${subscribeSection}`),
     },
     {
       slug: "hire", name: "Hire", route: "/hire", source: "app/hire/page.tsx", height: 1000,
-      html: page(`
+      html: page("/hire", `
 <section class="container" style="position:relative;padding-top:128px;padding-bottom:96px">
   <div aria-hidden="true" style="position:absolute;top:24px;right:24px;font-family:var(--font-display);font-size:180px;line-height:1;color:rgb(var(--c-clay) / 0.06);user-select:none;pointer-events:none">AS</div>
   <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:28px">

@@ -86,7 +86,7 @@
   };
   var verdict = function (r) {
     if (r.missing) return '<span class="verdict-fail">missing token</span>';
-    return '<span class="' + (r.pass ? "verdict-pass" : "verdict-fail") + '">' + r.ratio.toFixed(2) + ':1 ' + (r.pass ? "pass" : "fail") + '</span>' + (!r.pass && r.kind === "text" && r.large ? ' · ≥3:1 large only' : '');
+    return '<span class="' + (r.pass ? "verdict-pass" : "verdict-fail") + '">' + (r.ratio == null ? 'missing' : r.ratio.toFixed(2) + ':1') + ' ' + (r.pass ? "pass" : "fail") + '</span>' + (!r.pass && r.kind === "text" && r.large ? ' · ≥3:1 large only' : '');
   };
 
   document.getElementById("risks").innerHTML = '<tr><th>risk</th><th>result</th><th>detail</th><th>fix</th></tr>' + risks.map(function (k) {
@@ -107,7 +107,7 @@
 
   window.__contrastResults = { rows: rows, risks: risks, text: { pass: cnt(text, true), fail: cnt(text, false) }, ui: { pass: cnt(ui, true), fail: cnt(ui, false) } };
   document.title = "Contrast: " + fails.length + " failing — abdur.ai Design System";
-  if (window.console) console.log("[contrast]", JSON.stringify(window.__contrastResults.text), JSON.stringify(window.__contrastResults.ui), fails.map(function (r) { return r.theme + " " + r.fg + "/" + r.bg + " " + r.ratio.toFixed(2); }));
+  if (window.console) console.log("[contrast]", JSON.stringify(window.__contrastResults.text), JSON.stringify(window.__contrastResults.ui), fails.map(function (r) { return r.theme + " " + r.fg + "/" + r.bg + " " + (r.ratio == null ? "missing" : r.ratio.toFixed(2)); }));
 })();
 </script>
 </body>

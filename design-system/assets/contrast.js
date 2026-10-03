@@ -110,7 +110,8 @@
     return NOT_FOR_TEXT.map(function (t) {
       var out = { fg: t.fg, rule: t.rule };
       THEMES.forEach(function (th) {
-        var rs = ["bg", "bg-2", "surface", "surface-2"].map(function (g) { return ratio(tokens[th][t.fg], tokens[th][g]); });
+        var rs = ["bg", "bg-2", "surface", "surface-2"].filter(function (g) { return tokens[th][t.fg] && tokens[th][g]; }).map(function (g) { return ratio(tokens[th][t.fg], tokens[th][g]); });
+        if (!rs.length) { out[th] = "missing"; return; }
         out[th] = r2(Math.min.apply(null, rs)).toFixed(2) + "–" + r2(Math.max.apply(null, rs)).toFixed(2);
       });
       return out;
@@ -132,7 +133,7 @@
       var parts = [];
       if (risk.retired) parts.push(risk.retired.join("/") + " no longer carry text");
       if (risk.note) parts.push(risk.note);
-      hits.forEach(function (h) { parts.push(h.fg + " on " + h.bg + " " + h.ratio.toFixed(2) + ":1"); });
+      hits.forEach(function (h, i) { var c = risk.instead[i]; parts.push(h && h.ratio != null ? h.fg + " on " + h.bg + " " + h.ratio.toFixed(2) + ":1" : c[1] + " on " + c[2] + " missing (" + c[0] + ")"); });
       return { id: risk.id, label: risk.label, pass: hits.every(function (h) { return h && h.pass; }), detail: parts.join(" · ") };
     });
   }

@@ -123,12 +123,17 @@ const gDark = gBlocks.find((b) => b.selector === ":root")?.decls ?? {};
 const gLight = gBlocks.find((b) => b.selector === ':root[data-theme="light"]')?.decls ?? {};
 const gAitldr = gBlocks.find((b) => b.selector === ":root" && b.decls["--aitldr-measure"])?.decls ?? {};
 for (const [name, t] of Object.entries(color.tokens)) {
-  if (t.all) continue;
+  if (t.all) {
+    // good* (and any theme-independent token) must still match the app when the app declares it.
+    for (const [th, g] of [["dark", gDark], ["light", gLight]]) if (t.var in g && g[t.var] !== (t.all.raw ?? t.all.channels)) errors.push(`drift: ${t.var} ${th} = "${t.all.raw ?? t.all.channels}", app = "${g[t.var]}"`);
+    continue;
+  }
+  if (!t.dark || !t.light) { errors.push(`token ${t.var} is declared for ${t.dark ? "dark" : "light"} only in tokens/colors.css; declare both themes or move it to the theme-independent block`); continue; }
   const want = (e) => e?.raw ?? e?.channels;
   if (gDark[t.var] !== want(t.dark)) errors.push(`drift: ${t.var} dark = "${want(t.dark)}", app = "${gDark[t.var]}"`);
   if (gLight[t.var] !== want(t.light)) errors.push(`drift: ${t.var} light = "${want(t.light)}", app = "${gLight[t.var]}"`);
 }
-for (const k of Object.keys(gDark)) if (!color.tokens[k.replace(/^--c-/, "")]) errors.push(`drift: ${k} exists in app/globals.css but not in tokens/colors.css`);
+for (const k of new Set([...Object.keys(gDark), ...Object.keys(gLight)])) if (k.startsWith("--c-") && !color.tokens[k.slice(4)]) errors.push(`drift: ${k} exists in app/globals.css but not in tokens/colors.css`);
 if (!Object.keys(tokensJson.aitldr).length) errors.push("drift: --aitldr-* tokens missing from tokens/spacing.css :root");
 for (const [k, v] of Object.entries(tokensJson.aitldr)) {
   if (gAitldr[k] !== v) errors.push(`drift: ${k} = "${v}", app :root = "${gAitldr[k]}"`);
@@ -227,7 +232,7 @@ write(path.join(DS, "index.html"), `${head("Index", 0)}
     meta: "Alias: all secondary text", "good-text": "Alias: success text", band: "Alias: section/aside ground",
   };
   const rowsMd = Object.entries(color.tokens).map(([n, t]) =>
-    `| \`${t.var}\` | ${t.all ? t.all.channels : t.dark.raw ?? t.dark.channels} | ${t.all ? "(same)" : t.light.raw ?? t.light.channels} | ${ROLE[n] ?? ""} |`);
+    `| \`${t.var}\` | ${t.all ? t.all.channels : t.dark?.raw ?? t.dark?.channels ?? "MISSING"} | ${t.all ? "(same)" : t.light?.raw ?? t.light?.channels ?? "MISSING"} | ${ROLE[n] ?? ""} |`);
   const kv = (o) => Object.entries(o).map(([k, v]) => `\`${k}\` ${v}`).join(" · ");
   const table = [
     "| Colour | Dark | Light | Role |", "| --- | --- | --- | --- |", ...rowsMd, "",
@@ -288,7 +293,7 @@ vm.runInNewContext(read(path.join(DS, "assets", "contrast.js")), ctx);
 const C = ctx.DSContrast;
 const live = { dark: {}, light: {} };
 for (const [name, t] of Object.entries(color.tokens)) {
-  for (const th of ["dark", "light"]) live[th][name] = channels((t.all ?? t[th]).channels);
+  for (const th of ["dark", "light"]) { const src = t.all ?? t[th]; live[th][name] = src?.channels ? channels(src.channels) : null; }
 }
 const layout = {
   dark: { ...tokensJson.aitldr },
@@ -300,7 +305,7 @@ const text = rows.filter((r) => r.kind === "text"), ui = rows.filter((r) => r.ki
 const count = (rs) => `${rs.filter((r) => r.pass).length} pass / ${rs.filter((r) => !r.pass).length} fail`;
 console.log(`\nContrast — text 4.5:1: ${count(text)} · non-text 3:1: ${count(ui)}`);
 for (const r of rows.filter((r) => !r.pass)) {
-  console.log(`  FAIL ${r.theme.padEnd(5)} ${r.fg.padEnd(9)} on ${r.bg.padEnd(9)} ${r.ratio.toFixed(2)}:1 (min ${r.min}${r.kind === "text" && r.large ? ", passes 3:1 large" : ""})`);
+  console.log(`  FAIL ${r.theme.padEnd(5)} ${r.fg.padEnd(9)} on ${r.bg.padEnd(9)} ${r.ratio == null ? "missing" : r.ratio.toFixed(2) + ":1"} (min ${r.min}${r.kind === "text" && r.large ? ", passes 3:1 large" : ""})`);
 }
 console.log("Not for text (reference only):");
 const nft = C.notForText(live);
