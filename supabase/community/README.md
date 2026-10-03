@@ -16,6 +16,9 @@ This is the database behind reader comments and votes (AGE-2972). It is a **sepa
 2. `20261003211500_handle_lowercase_first.sql`: the handle generator now lowercases before stripping. It had turned "Asayeed95" into "sayeed95".
 3. `20261003212000_citext_to_extensions.sql`: moves `citext` out of `public` (security advisor 0014).
 4. `20261003223000_moderation_guard_by_role.sql`: the update guard restricts only `anon`/`authenticated`. The owner could not moderate before.
+5. `20261003230000_admin_moderation.sql` (AGE-2974): adds `public.admins` (an email allowlist that no API role can read), `public.is_admin()` (caller's *confirmed* email in the allowlist) and RLS so admins can read hidden comments and change `status` only. The web server never holds a service-role key.
+
+**Seed the founder as admin** (SQL editor): `insert into public.admins (email) values ('<founder email>');` The same address goes in Vercel `ADMIN_EMAILS`. Both gates must pass.
 
 ## Trust model
 
@@ -40,10 +43,17 @@ This is the database behind reader comments and votes (AGE-2972). It is a **sepa
   - optimistic votes reconciled with the server (+1 → −1 → 0)
   - replies, and the tombstone keeping the thread
   - 375 px light without overflow, and dark
-- **Security advisor:** 0 findings. **Performance advisor:** only "unused index" on empty tables.
+- **Admin (AGE-2974):** 12/12 SQL checks. A member can't moderate; an unconfirmed allowlisted email isn't admin; a moderator can hide and unhide but can't edit, delete or rescore others' comments; author edits still work.
+- **Browser e2e:** 10/10, plus HTTP checks. Signed-out → login; signed-in but not allowlisted → 404 on every admin page; forged token → login; without a `public.admins` row the database refuses moderation (second gate holds); hide/unhide is reflected for anon; the editor dry-run save and validation work.
+- **Security advisor:** two accepted findings.
+  1. `admins` has RLS with no policies: intentional, the API must never read it.
+  2. `is_admin()` is callable by `authenticated`: intentional, it returns only the caller's own status and the dashboard uses it.
+
+  Open, for the founder: *leaked password protection* is off. The site never uses passwords, so turn off password sign-ups (or enable the check) in Auth settings.
+- **Performance advisor:** only "unused index" on empty tables.
 
 ## Operations
 
 - **Free projects pause after about 7 days without activity.** The keep-alive is tracked in Linear. Until it exists, a paused project shows "Couldn't load the discussion" and nothing breaks.
-- **Test data:** two e2e users (`e2e-a@abdur-ai.invalid`, `e2e-b@abdur-ai.invalid`) and their comments, all `hidden`. Delete them in the dashboard (Authentication → Users); this cascades. The Supabase MCP holds `DELETE` statements for an interactive confirmation that a cloud session cannot give, so they were left in place.
+- **Test data:** two e2e users (`e2e-a@abdur-ai.invalid`, `e2e-b@abdur-ai.invalid`), now **banned with random passwords**, plus their comments (all `hidden`) and one retired `public.admins` row (`retired-e2e-…`). Delete them in the dashboard (Authentication → Users); this cascades. The Supabase MCP holds `DELETE` statements for an interactive confirmation that a cloud session cannot give, so they were left in place.
 - **Auth providers (founder):** turn on GitHub OAuth (Authentication → Providers; callback `https://pzfbnnubapinhbnwqpnp.supabase.co/auth/v1/callback`) and set the Site URL to `https://abdur.ai` plus redirect URLs `https://abdur.ai/**`. Email magic links work out of the box, but Supabase's built-in mailer is heavily rate-limited. Before real traffic, point Auth SMTP at Resend (blocked on AGE-2892).

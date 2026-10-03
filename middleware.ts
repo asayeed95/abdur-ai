@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 /**
  * Application-microsite subdomains: flightcast.abdur.ai → /apply/flightcast.
@@ -19,7 +20,35 @@ const RESERVED = new Set([
   "preview",
 ]);
 
-export function middleware(req: NextRequest) {
+/**
+ * /admin keeps a cookie session (lib/admin/supabase.ts). Server Components
+ * cannot write cookies, so the access-token refresh happens here, before the
+ * page renders. Every other path skips this entirely.
+ */
+async function refreshAdminSession(req: NextRequest): Promise<NextResponse> {
+  let res = NextResponse.next({ request: req });
+  const url = process.env.NEXT_PUBLIC_COMMUNITY_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_COMMUNITY_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return res;
+  const sb = createServerClient(url, key, {
+    cookies: {
+      getAll: () => req.cookies.getAll(),
+      setAll: (list) => {
+        for (const { name, value } of list) req.cookies.set(name, value);
+        res = NextResponse.next({ request: req });
+        for (const { name, value, options } of list) res.cookies.set(name, value, options);
+      },
+    },
+  });
+  await sb.auth.getUser();
+  res.headers.set("X-Robots-Tag", "noindex, nofollow");
+  return res;
+}
+
+export async function middleware(req: NextRequest) {
+  if (req.nextUrl.pathname === "/admin" || req.nextUrl.pathname.startsWith("/admin/")) {
+    return refreshAdminSession(req);
+  }
   const host = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
   if (!host.endsWith(".abdur.ai")) return NextResponse.next();
 
