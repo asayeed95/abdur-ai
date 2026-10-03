@@ -1,0 +1,147 @@
+---
+slug: newsletter-signup-200-proves-less-than-you-think
+title: "What does a 200 from your newsletter signup endpoint actually prove?"
+seo_title: "Test a newsletter signup end to end"
+subtitle: "Five more observations sit between a success response and a subscriber. The audit could make one of them, and only against a stand-in."
+description: "A 200 from your signup endpoint only proves your handler returned. Five more observations stand between it and a subscriber; this audit made one."
+dek: "I had an AI coding agent audit this site's newsletter signup on a local build, against a stand-in for the provider. The success path returned {ok:true}. Around it: a 312-character address forwarded, a dropped connection answered with an empty 500, and a field the provider doesn't document."
+tldr: "A 200 from a signup endpoint proves one thing: the handler returned. Five more observations sit between it and a subscriber who can read your next email: the app sent the right request, the provider accepted the contact and the message, the message was delivered, a person received it and can unsubscribe, and the signup was counted once as a subscriber. An AI coding agent audited abdur.ai's own Next.js and Resend signup on a local build and could make only the second, against a local stand-in for the provider, never the real API. That was enough to find seven defects, among them a welcome-email body field that Resend's send-email documentation does not list, a provider failure that became an empty HTTP 500, raw validation JSON returned as the error string, native no-JS posts answered with a JSON document, and nine of thirteen published articles that ended with no newsletter signup. The checks now run as twenty-three scenarios in the gate script and are wired into CI, and a committed mutation script reintroduces eleven defects, each caught. Real provider acceptance, delivery, inbox receipt, hosted unsubscribe and the real subscriber count remain unobserved."
+date: 2026-10-03T11:30:00-04:00
+author: Abdur Rahman Sayeed
+section: "Builder Logs"
+register: reported
+flagship: false
+pinned: false
+featured: false
+tags:
+  - newsletter
+  - resend
+  - nextjs
+  - testing
+  - email
+  - verification
+receipts:
+  - path: "app/api/subscribe/route.ts"
+    sha: "c7bc07f"
+    note: "The route before the audit. Sends an `unsubscribe` field in the POST /emails body, has no try/catch or timeout around the contact call, returns zod's raw issue list as the error string, answers native form posts with JSON, and has no length cap on the address."
+  - path: "app/api/subscribe/route.ts"
+    sha: "d28ad56"
+    note: "The route after: `List-Unsubscribe` through the documented `headers` field, timeouts on the contact, welcome, backfill and property-declaration calls with a JSON 502 on failure, one friendly validation message, a 303 redirect for native form posts, a 254-character cap, and a hashed idempotency key."
+  - path: "scripts/test-subscribe-journey.mjs"
+    sha: "ab38e15"
+    note: "The twenty-three scenarios, the Resend stand-in that records every request, and the check that the welcome body uses only fields from a hand-copied list of Resend's documented top-level parameters."
+  - path: "scripts/test-subscribe-mutants.mjs"
+    sha: "ab38e15"
+    note: "Reintroduces eleven defects one at a time, rebuilds, and reports which scenarios catch each. Run with `npm run test:subscribe:mutants`."
+  - path: "scripts/repro-prefix-signup.sh"
+    sha: "ab38e15"
+    note: "Rebuilds the route as it stood at c7bc07f, patched only to reach the stand-in, and prints what it did for five requests (with scripts/probe-signup-route.mjs). Source of the 'observed before the fix' results below."
+  - path: "components/post/PostArticle.tsx"
+    sha: "bf42386"
+    note: "Renders the inline signup unless the post's MDX already embeds `<NewsletterCTA />`. The signup form itself is components/post/PostSubscribe.tsx at the same commit."
+  - path: "RETRO.md"
+    sha: "bf42386"
+    note: "2026-10-03 entry: check a provider request body against the provider's documented schema in a test, and say which boundary a test observed."
+citation_preferred: "Sayeed, Abdur Rahman. 'What does a 200 from your newsletter signup endpoint actually prove?' abdur.ai, 3 October 2026."
+related:
+  - the-analytics-call-that-couldnt-fail
+  - the-health-check-that-became-a-retry-storm
+  - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
+---
+
+**Short answer:** a 200 from your signup endpoint proves your handler returned. That is all. Between that response and a subscriber who can read your next email there are five more facts, and each one fails in its own way. Test every boundary separately, and write down which observation each test actually made.
+
+**Status:** everything below was observed on a local build against a stand-in for the provider, not on production and not against the real Resend API. The fixes are in the same pull request as this post.
+
+I pointed an AI coding agent at the signup path of this site and told it to treat "it returned success" as a claim to check, not a result. The route is a Next.js handler that adds a contact to a Resend audience and sends one welcome email. The happy path returned `{"ok":true}`. Around it sat seven defects, and on the success path nothing hinted at them.
+
+## What does a success response from a signup endpoint actually tell you?
+
+Less than it looks like. I now sort every signup test by which of these six observations it made:
+
+| # | Observation | What can see it | Made in this audit? |
+|---|---|---|---|
+| 1 | The app accepted the request | Your handler's response, in a test against the built server | Yes |
+| 2 | The app sent the request it meant to send | A stand-in provider that records every call, checked against a list of the provider's documented fields | Yes, against a stand-in |
+| 3 | The provider accepted the contact and the message | The provider's real API responses | No |
+| 4 | The message was delivered | Provider delivery events | No |
+| 5 | A person received it and can unsubscribe | A controlled inbox | No |
+| 6 | The signup counts once, as a subscriber | The provider's contact list, not an analytics event | No |
+
+Rows 3 to 6 are not footnotes. They are where a newsletter actually works or doesn't, and a success response says nothing about any of them. The same shape shows up in [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail): the call site ran, nothing errored, and nothing happened.
+
+## What did the audit find?
+
+Seven things. For the first five, the agent ran the route as it stood before the audit (commit `c7bc07f`, patched only so it could reach a local stand-in for the provider) and recorded what it did. Those results are observed, and `scripts/repro-prefix-signup.sh` reproduces them.
+
+1. **A field the provider doesn't list.** The welcome email's request body included `unsubscribe: "mailto:…"`. Resend's [send-email documentation](https://resend.com/docs/api-reference/emails/send-email), read on 3 October 2026, lists `from`, `to`, `subject`, `bcc`, `cc`, `scheduled_at`, `reply_to`, `html`, `text`, `react`, `headers`, `attachments`, `tags` and a few others, and no `unsubscribe`. Its pages on [custom headers](https://resend.com/docs/dashboard/emails/custom-headers) and on [unsubscribe links for transactional email](https://resend.com/docs/dashboard/emails/add-unsubscribe-to-transactional-emails) show `List-Unsubscribe` set through `headers`. The agent did not call the real API, so I don't know whether Resend ignores an unknown key or rejects the whole request. The route only logged send failures, so either outcome would have looked like a successful signup from the app's side.
+2. **A provider failure became an empty 500.** There was no try/catch and no timeout around the contact call. With the stand-in dropping the connection, the route returned HTTP 500 with an empty body and no content type. The form's client code then calls `res.json()` on that body; I read that path and did not render it in a browser. A reviewer later found a gap the audit had missed: the existing-contact attribution backfill and the one-time property declarations had no timeout either, so a hung provider could stall a duplicate signup. They are bounded now, with their own scenario.
+3. **Raw validation output was returned as the error string.** The address `a@b` came back as a 400 whose `error` was zod's whole issue list, JSON with newlines and field paths. The form's code prints that string.
+4. **No-JS posts got a JSON document.** A native form post returned 200 with `{"ok":true}` as `application/json`, so a browser following that post would show a JSON document instead of a page.
+5. **No length limit on the address.** A 312-character address passed validation and was forwarded to the provider.
+6. **Nine of thirteen published articles ended with no newsletter signup.** Counted from the post sources: four embedded a newsletter call to action. Nine didn't, and one of those nine ended with a link to request Northsun access instead.
+7. **The conversion event counts handled requests, not subscribers.** More on that below.
+
+Fixing these is the boring part. The useful part is the next section, because a fix I can't check is a claim.
+
+## How do you test each boundary without emailing real people?
+
+Put a stand-in where the provider would be, make the app talk to it, and assert on what crossed the wire. The test starts the real built site with `next start`, points it at a local server that records every request, and drives the endpoint the way a browser does.
+
+The assertion that would have caught finding 1 is short:
+
+```js
+const sent = emailCalls()[0].body;
+const unknown = Object.keys(sent).filter((k) => !DOCUMENTED_SEND_FIELDS.has(k));
+assert(unknown.length === 0, `undocumented fields sent: ${unknown.join(", ")}`);
+```
+
+`DOCUMENTED_SEND_FIELDS` is a hand-copied list of the provider's documented top-level fields. That's a weaker check than validating against a schema, and it will go stale if the provider changes.
+
+Twenty-three scenarios cover the boundaries one at a time, including: valid input, whitespace and capitals in the address, malformed and missing input, the native-form path, duplicates, three simultaneous signups for one new address (exactly one welcome goes out), a filled honeypot, a visitor whose clock is ahead of the server, a provider 500, a dropped connection, a provider that never answers on the contact call or on the backfill, a failed welcome send (the signup still succeeds and the logs hold no address), missing configuration, a welcome request that carries no raw address in its idempotency key, one h1 on the page, exactly one signup path on every article, every table in an article inside its own scrolling box, and a test-only provider address that is ignored unless it points at this machine or the real Resend API.
+
+A test you've never seen fail is a test you haven't checked. So there is a committed mutation script, `npm run test:subscribe:mutants`. It reintroduces eleven defects one at a time, rebuilds, and runs the suite. Each mutant is caught. Ten fail exactly one scenario; the native-form defect fails three, because three scenarios use that path.
+
+The suite takes about fifteen seconds including server startup, and thirteen of those belong to the two scenarios that wait for a provider timeout. It is wired into the gate script and the CI workflow, and it hadn't run in CI yet when I wrote this.
+
+## What can a stand-in provider not tell you?
+
+Everything in rows 3 to 6. The stand-in encodes my reading of how the provider behaves, which is not the provider. It returns 409 for a duplicate contact because the route treats 409 that way; nobody has confirmed what Resend returns in that case. It cannot tell me that a welcome message was delivered, that it reached an inbox, or that an unsubscribe request works.
+
+For the real-provider pass, Resend [designates test addresses](https://resend.com/docs/dashboard/emails/send-test-emails): `delivered@resend.dev`, `bounced@resend.dev`, `complained@resend.dev` and `suppressed@resend.dev`. The first three accept `+label` suffixes so you can tell test runs apart; the suppressed address does not. Sending to those exercises delivery and event handling without touching a stranger's inbox. One catch: if you reach them by signing up through your real route, you create a real contact in your real audience, so point that run at a separate test audience. I haven't done this pass. There was no provider credential in the environment this audit ran in, so rows 3 to 6 are recorded as not observed.
+
+## Why isn't the analytics event my subscriber count?
+
+Two reasons.
+
+The signup form fires a `subscribe:tldr` event when the endpoint returns success. The bot guard deliberately returns the same `{"ok":true}` for a filled honeypot or an instant submit, and writes nothing. So the event fires for requests the server threw away. And Vercel's [custom events documentation](https://vercel.com/docs/analytics/custom-events) states that custom events are available on Pro and Enterprise plans. I haven't confirmed in the dashboard which plan this site is on, though my issue tracker refers to a Hobby-plan deploy limit. So I treat that event as unmeasured, not as a low number.
+
+The count I'd trust is contacts in the provider's list, carrying the attribution properties the route already writes. That is row 6, and it is also unobserved for now.
+
+## What should you do this week?
+
+Seven checks, in order of how much they cost:
+
+- Name the six observations in your own signup path and mark which of them any test of yours actually makes.
+- Compare each provider request body with the provider's documented fields in a test.
+- Put a timeout and a try/catch around every provider call, including the best-effort ones, and return JSON from the failure path.
+- Never return a validator's raw issue list to a browser.
+- Post to the endpoint as a plain HTML form with JavaScript off, and look at what the browser shows.
+- Check that every article you publish ends with exactly one way to subscribe.
+- Decide where your subscriber count comes from before you quote one.
+
+What I'd do next, as proposals and not results: run the real-provider pass with the designated test addresses against a test audience, handle bounce and complaint events, replace the reply-to-unsubscribe line with a hosted link, and add a confirmation step. None of those exist yet, and none of them is covered by anything above.
+
+## FAQ
+
+### How do I test a newsletter signup without sending real emails?
+
+Run your app against a stand-in that records the requests it would have sent to the provider, and assert on their shape. For a pass against the real provider, send only to addresses the provider designates for testing, such as Resend's `delivered@resend.dev` and `bounced@resend.dev`, and use a separate test audience.
+
+### Should a signup endpoint say whether the address was already subscribed?
+
+This route doesn't: it returns the same response either way. I'd keep it that way, because a different response for "new" and "already on the list" lets anyone probe whether a particular person subscribes. The price is that your own success response can't distinguish them, which is one more reason the subscriber count has to come from the provider's list.
+
+### Is a honeypot field enough to stop bot signups?
+
+It catches bots that fill every field, and this route pairs it with a minimum fill time. Neither tells you the address is real or that its owner agreed. A silent success for flagged requests keeps bots from learning the rule, at the cost of the problem above: success no longer means a contact was stored.
