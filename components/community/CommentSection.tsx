@@ -23,9 +23,10 @@ const MAX = 5000;
  * authority — this component only shows optimistic state and reconciles it
  * with what the server returns.
  */
-export function CommentSection({ slug }: { slug: string }) {
+export function CommentSection({ slug, initialRows = null }: { slug: string; initialRows?: CommentRow[] | null }) {
   const sb = communityClient();
-  const [rows, setRows] = useState<CommentRow[] | null>(null);
+  // Server-rendered snapshot (see Discussion), refreshed by load() below.
+  const [rows, setRows] = useState<CommentRow[] | null>(initialRows);
   const [loadError, setLoadError] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [myVotes, setMyVotes] = useState<Record<string, 1 | -1>>({});
@@ -40,11 +41,12 @@ export function CommentSection({ slug }: { slug: string }) {
       .order("created_at", { ascending: true })
       .limit(500);
     if (error) {
-      setLoadError(true);
+      // Keep a server-rendered snapshot on screen if there is one.
+      if (!initialRows) setLoadError(true);
       return;
     }
     setRows((data ?? []) as unknown as CommentRow[]);
-  }, [sb, slug]);
+  }, [sb, slug, initialRows]);
 
   useEffect(() => {
     load();
@@ -273,7 +275,7 @@ function Comment({
                 <span>@{node.author?.handle ?? "unknown"}</span>
               </>
             )}{" "}
-            · <time dateTime={node.created_at}>{when.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</time>
+            · <time dateTime={node.created_at}>{when.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}</time>
             {node.edited_at && !node.is_deleted ? " · edited" : ""}
           </p>
 

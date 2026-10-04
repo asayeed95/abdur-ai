@@ -6,7 +6,7 @@ import { MnemixCTA, AsecWaitlistCTA, NewsletterCTA } from "@/components/post/Lea
 import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
 import { RegisterBadge, RegisterNote } from "@/components/post/RegisterNote";
-import { CommentSection } from "@/components/community/CommentSection";
+import { Discussion } from "@/components/community/Discussion";
 import { postPath, type PostMeta } from "@/lib/posts";
 import { ogImageForPost } from "@/lib/og";
 import { SITE } from "@/lib/site";
@@ -107,7 +107,7 @@ export function PostArticle({
         />
       </div>
 
-      {post.comments && <CommentSection slug={post.slug} />}
+      {post.comments && <Discussion slug={post.slug} />}
 
       <nav aria-label="Previous and next post" className="max-w-prose mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
         {prev ? (
