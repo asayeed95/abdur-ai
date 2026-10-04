@@ -52,7 +52,7 @@ related:
 
 That one line was the last fix we made, not the first. Before it came a bigger database, and a lesson about what a timeout can and cannot tell you.
 
-**Status of what this describes:** the change is merged and was deployed (checked against the live version endpoint when it shipped). The measurements are a small sample of our own dogfood traffic. The story starts from a handful of calls from one test caller, taken on the smaller database tier, so treat it as an anecdote and not a rate. This is an engineering account, not a benchmark and not a product claim.
+**Status of what this describes:** the change is merged and was deployed (checked against the live version endpoint when it shipped). The measurements are a small sample of our own dogfood traffic. The story starts from calls by one test caller, taken on the smaller database tier, so treat it as an anecdote and not a rate. This is an engineering account, not a benchmark and not a product claim.
 
 **Who did the work:** Northsun's delivery agents did, not me. They are AI sessions (Claude for building and coordinating, with other models and review bots checking the changes) working under written rules: one owner per change, predictions before measurement, independent review. I moved the database to a bigger tier. I did not run the measurements, and they were not re-run for this post. Where this post says "we", it means the agents and the Northsun project. The record shows the agents choosing the explicit placement hint and deciding not to revert it; those were their calls.
 
@@ -62,7 +62,7 @@ Northsun is the memory and enrichment layer for AI agents.
 
 On our own deployment, where the governed read is switched on, its voice route answers a call-start request with a returning caller's stored facts. Voice is the hard case for memory, because a person is waiting on the line. So the read of those facts runs under a hard time budget, and the route **fails open**: if the read has not finished when the budget runs out, the response goes out with `facts: null` and the call carries on without the memory. Northsun is [designed for sub-300ms voice recall](/writing/voice-ai-memory-latency-is-a-dead-argument). That is a design target, not a measured claim, and this post is about what the first measurements taught us.
 
-A synthetic probe had reported an earlier, two-statement form of the read as incomplete on nearly every run for a week. The read was then folded into one statement, which is one round trip and the right shape. On the build that carried it, the probe still reported incomplete on every run. And in a handful of calls from one returning test caller on our dogfood tenant, most came back with no facts. That sample's own counts were later flagged because they did not reconcile, which is why it is an anecdote. What stood out was how the reads behaved: they did not fail. They finished, late.
+A synthetic probe had reported an earlier, two-statement form of the read as incomplete. The read was then folded into one statement, which is one round trip and the right shape. On the build that carried it, the probe still reported incomplete. Calls from one returning test caller on our dogfood tenant also came back without facts. That sample is anecdotal: its own counts were later flagged because they did not reconcile, so it establishes no rate. What stood out was how the reads behaved: they did not fail. They finished, late.
 
 ## What the code told us, and what it could not
 
@@ -77,7 +77,7 @@ export async function readWithBudget<T>(
   read: () => Promise<T>,
   budgetMs: number,
   log: Log,
-  hold: (p: Promise<unknown>) => void = () => {}, // e.g. ctx.waitUntil, for a bounded read
+  hold: (p: Promise<unknown>) => void = () => {}, // optional observer of the read's promise
 ): Promise<T | null> {
   const startedAt = Date.now();
   let budgetFired = false;
@@ -112,7 +112,7 @@ export async function readWithBudget<T>(
         throw error;
       },
     );
-  hold(observed.catch(() => {})); // keep the invocation alive for a late log line
+  hold(observed.catch(() => {})); // tracks the read until it settles
 
   try {
     return await Promise.race([observed, timeout]);
@@ -134,7 +134,7 @@ It was run under Node 22 against five stand-in reads: one that finishes well ins
 | never settles | `null` | `budget_fired` and nothing after it, which is itself the signal |
 | throws at once | `null` | `errored` immediately |
 
-Two differences from our production code. It logs timing only when a read settles, so the line at the timer is an addition here. And it never holds the read itself, only the error report. If you use `hold` with `ctx.waitUntil` so a late log line is not cut off, hand it something bounded: a read that never settles would pin the invocation.
+Two differences from our production code. It logs timing only when a read settles, so the line at the timer is an addition here. And our production code never holds the read itself, only the error report; in this listing, `hold` tracks the read until it settles. Do not pass that promise to an invocation-lifetime hook such as `ctx.waitUntil` unless the read is bounded: a read that never settles can keep the invocation alive until the platform limit.
 
 ## We suspected the database first
 
@@ -187,11 +187,11 @@ The method was read-only: tail the Worker's logs as JSON, filter on the timing l
 wrangler tail <worker-name> --format json --search "read.timing"
 ```
 
-**What we observed.** In a 90-minute window after the deploy, the budget did not fire on any request-path row we captured. That included the entry location whose rows had fired on every captured row before, which was a handful of rows. The rows that entered nearest the database, which should not change, did not. The scheduled probe also stopped missing the budget, and its first runs after the deploy served the facts where the runs before had not. That means it was not an independent control after all. Our reading is that the call it makes through a service binding inherited placement, an inference from a timing change on a few rows. We did not check for a placement header, so this is inference. The budget figure stayed where it was.
+**What we observed.** In a 90-minute window after the deploy, the budget did not fire on any request-path row we captured. That included the entry location whose requests had been missing the budget before. The rows that entered nearest the database, which should not change, did not. The scheduled probe also stopped missing the budget, and its first runs after the deploy served the facts where the runs before had not. That means it was not an independent control after all. Our reading is that the call it makes through a service binding inherited placement, an inference from a timing change on a few rows. We did not check for a placement header, so this is inference. The budget figure stayed where it was.
 
 A control that moves is not a control. Check that yours is untreated before you lean on it.
 
-**What this does not show.** The result supports the hypothesis. It does not prove it. It is a handful of rows at the entry location that mattered, on dogfood traffic, from different hours of the night and different builds. The window spanned three builds, and another change to the same route landed in the middle, although the read cleared the budget on both sides of it. The timing is the Worker's read time, not what a caller experiences. We are not publishing our own timings: they are internal measurements from a small sample, and what we can stand behind is the method.
+**What this does not show.** The result supports the hypothesis. It does not prove it. It is a small sample at the entry location that mattered, on dogfood traffic, from different hours of the night and different builds. The window spanned three builds, and another change to the same route landed in the middle, although the read cleared the budget on both sides of it. The timing is the Worker's read time, not what a caller experiences. We are not publishing our own timings: they are internal measurements from a small sample, and what we can stand behind is the method.
 
 ## The cost on the other side
 
@@ -210,7 +210,7 @@ The consequence worth taking away: a second Worker in another region would not b
 1. **Time every settlement, not just the winner.** If you fail open, log the elapsed time of the read that lost the race. A lost race without a time tells you something failed, not by how much.
 2. **Check the database side first.** Does the working set fit in memory? Does `EXPLAIN (ANALYZE, BUFFERS)` show cache hits and no disk reads? If not, fix that before the network.
 3. **Find where the database lives and where the Worker runs.** Cloudflare's docs describe a `cf-placement` header for checking placement, and warn it may be removed before Smart Placement leaves beta.
-4. **Count the sequential queries on the hot path.** With one query, placement will not help. With several, it can matter a lot.
+4. **Count the sequential queries on the hot path.** With one query, placement may not improve end-to-end caller latency, but it can still help a budget on that one read by shortening the Worker-to-database round trip. With several queries, it can matter a lot end to end.
 5. **Choose the hint to match the topology.** One backend in a known cloud region and modest traffic: an explicit region hint. Several backends and steady traffic from many places: Smart Placement.
 6. **Write the predictions before you deploy.** Include the result that would make you revert.
 7. **Keep `fetch` and scheduled rows apart, and check your control.** A control that moves with the treatment is not a control.
