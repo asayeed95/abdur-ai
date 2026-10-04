@@ -11,8 +11,10 @@
  * the gate. Run it when the route or the suite changes:  npm run test:subscribe:mutants
  * Files are restored from memory on exit, including on Ctrl-C.
  */
-import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { execSync, spawn } from "node:child_process";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const ROUTE = "app/api/subscribe/route.ts";
 const ARTICLE = "components/post/PostArticle.tsx";
@@ -78,30 +80,61 @@ const MUTANTS = [
   },
 ];
 
-const original = new Map([ROUTE, ARTICLE, SITEMAP, RESEND_BASE].map((f) => [f, readFileSync(f, "utf8")]));
+// ---- Safety rails. This script edits tracked source files IN PLACE and rebuilds .next, so:
+// 1. refuse to run on a dirty tree: a half-edited "original" would be restored as if it were clean;
+// 2. take a lock: two concurrent runs corrupt each other's originals and the shared .next;
+// 3. restore on SIGINT/SIGTERM too. Child builds run asynchronously so these handlers can fire.
+const FILES = [...new Set(MUTANTS.map((m) => m.file))];
+try {
+  execSync(`git diff --quiet -- ${FILES.join(" ")}`, { stdio: "ignore" });
+} catch {
+  console.error(`Refusing to run: ${FILES.join(", ")} have uncommitted changes. Commit or stash them first.`);
+  process.exit(2);
+}
+const LOCK = join(tmpdir(), "abdur-ai-subscribe-mutants.lock");
+try {
+  mkdirSync(LOCK);
+} catch {
+  console.error(`Another mutation run holds ${LOCK}. If none is running (and 'git status' is clean), remove that directory and retry.`);
+  process.exit(2);
+}
+const original = new Map(FILES.map((f) => [f, readFileSync(f, "utf8")]));
+let child = null;
+const killGroup = (pid) => { try { process.kill(-pid, "SIGKILL"); } catch { /* already gone */ } };
 const restore = () => original.forEach((text, f) => writeFileSync(f, text));
-process.on("SIGINT", () => { restore(); process.exit(130); });
-process.on("exit", restore);
+const cleanup = () => { restore(); rmSync(LOCK, { recursive: true, force: true }); };
+for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) {
+  process.on(sig, () => { if (child) killGroup(child.pid); cleanup(); process.exit(130); });
+}
+process.on("exit", cleanup);
 
-const sh = (cmd) => {
-  try { return { ok: true, out: execSync(cmd, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 240_000 }) }; }
-  catch (e) { return { ok: false, out: `${e.stdout ?? ""}${e.stderr ?? ""}` }; }
-};
+/** Run a shell command asynchronously (so signal handlers can run) and collect its output. */
+const sh = (cmd) =>
+  new Promise((resolve) => {
+    let out = "";
+    // detached => own process group, so the whole npm -> next build tree can be killed, not just `sh`.
+    child = spawn("sh", ["-c", cmd], { stdio: ["ignore", "pipe", "pipe"], detached: true });
+    const pg = child.pid;
+    const timer = setTimeout(() => killGroup(pg), 240_000);
+    child.stdout.on("data", (d) => (out += d));
+    child.stderr.on("data", (d) => (out += d));
+    child.on("close", (code) => { clearTimeout(timer); child = null; resolve({ ok: code === 0, out }); });
+  });
 
 const rows = [];
 for (const m of MUTANTS) {
   const text = original.get(m.file);
   if (!text.includes(m.from)) { rows.push({ m, error: "mutation anchor not found (route changed? update this script)" }); continue; }
   writeFileSync(m.file, text.replace(m.from, m.to));
-  const build = sh("npm run build");
+  const build = await sh("npm run build");
   if (!build.ok) { rows.push({ m, error: "mutant did not build" }); restore(); continue; }
-  const run = sh("node scripts/test-subscribe-journey.mjs");
+  const run = await sh("node scripts/test-subscribe-journey.mjs");
   const failed = run.out.split("\n").filter((l) => l.startsWith("FAIL")).map((l) => l.replace(/^FAIL\s+/, "").replace(/\s{2,}\[.*$/, ""));
   rows.push({ m, failed });
   restore();
 }
 restore();
-const pristine = sh("npm run build");
+const pristine = await sh("npm run build");
 
 let survivors = 0;
 console.log("\nMutation check — each row reintroduces one defect; scenarios that caught it are listed\n");
