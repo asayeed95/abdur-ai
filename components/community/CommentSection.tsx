@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Session } from "@supabase/supabase-js";
@@ -61,20 +61,34 @@ export function CommentSection({ slug, initialRows = null }: { slug: string; ini
 
   const userId = session?.user.id ?? null;
 
+  // Refetch the reader's votes only when the user or the set of comments
+  // changes (not on every score update), and drop superseded responses.
+  const idKey = useMemo(() => (rows ?? []).map((r) => r.id).sort().join(","), [rows]);
   useEffect(() => {
-    if (!sb || !userId || !rows?.length) {
+    if (!sb || !userId || !idKey) {
       setMyVotes({});
       return;
     }
+    let stale = false;
     sb.from("comment_votes")
       .select("comment_id,vote")
-      .in("comment_id", rows.map((r) => r.id))
+      .in("comment_id", idKey.split(","))
       .then(({ data }) => {
+        if (stale) return;
         const v: Record<string, 1 | -1> = {};
         for (const x of data ?? []) v[x.comment_id as string] = x.vote as 1 | -1;
         setMyVotes(v);
       });
-  }, [sb, userId, rows]);
+    return () => {
+      stale = true;
+    };
+  }, [sb, userId, idKey]);
+
+  // One vote request per comment at a time, and `prev` read from the latest
+  // state rather than a render-time closure, so a double-click can't desync it.
+  const votesRef = useRef(myVotes);
+  votesRef.current = myVotes;
+  const votePending = useRef(new Set<string>());
 
   const tree = useMemo(() => (rows ? buildTree(rows) : []), [rows]);
   const count = rows?.filter((r) => !r.is_deleted).length ?? 0;
@@ -96,39 +110,44 @@ export function CommentSection({ slug, initialRows = null }: { slug: string; ini
   };
 
   const vote = async (c: CommentRow, dir: 1 | -1) => {
-    if (!sb || !userId) return;
-    const prev = myVotes[c.id];
-    const next = prev === dir ? undefined : dir;
-    const delta = (next ?? 0) - (prev ?? 0);
-    // Optimistic: move the score and the arrow now, reconcile below.
-    setMyVotes((v) => {
-      const copy = { ...v };
-      if (next) copy[c.id] = next;
-      else delete copy[c.id];
-      return copy;
-    });
-    setRows((rs) => rs?.map((r) => (r.id === c.id ? { ...r, score: r.score + delta } : r)) ?? rs);
-    const q =
-      next === undefined
-        ? sb.from("comment_votes").delete().eq("user_id", userId).eq("comment_id", c.id)
-        : prev
-          ? sb.from("comment_votes").update({ vote: next }).eq("user_id", userId).eq("comment_id", c.id)
-          : sb.from("comment_votes").insert({ user_id: userId, comment_id: c.id, vote: next });
-    const { error } = await q;
-    // Server score is the truth either way (other readers vote too).
-    const { data } = await sb.from("comments").select("score").eq("id", c.id).maybeSingle();
-    if (error) {
+    if (!sb || !userId || votePending.current.has(c.id)) return;
+    votePending.current.add(c.id);
+    try {
+      const prev = votesRef.current[c.id];
+      const next = prev === dir ? undefined : dir;
+      const delta = (next ?? 0) - (prev ?? 0);
+      // Optimistic: move the score and the arrow now, reconcile below.
       setMyVotes((v) => {
         const copy = { ...v };
-        if (prev) copy[c.id] = prev;
+        if (next) copy[c.id] = next;
         else delete copy[c.id];
         return copy;
       });
-      setNotice(friendlyError(error.message));
-    } else {
-      trackEvent("community:vote", { slug, dir: next === undefined ? "retract" : next > 0 ? "up" : "down" });
+      setRows((rs) => rs?.map((r) => (r.id === c.id ? { ...r, score: r.score + delta } : r)) ?? rs);
+      const q =
+        next === undefined
+          ? sb.from("comment_votes").delete().eq("user_id", userId).eq("comment_id", c.id)
+          : prev
+            ? sb.from("comment_votes").update({ vote: next }).eq("user_id", userId).eq("comment_id", c.id)
+            : sb.from("comment_votes").insert({ user_id: userId, comment_id: c.id, vote: next });
+      const { error } = await q;
+      // Server score is the truth either way (other readers vote too).
+      const { data } = await sb.from("comments").select("score").eq("id", c.id).maybeSingle();
+      if (error) {
+        setMyVotes((v) => {
+          const copy = { ...v };
+          if (prev) copy[c.id] = prev;
+          else delete copy[c.id];
+          return copy;
+        });
+        setNotice(friendlyError(error.message));
+      } else {
+        trackEvent("community:vote", { slug, dir: next === undefined ? "retract" : next > 0 ? "up" : "down" });
+      }
+      if (data) setRows((rs) => rs?.map((r) => (r.id === c.id ? { ...r, score: data.score as number } : r)) ?? rs);
+    } finally {
+      votePending.current.delete(c.id);
     }
-    if (data) setRows((rs) => rs?.map((r) => (r.id === c.id ? { ...r, score: data.score as number } : r)) ?? rs);
   };
 
   const edit = async (c: CommentRow, content: string): Promise<boolean> => {
@@ -396,6 +415,7 @@ function Composer({
   onCancel?: () => void;
   autoFocus?: boolean;
 }) {
+  const fieldId = useId();
   const [text, setText] = useState(initial);
   const [busy, setBusy] = useState(false);
   const trimmed = text.trim();
@@ -411,11 +431,11 @@ function Composer({
         if (ok && !initial) setText("");
       }}
     >
-      <label className="sr-only" htmlFor={`composer-${label}`}>
+      <label className="sr-only" htmlFor={fieldId}>
         {label}
       </label>
       <textarea
-        id={`composer-${label}`}
+        id={fieldId}
         value={text}
         onChange={(e) => setText(e.target.value.slice(0, MAX))}
         placeholder={label}

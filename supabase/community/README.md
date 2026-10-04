@@ -35,7 +35,7 @@ File names carry the version the live project recorded, so `supabase migration l
   - Insert comments as themselves only. The parent must be visible and on the same post, depth is at most 6, and the limit is 8 per 10 minutes.
   - Edit their own content, or soft-delete. Deleting wipes the text and keeps the row so replies keep their place, and a deleted comment is final.
   - Cast, flip and retract their own votes, on visible comments that still have text. They see only their own votes.
-- **Deleting an account** removes the reader's profile and votes. Their comments stay as tombstones (no author, no text), so other readers' replies keep their place.
+- **Deleting an account** removes the reader's profile and votes. Their comments stay as tombstones (no author, no text), so other readers' replies keep their place. **This holds only once migration 6 is applied live.** Until then the live project still cascades and deletes other readers' replies, so don't delete accounts and don't enable comments on any post before applying it. Check with: `select confdeltype from pg_constraint where conname = 'comments_author_id_fkey'` → `n` (set null), not `c`.
 - **Scores** are maintained by `security definer` triggers. Clients can never write `score`, `status`, `depth` or `author_id`; this is enforced twice, by column grants and by a trigger.
 - **Moderation** (`status = 'hidden'`) is for `service_role`, the owner, or an allowlisted admin (migration 5), who can change `status` only. Hidden rows are invisible to readers.
 - **Posts are MDX in git**, so threads key on `post_slug`. A post opts in with `comments: true` in its frontmatter; it is off by default (founder decision 2026-10-03).
@@ -62,6 +62,6 @@ File names carry the version the live project recorded, so `supabase migration l
 
 ## Operations
 
-- **Free projects pause after about 7 days without activity.** The keep-alive is tracked in Linear. Until it exists, a paused project shows "Couldn't load the discussion" and nothing breaks.
+- **Free projects pause after about 7 days without activity.** `.github/workflows/community-keepalive.yml` reads one row daily, but scheduled workflows run only from the default branch, so it starts working once this PR is merged to `main` (AGE-2988). Before that, or if the job ever fails, a paused project shows "Couldn't load the discussion" and nothing breaks; restore it from the Supabase dashboard.
 - **Test data:** two e2e users (`e2e-a@abdur-ai.invalid`, `e2e-b@abdur-ai.invalid`), now **banned with random passwords**, plus their comments (all `hidden`) and one retired `public.admins` row (`retired-e2e-…`). Delete them in the dashboard (Authentication → Users). Once migration 6 is applied, their comments become tombstones; before it, they cascade. The Supabase MCP holds `DELETE` statements for an interactive confirmation that a cloud session cannot give, so they were left in place.
 - **Auth providers (founder):** turn on GitHub OAuth (Authentication → Providers; callback `https://pzfbnnubapinhbnwqpnp.supabase.co/auth/v1/callback`) and set the Site URL to `https://abdur.ai` plus redirect URLs `https://abdur.ai/**`. Email magic links work out of the box, but Supabase's built-in mailer is heavily rate-limited. Before real traffic, point Auth SMTP at Resend (blocked on AGE-2892).
