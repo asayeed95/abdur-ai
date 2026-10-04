@@ -6,7 +6,7 @@ subtitle: "We suspected the database, then found a Worker running far from it, a
 description: "A voice-memory read kept missing its time budget. First a database tier, then one line of Worker placement config. The method, and what it didn't prove."
 dek: "Northsun's voice route reads a caller's stored facts under a hard time budget and fails open. The budget kept firing. We suspected the database first, then found a Worker running far from it."
 tldr: "Northsun's voice route reads a returning caller's stored facts under a hard time budget and fails open: if the read misses the budget, the response goes out with facts: null. On our dogfood tenant the budget kept firing. A lost race was already reported as a failure, but its elapsed time was thrown away, so we could not see how slow the read was or tune the budget. We added a log line on every settlement, late ones included. We suspected the database first and moved it up a tier; we never captured a plan from before the upgrade, so we cannot say how much that explained. After the upgrade, requests that entered near the database were within budget and requests entering elsewhere still fired, which pointed at the Worker's distance from a single-region database. One line of placement config supported that. Our scheduled probe turned out not to be an independent control. Callers far from the pinned region pay the other side of the trade. Our own timings are not published here. The method is."
-date: 2026-10-03T11:25:00-04:00
+date: 2026-10-04T01:09:00-04:00
 author: Abdur Rahman Sayeed
 section: "Builder Logs"
 register: reported
@@ -41,7 +41,7 @@ receipts:
     note: "Private. Records the database-tier timeline (the early sample was taken on the smaller tier), that the probe stayed red after the one-statement build, the before-capture in which near-database entries were within budget and another entry location was not, the pre-written revert rule and its outcome, and the correction of the first acceptance verdict to partial. The agents post to the tracker through the founder's account, so every comment there appears under his name."
   - path: "readWithBudget.ts (the listing in this post)"
     note: "Run under Node 22.22 on 2026-10-03 against five stand-in reads: fast, slow, slow and failing, never settling, throwing synchronously. The results are in the table in this post."
-citation_preferred: "Sayeed, Abdur Rahman. 'Our memory read kept missing its time budget. The last cause we found was one line of config.' abdur.ai, 3 October 2026."
+citation_preferred: "Sayeed, Abdur Rahman. 'Our memory read kept missing its time budget. The last cause we found was one line of config.' abdur.ai, 4 October 2026."
 related:
   - voice-ai-memory-latency-is-a-dead-argument
   - the-analytics-call-that-couldnt-fail
@@ -247,5 +247,3 @@ The Northsun repository and issue tracker are private, so these are paths and me
 The deploy was checked against the live version endpoint at the time. The production measurements were not re-run for this post.
 
 For the argument that came before these measurements, read [the latency objection for voice-AI memory is a dead argument](/writing/voice-ai-memory-latency-is-a-dead-argument). For what a memory layer has to do before latency matters at all, read [What is an agent memory layer?](/writing/what-is-an-agent-memory-layer). If you want the next field report in your inbox, [subscribe here](/subscribe).
-
-<NewsletterCTA />
