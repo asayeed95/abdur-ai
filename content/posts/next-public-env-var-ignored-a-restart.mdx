@@ -99,7 +99,7 @@ What I haven't changed: the variable still has the `NEXT_PUBLIC_` prefix. Renami
 1. **Grep the build, not the source.** After `next build`, search `.next/server` for the value you think you're overriding. If the old value is in there as a string, a restart won't change it.
 2. **Run fault tests against fake hosts.** Use a `.invalid` domain (reserved, so it never resolves) for both the "real" and the "broken" value. If the error names the wrong host, you know which one the process is using.
 3. **Check the side effect, not the response.** Query the place the write would land. A route can return what you expect while the data goes somewhere you didn't.
-4. **Drop the prefix on anything the browser doesn't need.** A server-only variable without `NEXT_PUBLIC_` is read at runtime.
+4. **Drop the prefix on anything the browser doesn't need.** A server-only variable without `NEXT_PUBLIC_` isn't inlined, so it stays a real lookup. It reads the current value on each request only on a dynamically rendered server path. A page Next.js renders statically at build time reads it during the build and serves that result.
 
 ## FAQ
 
@@ -113,7 +113,7 @@ In this app on Next.js 15.5.19, yes. The compiled API route contained the build-
 
 ### How do I read an environment variable at runtime in Next.js?
 
-Use a name without the `NEXT_PUBLIC_` prefix and read it in server code. In the same build, the unprefixed variables stayed as `process.env` lookups. The docs also say dynamic lookups such as `process.env[name]` are not inlined. I haven't tested that one here.
+Use a name without the `NEXT_PUBLIC_` prefix and read it in server code that renders dynamically. In the same build, the unprefixed variables stayed as `process.env` lookups. That alone isn't enough on a statically rendered page: Next.js renders it at build time, so the lookup runs once, during the build. The docs' example calls `await connection()` before reading the variable, which opts the page into dynamic rendering, and cookies, headers and the other Dynamic APIs do the same. The docs also say dynamic lookups such as `process.env[name]` are not inlined. I haven't tested that one here.
 
 ### Is a lazy getter enough to defer the read?
 
