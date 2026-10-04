@@ -2,7 +2,7 @@
   "name": "abdur-ai",
   "version": "0.1.0",
   "private": true,
-  "description": "abdur.ai \u2014 solo AI founder's logbook. Portfolio + TLDR + tools. Lead magnet for Northsun.",
+  "description": "abdur.ai — solo AI founder's logbook. Portfolio + TLDR + tools. Lead magnet for Northsun.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,12 +12,16 @@
     "validate:apply": "node scripts/validate-applications.mjs",
     "check:og": "node scripts/check-og-meta.mjs",
     "check:robots": "node --test scripts/check-robots.test.mjs && node scripts/check-robots.mjs",
-    "subscribers:sources": "node scripts/subscriber-sources.mjs"
+    "subscribers:sources": "node scripts/subscriber-sources.mjs",
+    "mcp": "npm start --prefix mcp/abdur-ai",
+    "test:publish": "npm test --prefix mcp/abdur-ai"
   },
   "dependencies": {
     "@mdx-js/loader": "3.1.0",
     "@mdx-js/react": "3.1.0",
     "@next/mdx": "15.5.19",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.2",
     "@vercel/analytics": "2.0.1",
     "feed": "4.2.2",
     "gray-matter": "4.0.3",
@@ -25,6 +29,7 @@
     "next-mdx-remote": "6.0.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
+    "react-markdown": "10.1.0",
     "rehype-autolink-headings": "7.1.0",
     "rehype-slug": "6.0.0",
     "remark-gfm": "4.0.0",

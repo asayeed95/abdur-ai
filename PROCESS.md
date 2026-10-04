@@ -28,6 +28,9 @@ What's open: wiring (API routes, persistence, deploy), new posts/tools added thr
 | 1 | **Finish Wiring & Launch** | **← current** |
 | 2 | Stripe + Library checkout (optional, deferred per `CLAUDE.md` §8) | not started |
 | 3 | Notion CMS sync for posts (future, per `CLAUDE.md` "Architecture decisions you should NOT change") | not started |
+| AN | **Agent-native platform** (AGE-2970): agent/share bar, MCP publishing, comments + votes, `/admin` | in progress — founder decision 2026-10-03 |
+
+> **Scope change, 2026-10-03 (founder, AGE-2970).** This site now has **auth and user-owned data**: reader accounts, comments and votes in a *separate* Supabase project (`abdur-ai`, see `supabase/community/README.md`). The "no auth / no user-owned data" description below predates that and applies to everything else. Unchanged: posts stay MDX in git and publishing stays a gated merge (the MCP server and `/admin` open PRs, they never push to main); no payments. The data model is specified by its migrations + README rather than a separate `/spec` pipeline.
 
 Phase 1 is tracked task-by-task in `docs/superpowers/specs/build-plan.md` — that file is the only todo list that counts here; this file just says how to work through it.
 

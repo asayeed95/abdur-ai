@@ -31,6 +31,31 @@ jobs:
         run: python3 scripts/check-brand.py
       - name: Check OG share cards
         run: npm run check:og
+      - name: Publish core + MCP server tests
+        run: npm ci --prefix mcp/abdur-ai && npm test --prefix mcp/abdur-ai && npm run typecheck --prefix mcp/abdur-ai
       - run: npm run build
       - name: Check card crawlers may fetch /api/og (rendered robots.txt)
         run: npm run check:robots
+  community-db:
+    name: Community DB rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Migrations + RLS/trigger tests on a throwaway Postgres
+        run: ./scripts/test-community-db.sh
