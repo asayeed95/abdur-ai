@@ -31,6 +31,8 @@ jobs:
         run: python3 scripts/check-brand.py
       - name: Check OG share cards
         run: npm run check:og
+      - name: Publish core + MCP server tests
+        run: npm ci --prefix mcp/abdur-ai && npm test --prefix mcp/abdur-ai && npm run typecheck --prefix mcp/abdur-ai
       - run: npm run build
       - name: Check card crawlers may fetch /api/og (rendered robots.txt)
         run: npm run check:robots
