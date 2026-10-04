@@ -96,7 +96,11 @@ test("an agent cannot approve its own publish", () => {
 test("the override entry satisfies the gate's grep in scripts/check-phase.sh", () => {
   const entry = publishOverrideEntry({ taskId: "AGE-1", slug: base.slug, reason: "r", approvedBy: "Abdur / Slack / 2026-10-03" });
   const f = `content/posts/${base.slug}.mdx`;
-  assert.match(entry, new RegExp(`content-publish-override:[ \\t]*${f.replace(/\./g, "\\.")}([ \\t]|$|#)`, "m"));
+  // Mirrors the gate's anchored match (AGE-2992 / PR #74): the key must start
+  // its own line, so a mention inside reason/approved-by never counts.
+  const gate = new RegExp(`^[ \\t]*content-publish-override:[ \\t]*${f.replace(/\./g, "\\.")}([ \\t]|$|#)`, "m");
+  assert.match(entry, gate);
+  assert.doesNotMatch(`  reason: see content-publish-override: ${f}\n`, gate);
 });
 
 // ---------- publisher against an in-memory GitHub ----------
