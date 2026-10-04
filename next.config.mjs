@@ -9,6 +9,14 @@ const nextConfig = {
   experimental: {
     mdxRs: false,
   },
+  async rewrites() {
+    return [
+      {
+        source: "/writing/:slug.md",
+        destination: "/writing/:slug/markdown",
+      },
+    ];
+  },
   async redirects() {
     // Legacy brand-era paths (Sentinel 2026-08-22: both 404'd). Neither route
     // ever existed in this repo; map them to the surfaces that own the intent
@@ -37,6 +45,17 @@ const nextConfig = {
         source: "/llms.txt",
         headers: [{ key: "Content-Type", value: "text/plain; charset=utf-8" }],
       },
+      {
+        source: "/llms-full.txt",
+        headers: [{ key: "Content-Type", value: "text/plain; charset=utf-8" }],
+      },
+      {
+        source: "/writing/feed.json",
+        headers: [{ key: "Content-Type", value: "application/feed+json; charset=utf-8" }],
+      },
+      // No header rule for /writing/:slug.md on purpose: a headers() rule matches
+      // by path, so it would also stamp text/markdown on the 404 for an unknown
+      // slug. The markdown route sets Content-Type on real twins itself.
       {
         source: "/writing/rss.xml",
         headers: [{ key: "Content-Type", value: "application/rss+xml" }],

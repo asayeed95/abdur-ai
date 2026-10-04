@@ -33,6 +33,10 @@ npm run dev
 | `/sitemap.xml` | Auto-generated |
 | `/robots.txt` | Auto-generated (welcomes AI crawlers explicitly) |
 | `/llms.txt` | AI-readable site summary with post index |
+| `/llms-full.txt` | Full text of published posts for agents |
+| `/writing/rss.xml` | Canonical full-text RSS |
+| `/writing/feed.json` | JSON Feed; body is markdown in `content_text` |
+| `/writing/[slug].md` | Markdown twin of a published post |
 | `/aitldr/rss.xml` | RSS feed |
 | `/api/subscribe` | Newsletter signup (POST `{email, list?}`) |
 | `/api/ingest/now` | Agent webhook for Now panel (Bearer auth) |
@@ -89,6 +93,11 @@ the `ANALYTICS_EVENTS` const — a name outside it is a type error).
 | `cta:newsletter:from-post` | Click on the newsletter CTA | `components/post/LeadMagnets.tsx` (`NewsletterCTA`) |
 | `subscribe:tldr` | Successful TLDR email capture (`/api/subscribe` 2xx) | `components/Subscribe.tsx` |
 | `subscribe:asec-waitlist` | Successful ASEC waitlist signup (`/api/subscribe` 2xx) | `components/post/LeadMagnets.tsx` |
+| `post:copy-agent` | "Copy for agent" clipboard write succeeded (`slug`) | `components/post/PostActions.tsx` |
+| `post:copy-markdown` | "Copy markdown" clipboard write succeeded (`slug`) | `components/post/PostActions.tsx` |
+| `post:share` | Share target opened or link copied (`slug`, `channel`) | `components/post/PostActions.tsx` |
+| `post:embed-copy` | Embed snippet copied (`slug`) | `components/post/PostActions.tsx` |
+| `embed:read-click` | Click from an embedded card back to the site (`slug`, `target`) | `components/post/EmbedLinks.tsx` |
 
 `subscribe:*` events fire **only after a 2xx response** — they count real
 conversions, not attempts. `cta:asec:from-post` fires on submit attempt, so

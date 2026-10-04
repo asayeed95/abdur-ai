@@ -93,8 +93,8 @@
     { "file": "components/MnemixSection.tsx", "contains": "NorthsunWaitlistForm" },
     { "file": "components/NorthsunWaitlistForm.tsx", "contains": "mnemix-beta" },
     { "file": "components/post/LeadMagnets.tsx", "contains": "/#waitlist" },
-    { "file": "app/llms.txt/route.ts", "contains": "https://northsun.ai" },
-    { "file": "app/llms.txt/route.ts", "contains": "free diagnostic from Northsun" }
+    { "file": "lib/llms-text.ts", "contains": "https://northsun.ai" },
+    { "file": "lib/llms-text.ts", "contains": "free diagnostic from Northsun" }
   ],
   "cta_policy": {
     "note": "northsun.ai DNS is not live (verified 2026-08-22). Product CTAs must point at owned surfaces until the founder ratifies the domain: the /#waitlist form backed by /api/subscribe with the frozen mnemix-beta list. lib/site.ts flagship.url and llms.txt keep https://northsun.ai as the canonical product reference, not a CTA.",
