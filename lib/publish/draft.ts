@@ -191,7 +191,7 @@ export function assertWritablePath(repoPath: string, slug: string): void {
     repoPath === draftPath(slug) ||
     repoPath === publishedPath(slug) ||
     repoPath === OVERRIDES_FILE ||
-    (repoPath.startsWith(`public/blog/${slug}/`) && !repoPath.slice(`public/blog/${slug}/`.length).includes("/"));
+    (repoPath.startsWith(`public/blog/${slug}/`) && IMAGE_RE.test(repoPath.slice(`public/blog/${slug}/`.length)));
   if (!allowed || repoPath.includes("..") || repoPath.startsWith("/")) {
     throw new DraftError([`refusing to write ${repoPath}: outside the draft/asset paths for "${slug}"`]);
   }
@@ -215,6 +215,16 @@ export function publishOverrideEntry(args: {
     problems.push(
       "approvedBy must quote a human approval — who, where and when (e.g. 'Abdur / Slack ts … / 2026-10-03'); agents cannot approve their own publish",
     );
+  }
+  // The gate matches `content-publish-override: <path>` anywhere in the file,
+  // so free text must never carry that key or it could approve another post.
+  for (const [field, value] of Object.entries({ taskId: args.taskId, reason: args.reason, approvedBy: args.approvedBy })) {
+    if (/content-publish-override|design-token-override/i.test(value ?? "")) {
+      problems.push(`${field} must not contain an override key`);
+    }
+  }
+  if (nonEmpty(args.taskId) && !/^[A-Z]+-\d+$/.test(args.taskId.trim())) {
+    problems.push("taskId must be a Linear issue id like AGE-123");
   }
   if (problems.length) throw new DraftError(problems);
   const one = (s: string) => s.replace(/\s*\n\s*/g, " ").trim();
