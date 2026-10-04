@@ -21,6 +21,9 @@ export const ANALYTICS_EVENTS = [
   "cta:newsletter:from-post",
   "subscribe:tldr",
   "subscribe:asec-waitlist",
+  "community:comment",
+  "community:vote",
+  "community:signin",
 ] as const;
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number];
 

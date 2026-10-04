@@ -1,0 +1,24 @@
+name: Community DB keep-alive
+# The community Supabase project (abdur-ai, AgencyFlow HQ free plan) pauses
+# after ~7 days without activity (AGE-2988). One anonymous read a day keeps
+# it awake. The publishable key is public by design (it ships in every page
+# bundle); RLS decides what it can read.
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      URL: ${{ vars.COMMUNITY_SUPABASE_URL || 'https://pzfbnnubapinhbnwqpnp.supabase.co' }}
+      KEY: ${{ vars.COMMUNITY_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_oE0vRwewCnWhERpxiJ8afA_ZGld57AJ' }}
+    steps:
+      - name: Read one row through PostgREST
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 10 \
+            "$URL/rest/v1/post_scores?select=post_slug&limit=1" -H "apikey: $KEY")
+          echo "HTTP $code"
+          test "$code" = "200"
