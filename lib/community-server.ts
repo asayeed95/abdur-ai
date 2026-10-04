@@ -21,6 +21,7 @@ export async function fetchVisibleComments(slug: string): Promise<CommentRow[] |
   const query = new URLSearchParams({
     select: COMMENT_SELECT,
     post_slug: `eq.${slug}`,
+    status: "eq.visible",
     order: "created_at.asc",
     limit: "500",
   });

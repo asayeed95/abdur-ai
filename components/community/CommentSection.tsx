@@ -38,6 +38,9 @@ export function CommentSection({ slug, initialRows = null }: { slug: string; ini
       .from("comments")
       .select(COMMENT_SELECT)
       .eq("post_slug", slug)
+      // Explicit, not just RLS: an admin's session may read hidden rows, and
+      // the public thread must look the same for every role.
+      .eq("status", "visible")
       .order("created_at", { ascending: true })
       .limit(500);
     if (error) {

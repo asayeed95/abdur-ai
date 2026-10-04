@@ -103,8 +103,38 @@ insert into auth.users (email, email_confirmed_at, raw_user_meta_data) values
 -- Profiles: created by trigger, handles lowercased (not stripped).
 select tests.eq('handle lowercased', (select p.handle::text from public.profiles p
   join auth.users u on u.id = p.id where u.email = 'alice@example.test'), 'alice_a');
-select tests.eq('handle from email', (select p.handle::text from public.profiles p
-  join auth.users u on u.id = p.id where u.email = 'carol@example.test'), 'carol');
+-- An email sign-up never gets a handle or name from its address (privacy).
+select tests.eq('email sign-up gets a placeholder handle', (select p.handle::text ~ '^reader_[0-9a-f]{10}$'
+  from public.profiles p join auth.users u on u.id = p.id where u.email = 'carol@example.test'), true);
+select tests.eq('email sign-up display name is not the address', (select p.display_name
+  from public.profiles p join auth.users u on u.id = p.id where u.email = 'carol@example.test') <> 'carol', true);
+
+-- Back-fill for profiles created by the old trigger: simulate three leaked
+-- shapes (exact, cut to 18, collision suffix) plus an OAuth user whose
+-- username happens to equal the local part, which must be left alone.
+insert into auth.users (email, email_confirmed_at, raw_user_meta_data) values
+  ('dave@example.test', now(), '{}'),
+  ('averyveryverylonglocalpart@example.test', now(), '{}'),
+  ('erin@example.test', now(), '{}'),
+  ('frank@example.test', now(), '{"user_name":"frank"}');
+update public.profiles p set handle = v.h, display_name = v.d
+  from auth.users u, (values ('dave@example.test', 'dave', 'dave'),
+                             ('averyveryverylonglocalpart@example.test', 'averyveryverylongl', 'averyveryverylongl'),
+                             ('erin@example.test', 'erin_1a2b3', 'Erin Real Name')) v(e, h, d)
+ where u.id = p.id and u.email = v.e;
+select tests.eq('back-fill redacts exactly the leaked profiles', public.redact_email_derived_handles(), 3);
+select tests.eq('leaked handles are placeholders', (select count(*) from public.profiles p join auth.users u on u.id = p.id
+  where u.email in ('dave@example.test', 'averyveryverylonglocalpart@example.test', 'erin@example.test')
+    and p.handle::text ~ '^reader_[0-9a-f]{10}$'), 3::bigint);
+select tests.eq('a leaked display name is replaced', (select p.display_name from public.profiles p
+  join auth.users u on u.id = p.id where u.email = 'dave@example.test') ~ '^reader_', true);
+select tests.eq('a real display name is kept', (select p.display_name from public.profiles p
+  join auth.users u on u.id = p.id where u.email = 'erin@example.test'), 'Erin Real Name');
+select tests.eq('an OAuth username is kept', (select p.handle::text from public.profiles p
+  join auth.users u on u.id = p.id where u.email = 'frank@example.test'), 'frank');
+select tests.as_anon();
+select tests.throws('anon cannot run the back-fill', $q$select public.redact_email_derived_handles()$q$, 'permission denied');
+select tests.as_owner();
 
 -- ---------- anon ----------
 select tests.as_anon();
