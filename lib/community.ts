@@ -32,7 +32,8 @@ export type CommentAuthor = { handle: string; display_name: string; avatar_url: 
 export type CommentRow = {
   id: string;
   parent_id: string | null;
-  author_id: string;
+  /** Null once the author deleted their account; the row is then a tombstone. */
+  author_id: string | null;
   content: string;
   depth: number;
   score: number;

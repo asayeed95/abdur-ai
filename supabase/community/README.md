@@ -10,21 +10,29 @@ This is the database behind reader comments and votes (AGE-2972). It is a **sepa
 | Browser key | the project's *publishable* key → `NEXT_PUBLIC_COMMUNITY_SUPABASE_PUBLISHABLE_KEY` (public by design) |
 | Server key | service role, for `/admin` moderation only (AGE-2974). Keep it in Doppler and never put it in `NEXT_PUBLIC_*` |
 
-## Migrations (applied in order, 2026-10-03, Supabase MCP `apply_migration`)
+## Migrations
 
-1. `20261003210000_community_core.sql`: `profiles`, `comments`, `comment_votes`, `post_votes`, `post_scores`, triggers, RLS and column grants.
-2. `20261003211500_handle_lowercase_first.sql`: the handle generator now lowercases before stripping. It had turned "Asayeed95" into "sayeed95".
-3. `20261003212000_citext_to_extensions.sql`: moves `citext` out of `public` (security advisor 0014).
-4. `20261003223000_moderation_guard_by_role.sql`: the update guard restricts only `anon`/`authenticated`. The owner could not moderate before.
+File names carry the version the live project recorded, so `supabase migration list` reconciles. Files 1–4 were applied on 2026-10-03 through the Supabase MCP `apply_migration`.
+
+1. `20261003215518_community_core.sql`: `profiles`, `comments`, `comment_votes`, `post_votes`, `post_scores`, triggers, RLS and column grants.
+2. `20261003215607_handle_lowercase_first.sql`: the handle generator now lowercases before stripping. It had turned "Asayeed95" into "sayeed95".
+3. `20261003215620_citext_to_extensions.sql`: moves `citext` out of `public` (security advisor 0014).
+4. `20261003221021_moderation_guard_by_role.sql`: the update guard restricts only `anon`/`authenticated`. The owner could not moderate before.
+5. `20261004003000_preserve_replies_on_account_delete.sql`: **not yet applied live.** Deleting an account used to delete every reply under that reader's comments (Forge measured 9 comments → 2). Now the reader's comments become tombstones and other readers' replies stay. It also refuses replies and votes on hidden comments. The Supabase MCP holds `DROP` statements for an interactive confirmation, as it does `DELETE`, so apply this one after review: paste it into the dashboard SQL Editor, then rename the file to the version the project records.
+
+## Tests
+
+`scripts/test-community-db.sh` builds a throwaway database on plain Postgres 16. It loads `tests/supabase_stub.sql` (the API roles, `auth.users`, `auth.uid()`), applies every migration in order, and runs `tests/rls.test.sql`. CI runs it against a Postgres service; locally, point `PGHOST`/`PGPORT`/`PGUSER` at any superuser connection. It never touches the live project.
 
 ## Trust model
 
 - **Anyone (`anon`)** can read visible comments, public profiles and post score totals. It cannot write anything.
 - **Signed-in users (`authenticated`)**:
   - Edit their own profile, but not `role`.
-  - Insert comments as themselves only. The parent must be on the same post, depth is at most 6, and the limit is 8 per 10 minutes.
+  - Insert comments as themselves only. The parent must be visible and on the same post, depth is at most 6, and the limit is 8 per 10 minutes.
   - Edit their own content, or soft-delete. Deleting wipes the text and keeps the row so replies keep their place, and a deleted comment is final.
-  - Cast, flip and retract their own votes. They see only their own votes.
+  - Cast, flip and retract their own votes, on visible comments that still have text. They see only their own votes.
+- **Deleting an account** removes the reader's profile and votes. Their comments stay as tombstones (no author, no text), so other readers' replies keep their place.
 - **Scores** are maintained by `security definer` triggers. Clients can never write `score`, `status`, `depth` or `author_id`; this is enforced twice, by column grants and by a trigger.
 - **Moderation** (`status = 'hidden'`) is for `service_role` or the owner. Hidden rows are invisible to readers.
 - **Posts are MDX in git**, so threads key on `post_slug`. A post opts in with `comments: true` in its frontmatter; it is off by default (founder decision 2026-10-03).
@@ -45,5 +53,5 @@ This is the database behind reader comments and votes (AGE-2972). It is a **sepa
 ## Operations
 
 - **Free projects pause after about 7 days without activity.** The keep-alive is tracked in Linear. Until it exists, a paused project shows "Couldn't load the discussion" and nothing breaks.
-- **Test data:** two e2e users (`e2e-a@abdur-ai.invalid`, `e2e-b@abdur-ai.invalid`) and their comments, all `hidden`. Delete them in the dashboard (Authentication → Users); this cascades. The Supabase MCP holds `DELETE` statements for an interactive confirmation that a cloud session cannot give, so they were left in place.
+- **Test data:** two e2e users (`e2e-a@abdur-ai.invalid`, `e2e-b@abdur-ai.invalid`) and their comments, all `hidden`. Delete them in the dashboard (Authentication → Users). Once migration 5 is applied, their comments become tombstones; before it, they cascade. The Supabase MCP holds `DELETE` statements for an interactive confirmation that a cloud session cannot give, so they were left in place.
 - **Auth providers (founder):** turn on GitHub OAuth (Authentication → Providers; callback `https://pzfbnnubapinhbnwqpnp.supabase.co/auth/v1/callback`) and set the Site URL to `https://abdur.ai` plus redirect URLs `https://abdur.ai/**`. Email magic links work out of the box, but Supabase's built-in mailer is heavily rate-limited. Before real traffic, point Auth SMTP at Resend (blocked on AGE-2892).
