@@ -111,6 +111,12 @@ export class GitHub {
     }
   }
 
+  /** Branch names starting with `prefix` (e.g. "drafts/"), via the matching-refs API. */
+  async listBranches(prefix: string): Promise<string[]> {
+    const refs = await this.call<{ ref: string }[]>("GET", `/git/matching-refs/heads/${prefix}`);
+    return refs.map((r) => r.ref.replace(/^refs\/heads\//, ""));
+  }
+
   /** One atomic commit on `branch` (must exist). Returns the new commit sha. */
   async commit(branch: string, message: string, files: FileWrite[]): Promise<string> {
     const head = await this.branchSha(branch);

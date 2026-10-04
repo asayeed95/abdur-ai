@@ -15,6 +15,11 @@ export type SaveResult =
  */
 export async function saveDraft(input: DraftInput, mode: "create" | "update", taskId: string): Promise<SaveResult> {
   await requireAdmin();
+  // Types vanish at runtime and anyone can POST to an action: check shapes.
+  if (mode !== "create" && mode !== "update") return { ok: false, problems: ["mode must be create or update"] };
+  if (typeof input !== "object" || input === null || typeof taskId !== "string") {
+    return { ok: false, problems: ["malformed request"] };
+  }
   const problems = validateDraft(input);
   if (!/^[A-Z]+-\d+$/.test(taskId)) problems.push("Linear issue id (e.g. AGE-1234) is required");
   if (problems.length) return { ok: false, problems };
@@ -32,6 +37,10 @@ export async function saveDraft(input: DraftInput, mode: "create" | "update", ta
 /** Hide / unhide a comment. RLS + the update guard allow status only. */
 export async function setCommentStatus(id: string, status: "visible" | "hidden"): Promise<{ ok: boolean; error?: string }> {
   const { sb } = await requireAdmin();
+  if (status !== "visible" && status !== "hidden") return { ok: false, error: "status must be visible or hidden" };
+  if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    return { ok: false, error: "not a comment id" };
+  }
   const { error, count } = await sb.from("comments").update({ status }, { count: "exact" }).eq("id", id);
   if (error) return { ok: false, error: error.message };
   if (!count) return { ok: false, error: "No row changed — is this account in public.admins?" };

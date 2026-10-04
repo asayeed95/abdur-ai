@@ -60,10 +60,16 @@ export class Publisher {
   /** Published posts and drafts on `ref` (default branch when omitted). */
   async listPosts(ref?: string) {
     const at = ref ?? (await this.gh.defaultBranch());
-    const [pub, drafts] = await Promise.all([this.gh.listDir(PUBLISHED_DIR, at), this.gh.listDir(DRAFTS_DIR, at)]);
+    const [pub, drafts, branches] = await Promise.all([
+      this.gh.listDir(PUBLISHED_DIR, at),
+      this.gh.listDir(DRAFTS_DIR, at),
+      this.gh.listBranches(branchFor("")),
+    ]);
     const slugs = (xs: { name: string; type: string }[]) =>
       xs.filter((x) => x.type === "file" && /\.mdx?$/.test(x.name) && !/^[A-Z_]/.test(x.name)).map((x) => x.name.replace(/\.mdx?$/, ""));
-    return { ref: at, published: slugs(pub), drafts: slugs(drafts) };
+    // Drafts saved through this core live on drafts/<slug> branches until merged.
+    const inReview = branches.map((b) => b.slice(branchFor("").length)).filter((s) => s.length > 0);
+    return { ref: at, published: slugs(pub), drafts: slugs(drafts), inReview };
   }
 
   /** Raw MDX for a slug: the draft branch first, then main's draft, then main's published file. */

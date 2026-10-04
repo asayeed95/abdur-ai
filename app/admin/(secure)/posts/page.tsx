@@ -5,7 +5,7 @@ import { POST_BASE } from "@/lib/site";
 
 export default async function AdminPosts() {
   await requireAdmin();
-  let data: { published: string[]; drafts: string[] } | null = null;
+  let data: { published: string[]; drafts: string[]; inReview: string[] } | null = null;
   let error = "";
   try {
     data = await new Publisher(configFromEnv()).listPosts();
@@ -22,6 +22,18 @@ export default async function AdminPosts() {
         <p role="alert" className="font-mono text-xs text-clay">Could not list posts from GitHub: {error}</p>
       ) : (
         <div className="grid md:grid-cols-2 gap-8">
+          <section className="md:col-span-2">
+            <h2 className="eyebrow mb-3">In review: drafts/* branches ({data!.inReview.length})</h2>
+            {data!.inReview.length === 0 ? (
+              <p className="text-sm text-meta">None. Drafts you save here appear in this list until their PR is merged.</p>
+            ) : (
+              <ul className="space-y-2 font-mono text-sm">
+                {data!.inReview.map((s) => (
+                  <li key={s}><Link className="hover:text-clay" href={`/admin/posts/${s}`}>{s}</Link></li>
+                ))}
+              </ul>
+            )}
+          </section>
           <section>
             <h2 className="eyebrow mb-3">Drafts on main ({data!.drafts.length})</h2>
             <ul className="space-y-2 font-mono text-sm">

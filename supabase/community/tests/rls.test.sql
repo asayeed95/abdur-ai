@@ -219,6 +219,45 @@ select tests.throws('cannot vote on a hidden comment',
   $q$insert into public.comment_votes (user_id, comment_id, vote) values ((select auth.uid()), tests.id('d3'), 1)$q$,
   'row-level security');
 
+-- ---------- admin moderation (AGE-2974, migration 5) ----------
+-- Database half of the /admin gate: public.admins + a *confirmed* email.
+select tests.as_owner();
+insert into auth.users (email, email_confirmed_at) values
+  ('mod@example.test', now()),
+  ('unconfirmed@example.test', null);
+insert into public.admins (email) values ('MOD@example.test'), ('unconfirmed@example.test');
+
+select tests.as_anon();
+select tests.throws('anon cannot call is_admin', $q$select public.is_admin()$q$, 'permission denied');
+select tests.throws('the allowlist is unreadable through the API', $q$select * from public.admins$q$, 'permission denied');
+
+select tests.as_user('alice@example.test');
+select tests.eq('member is not admin', public.is_admin(), false);
+select tests.eq('member cannot read hidden comments', (select count(*) from public.comments where id = tests.id('d3')), 0::bigint);
+
+select tests.as_user('unconfirmed@example.test');
+select tests.eq('unconfirmed email is not admin', public.is_admin(), false);
+select tests.eq('unconfirmed email cannot moderate',
+  tests.affected($q$update public.comments set status = 'hidden' where id = tests.id('a1')$q$), 0::bigint);
+
+select tests.as_user('mod@example.test');
+select tests.eq('allowlisted, confirmed email is admin (case-insensitive)', public.is_admin(), true);
+select tests.eq('admin reads hidden comments', (select count(*) from public.comments where id = tests.id('d3')), 1::bigint);
+select tests.eq('admin hides', tests.affected($q$update public.comments set status = 'hidden' where id = tests.id('a1')$q$), 1::bigint);
+select tests.eq('admin unhides', tests.affected($q$update public.comments set status = 'visible' where id = tests.id('a1')$q$), 1::bigint);
+select tests.throws('admin cannot edit text',
+  $q$update public.comments set content = 'moderated' where id = tests.id('a1')$q$, 'only the author');
+select tests.throws('admin cannot delete for the author',
+  $q$update public.comments set is_deleted = true where id = tests.id('a1')$q$, 'only the author');
+select tests.throws('admin cannot rescore',
+  $q$update public.comments set score = 100 where id = tests.id('a1')$q$, 'permission denied');
+
+select tests.as_user('alice@example.test');
+select tests.throws('member cannot change status',
+  $q$update public.comments set status = 'hidden' where id = tests.id('a1')$q$, 'only moderators');
+select tests.eq('author still edits own text',
+  tests.affected($q$update public.comments set content = 'root by alice (edited twice)' where id = tests.id('a1')$q$), 1::bigint);
+
 -- ---------- account deletion keeps other readers' replies ----------
 -- Thread on a-post: a1 (alice) <- b1 (bob, score 1 from alice) <- c1 (carol).
 -- Bob also cast a -1 on a1 and a +1 on the post.

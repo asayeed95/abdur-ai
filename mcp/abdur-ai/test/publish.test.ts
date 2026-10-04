@@ -157,6 +157,10 @@ function fakeGitHub(seed: Record<string, string>) {
       s.refs.set(b, body.sha);
       return json(200, {});
     }
+    if ((m = path.match(/^\/git\/matching-refs\/heads\/(.+)$/))) {
+      const prefix = m[1];
+      return json(200, [...s.refs.keys()].filter((k) => k.startsWith(prefix)).map((k) => ({ ref: `refs/heads/${k}` })));
+    }
     if ((m = path.match(/^\/contents\/(.+)$/))) {
       const ref = u.searchParams.get("ref")!;
       const tree = s.commits.get(s.refs.get(ref) ?? "")?.tree;
@@ -219,6 +223,7 @@ test("create → update → image → prepare publish: one branch, one draft PR,
     assert.equal(gh.s.refs.get("main"), "sha1", "main never moves");
 
     await assert.rejects(pub.createDraft(base, { taskId: "AGE-1" }), /already exists/);
+    assert.deepEqual((await pub.listPosts()).inReview, [base.slug], "a saved draft is listed while it is in review");
 
     await pub.updateDraft(base.slug, { body: "Rewritten body." }, { taskId: "AGE-1" });
     assert.match(gh.fileAt(c.branch, draftPath(base.slug))!, /Rewritten body\.\n$/);

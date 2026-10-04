@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
+import { isAllowedAdmin } from "@/lib/admin/allowlist";
+
+export { adminEmails, isAllowedAdmin } from "@/lib/admin/allowlist";
 
 /**
  * Server-side Supabase client for /admin (cookie session, @supabase/ssr) on
@@ -26,18 +28,6 @@ export async function adminSupabase() {
       },
     },
   });
-}
-
-/** Lowercased allowlist from ADMIN_EMAILS (comma-separated). Empty = nobody. */
-export function adminEmails(env: Record<string, string | undefined> = process.env): string[] {
-  return (env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-export function isAllowedAdmin(user: Pick<User, "email" | "email_confirmed_at"> | null, allow = adminEmails()): boolean {
-  return Boolean(user?.email && user.email_confirmed_at && allow.includes(user.email.toLowerCase()));
 }
 
 /**
