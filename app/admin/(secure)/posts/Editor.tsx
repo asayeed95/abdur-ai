@@ -55,7 +55,10 @@ export function Editor({ initial, mode }: { initial?: DraftInput; mode: "create"
       className="grid lg:grid-cols-2 gap-8"
       onSubmit={(e) => {
         e.preventDefault();
-        const input: DraftInput = { ...d, receipts: parseReceipts(receipts) };
+        // Receipts are only editable (and only meaningful) on reported posts;
+        // [] clears any left over from a register change instead of saving
+        // values the author can no longer see.
+        const input: DraftInput = { ...d, receipts: d.register === "reported" ? parseReceipts(receipts) : [] };
         start(async () => setResult(await saveDraft(input, mode, taskId.trim())));
       }}
     >

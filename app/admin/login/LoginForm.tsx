@@ -8,7 +8,7 @@ export function LoginForm() {
   const url = process.env.NEXT_PUBLIC_COMMUNITY_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_COMMUNITY_SUPABASE_PUBLISHABLE_KEY;
   const [email, setEmail] = useState("");
-  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error" | "oauth-error">("idle");
   if (!url || !key) return <p className="text-sm text-meta">Admin is not configured on this deployment.</p>;
   // Built on demand: client components also render on the server, where
   // there is no window and no browser storage.
@@ -20,7 +20,11 @@ export function LoginForm() {
       <button
         type="button"
         className="w-full font-mono text-xs tracking-widest uppercase border border-border px-4 py-3 rounded-sm hover:border-clay cursor-pointer"
-        onClick={() => client().auth.signInWithOAuth({ provider: "github", options: { redirectTo: redirectTo() } })}
+        onClick={async () => {
+          // Returns { error } rather than throwing, e.g. while the GitHub provider is off.
+          const { error } = await client().auth.signInWithOAuth({ provider: "github", options: { redirectTo: redirectTo() } });
+          if (error) setState("oauth-error");
+        }}
       >
         Continue with GitHub
       </button>
@@ -50,7 +54,7 @@ export function LoginForm() {
         </button>
       </form>
       <p aria-live="polite" className="font-mono text-[11px] text-meta">
-        {state === "sent" ? "If that address has an account, a sign-in link is on its way." : state === "error" ? "Could not send a link." : ""}
+        {state === "sent" ? "If that address has an account, a sign-in link is on its way." : state === "error" ? "Could not send a link." : state === "oauth-error" ? "GitHub sign-in is not available right now. Use the email link." : ""}
       </p>
     </div>
   );

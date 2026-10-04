@@ -29,7 +29,10 @@ async function refreshAdminSession(req: NextRequest): Promise<NextResponse> {
   let res = NextResponse.next({ request: req });
   const url = process.env.NEXT_PUBLIC_COMMUNITY_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_COMMUNITY_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return res;
+  if (!url || !key) {
+    res.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return res;
+  }
   const sb = createServerClient(url, key, {
     cookies: {
       getAll: () => req.cookies.getAll(),

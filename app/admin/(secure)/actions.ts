@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { parseSaveRequest } from "@/lib/admin/draft-request";
 import { requireAdmin } from "@/lib/admin/supabase";
 import { configFromEnv, DraftError, Publisher, validateDraft, type DraftInput } from "@/lib/publish";
 
@@ -13,15 +14,12 @@ export type SaveResult =
  * drafts/<slug> + a draft PR. Never publishes. The admin check is repeated
  * here because a server action is a public POST endpoint.
  */
-export async function saveDraft(input: DraftInput, mode: "create" | "update", taskId: string): Promise<SaveResult> {
+export async function saveDraft(rawInput: DraftInput, rawMode: "create" | "update", rawTaskId: string): Promise<SaveResult> {
   await requireAdmin();
-  // Types vanish at runtime and anyone can POST to an action: check shapes.
-  if (mode !== "create" && mode !== "update") return { ok: false, problems: ["mode must be create or update"] };
-  if (typeof input !== "object" || input === null || typeof taskId !== "string") {
-    return { ok: false, problems: ["malformed request"] };
-  }
+  const req = parseSaveRequest({ input: rawInput, mode: rawMode, taskId: rawTaskId });
+  if (!req.ok) return { ok: false, problems: req.problems };
+  const { input, mode, taskId } = req.data;
   const problems = validateDraft(input);
-  if (!/^[A-Z]+-\d+$/.test(taskId)) problems.push("Linear issue id (e.g. AGE-1234) is required");
   if (problems.length) return { ok: false, problems };
   try {
     const p = new Publisher(configFromEnv());
