@@ -60,7 +60,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
             {post.title}
           </EmbedLink>
         </h1>
-        {summary && <p className="text-sm text-muted leading-relaxed line-clamp-2">{summary}</p>}
+        {summary && <p className="text-sm text-meta leading-relaxed line-clamp-2">{summary}</p>}
         <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs">
           <EmbedLink slug={post.slug} target="post" href={readHref} className="text-clay hover:underline">
             Read the post →

@@ -286,7 +286,7 @@ export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, age
                 Esc ✕
               </button>
             </div>
-            <p className="text-sm text-muted mb-3">
+            <p className="text-sm text-meta mb-3">
               A small card with the title, summary and a link back to the full post.
             </p>
             <textarea
@@ -294,7 +294,7 @@ export function PostActions({ slug, title, canonical, markdownUrl, embedUrl, age
               readOnly
               value={embedSnippet}
               rows={4}
-              className="w-full font-mono text-xs text-text bg-bg border border-border rounded-sm p-3 resize-none"
+              className="w-full font-mono text-xs text-text bg-bg border border-muted rounded-sm p-3 resize-none"
               onFocus={(e) => e.currentTarget.select()}
             />
             <div className="flex flex-wrap items-center gap-3 mt-4">

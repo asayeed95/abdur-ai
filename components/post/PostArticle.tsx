@@ -138,7 +138,7 @@ export function PostArticle({
           {post.citation ? (
             <div>
               <p className="eyebrow mb-3">Preferred citation</p>
-              <p className="font-mono text-sm text-muted">{post.citation}</p>
+              <p className="font-mono text-sm text-meta">{post.citation}</p>
             </div>
           ) : null}
           {related.length > 0 ? (
