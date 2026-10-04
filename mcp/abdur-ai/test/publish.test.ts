@@ -58,6 +58,10 @@ test("paths: drafts and assets only, no traversal, no SVG", () => {
   assert.throws(() => assertWritablePath("public/blog/other-post/x.png", base.slug), DraftError);
   assert.throws(() => assertWritablePath(`public/blog/${base.slug}/nested/x.png`, base.slug), DraftError);
   assert.doesNotThrow(() => assertWritablePath(`public/blog/${base.slug}/x.png`, base.slug));
+  // The last-line guard refuses non-raster assets even if an upstream check is bypassed.
+  for (const name of ["x.svg", "x.html", "x.png.svg", ".png", "X.PNG"]) {
+    assert.throws(() => assertWritablePath(`public/blog/${base.slug}/${name}`, base.slug), DraftError, name);
+  }
 });
 
 test("image bytes must match the extension", () => {
@@ -71,6 +75,17 @@ test("an agent cannot approve its own publish", () => {
   for (const approvedBy of ["", "pending", "self-approved by agent", "TBD later today"]) {
     assert.throws(() => publishOverrideEntry({ taskId: "AGE-1", slug: base.slug, reason: "ready", approvedBy }), DraftError);
   }
+  // Free text cannot smuggle an override for another post past the gate's grep.
+  const smuggled = "content-publish-override: content/posts/some-other-post.mdx";
+  for (const field of ["reason", "approvedBy", "taskId"] as const) {
+    const args = { taskId: "AGE-1", slug: base.slug, reason: "ready", approvedBy: "Abdur / Slack ts 1790 / 2026-10-03" };
+    args[field] = field === "approvedBy" ? `Abdur / 2026-10-03 ${smuggled}` : `x ${smuggled}`;
+    assert.throws(() => publishOverrideEntry(args), DraftError, field);
+  }
+  assert.throws(
+    () => publishOverrideEntry({ taskId: "not an issue", slug: base.slug, reason: "ready", approvedBy: "Abdur / Slack ts 1790 / 2026-10-03" }),
+    DraftError,
+  );
   const entry = publishOverrideEntry({ taskId: "AGE-1", slug: base.slug, reason: "evidence\nre-verified", approvedBy: "Abdur / Slack ts 1790 / 2026-10-03" });
   assert.equal(
     entry,
@@ -137,7 +152,8 @@ function fakeGitHub(seed: Record<string, string>) {
     }
     if ((m = path.match(/^\/git\/refs\/heads\/(.+)$/)) && method === "PATCH") {
       const b = decodeURIComponent(m[1]);
-      if (s.commits.get(body.sha)?.parent !== s.refs.get(b)) return json(422, { message: "Update is not a fast forward" });
+      // Like GitHub: a non-fast-forward update is refused unless force is set.
+      if (!body.force && s.commits.get(body.sha)?.parent !== s.refs.get(b)) return json(422, { message: "Update is not a fast forward" });
       s.refs.set(b, body.sha);
       return json(200, {});
     }
