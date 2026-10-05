@@ -6,6 +6,7 @@ import { MnemixCTA, AsecWaitlistCTA, NewsletterCTA } from "@/components/post/Lea
 import { PostSubscribe } from "@/components/post/PostSubscribe";
 import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
+import { POST_VISUALS } from "@/components/post/mdx-components";
 import { RegisterBadge, RegisterNote } from "@/components/post/RegisterNote";
 import { postPath, type PostMeta } from "@/lib/posts";
 import { ogImageForPost } from "@/lib/og";
@@ -86,7 +87,12 @@ export function PostArticle({
         <RegisterNote register={post.register} note={post.statusNote} />
       </header>
 
-      <div className="prose-clay max-w-prose mx-auto mt-12">
+      {/* Long unbroken strings (inline-code paths, bare URLs in source ledgers,
+          receipt notes) widened a 360 px page to as much as 549 px. Text may break
+          inside a word that would overflow; links and inline code may break anywhere.
+          Code blocks keep white-space: pre, so they never wrap and still scroll
+          sideways in their own box. */}
+      <div className="prose-clay max-w-prose mx-auto mt-12 break-words [&_a]:[overflow-wrap:anywhere] [&_:not(pre)>code]:[overflow-wrap:anywhere]">
         <MDXRemote
           source={source}
           options={{
@@ -96,6 +102,7 @@ export function PostArticle({
             },
           }}
           components={{
+            ...POST_VISUALS,
             // A wide table must scroll inside its own box, never widen the page: on a
             // 390 px phone an unwrapped four-column table pushed the layout viewport
             // out to 406 px. Keyboard-focusable so it can be scrolled without a pointer.
