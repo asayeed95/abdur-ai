@@ -53,7 +53,8 @@ git fetch origin || exit 1
 REVIEW_SHA=$(git rev-parse --verify 'HEAD^{commit}') || exit 1
 BASE_SHA=$(git rev-parse --verify 'origin/main^{commit}') || exit 1
 git diff --stat "$BASE_SHA...$REVIEW_SHA"
-git diff "$BASE_SHA...$REVIEW_SHA" -- lib/
+git diff "$BASE_SHA...$REVIEW_SHA"
+git diff "$BASE_SHA...$REVIEW_SHA" -- lib/  # Then focus on one directory.
 ```
 
 Run these commands in the checkout you intend to review. They compare committed revisions; inspect `git diff` and `git diff --cached` separately for uncommitted changes. Keep `REVIEW_SHA` and `BASE_SHA` in the same shell for the later examples. If the summary says "small refactor" and the stat shows forty files, you've learned something before reading a line.

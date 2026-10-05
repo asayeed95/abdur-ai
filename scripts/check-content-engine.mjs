@@ -20,16 +20,22 @@ const require = createRequire(import.meta.url);
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'content-engine-'));
 // Published 2026-10-05 (AGE-2391); previously content/posts/_drafts/<slug>.md.
 const drafts = ['give-your-ai-agent-durable-memory', 'how-to-verify-ai-agent-work'];
+/** Parse a published guide's frontmatter and MDX body. */
 const readDraft = slug => matter(fs.readFileSync(path.join(root, 'content/posts', `${slug}.mdx`), 'utf8'));
+/** Bodies of every fenced code block tagged `language`, in document order. */
 const blocks = (text, language) => [...text.matchAll(new RegExp('```' + language + '\\n([\\s\\S]*?)```', 'g'))].map(m => m[1]);
 let checks = 0;
+/** Count and print a passed check group. */
 const pass = name => { checks++; console.log(`PASS ${name}`); };
+/** Run a documented bash snippet in `cwd` with extra env; returns spawnSync's result. */
 function shell(source, cwd = temp, env = {}) {
   return spawnSync('bash', ['-c', source], { cwd, encoding: 'utf8', env: { ...process.env, ...env } });
 }
 // Load the actual TS modules without generating files in the checkout.
 const cache = new Map();
+/** Stand-in for MDXRemote inside loaded TS; resolveMDX swaps it for the real renderer. */
 function MDXSlot() { throw new Error('MDX slot must be resolved before render'); }
+/** Transpile and evaluate a repo TS/TSX module in a VM, with `process.cwd()` pinned to `cwd`. */
 function loadTS(file, cwd = root) {
   const absolute = path.resolve(root, file);
   const key = `${cwd}:${absolute}`;
@@ -57,6 +63,7 @@ function loadTS(file, cwd = root) {
   cache.set(key, module.exports);
   return module.exports;
 }
+/** Walk a React tree and replace each MDXSlot with the rendered MDX output. */
 async function resolveMDX(node) {
   if (!React.isValidElement(node)) return node;
   if (node.type === MDXSlot) return await renderMDX(node.props);
@@ -79,7 +86,19 @@ try {
   assert.equal(restart.status, 0, restart.stderr);
   assert.match(restart.stdout, /metric/);
   assert.equal(api.loadEvents().length, 1);
-  pass('memory persists across the two documented Node processes');
+  if (process.platform !== 'win32') assert.equal(fs.statSync(log).mode & 0o777, 0o600, 'fresh log must be 0600');
+  pass('memory persists across the two documented Node processes; fresh log is owner-only');
+
+  if (process.platform !== 'win32') {
+    const before = fs.readFileSync(log);
+    fs.chmodSync(log, 0o644);
+    assert.throws(() => api.loadEvents(), /open to other users/);
+    assert.throws(() => api.remember('decision', {}), /open to other users/);
+    assert.deepEqual(fs.readFileSync(log), before);
+    fs.chmodSync(log, 0o600);
+    assert.equal(api.loadEvents().length, 1);
+    pass('existing log with group/other permissions is refused for reads and writes');
+  }
 
   fs.appendFileSync(log, '{"ts":');
   assert.equal(api.loadEvents().length, 1);
@@ -91,7 +110,16 @@ try {
   assert.throws(() => api.loadEvents());
   assert.throws(() => api.remember('decision', {}));
   assert.deepEqual(fs.readFileSync(log), corrupt);
-  pass('incomplete tail recovers; complete corruption refuses reads/writes');
+  // Invalid UTF-8 (0xff) inside a complete record's JSON string is corruption, not U+FFFD.
+  const good = Buffer.from(JSON.stringify({ ts: new Date().toISOString(), kind: 'note', data: 'ok' }) + '\n');
+  const badUtf8 = Buffer.concat([Buffer.from('{"ts":"2026-10-05T00:00:00Z","kind":"note","data":"a'), Buffer.from([0xff]), Buffer.from('"}\n')]);
+  fs.writeFileSync(log, Buffer.concat([good, badUtf8]));
+  assert.throws(() => api.loadEvents(), TypeError);
+  assert.throws(() => api.remember('decision', {}), TypeError);
+  assert.deepEqual(fs.readFileSync(log), Buffer.concat([good, badUtf8]));
+  fs.writeFileSync(log, Buffer.concat([good, Buffer.from([0xe7, 0x95])])); // Split multibyte tail stays recoverable.
+  assert.equal(api.loadEvents().length, 1);
+  pass('incomplete tail recovers; complete corruption (bad JSON or invalid UTF-8) refuses reads/writes');
 
   fs.writeFileSync(log, '');
   assert.throws(() => api.remember('tool', 'x'.repeat(4096)), /too large/);
@@ -169,11 +197,18 @@ try {
     ['newer', '2026-09-03', '[memory]', 'Agent Systems'],
     ['older', '2026-09-02', '[memory]', 'Agent Systems'],
     ['unrelated', '2026-09-04', '[]', 'Other'],
+    // Non-string YAML tags (number, null, bool, map) must not crash related-post scoring.
+    ['mixed', '2026-08-01', '[2026, null, true, {a: 1}, Memory]', 'Other'],
+    ['scalar', '2026-08-02', 'memory', 'Other'],
   ]) fs.writeFileSync(path.join(fixture, 'content/posts', `${slug}.mdx`), `---\nslug: ${slug}\ndate: '${date}'\nregister: argued\ntags: ${tags}\nsection: ${section}\n---\nText`);
   const fixturePosts = loadTS('lib/posts.ts', fixture);
   const self = fixturePosts.getPost('self');
+  assert.deepEqual([...fixturePosts.getPost('mixed').tags], ['Memory']);
+  assert.deepEqual([...fixturePosts.getPost('scalar').tags], []);
+  assert.equal(fixturePosts.getRelatedPosts(fixturePosts.getPost('mixed'), 6).map(p => p.slug).join(','), 'self,unrelated,newer,older,scalar,explicit');
   self.related = ['missing', 'self', 'explicit', 'explicit'];
   assert.equal(fixturePosts.getRelatedPosts(self).map(p => p.slug).join(','), 'explicit,newer,older');
+  assert.equal(fixturePosts.getRelatedPosts(self, 5).map(p => p.slug).join(','), 'explicit,newer,older,mixed');
   for (const limit of [0, -1, -0.5, 0.5, NaN, Infinity]) assert.equal(fixturePosts.getRelatedPosts(self, limit).length, 0);
   assert.equal(fixturePosts.getRelatedPosts(self, 1).length, 1);
   assert.equal(fixturePosts.getRelatedPosts(self, 1.5).length, 1);

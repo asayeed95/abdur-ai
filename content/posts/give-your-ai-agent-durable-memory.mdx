@@ -69,12 +69,19 @@ function validate(event) {
 
 function readLog() {
   if (!existsSync(LOG)) return { events: [], completeBytes: 0, tailBytes: 0 };
-  if (statSync(LOG).size > MAX_LOG_BYTES) {
+  const stat = statSync(LOG);
+  if (process.platform !== "win32" && stat.mode & 0o077) {
+    throw new Error("Log is open to other users: chmod 600 it first");
+  }
+  if (stat.size > MAX_LOG_BYTES) {
     throw new Error("Log too large: archive it with the writer stopped");
   }
   const raw = readFileSync(LOG);
   const completeBytes = raw.lastIndexOf(10) + 1; // Last newline, or zero.
-  const lines = raw.subarray(0, completeBytes).toString("utf8").split("\n");
+  // fatal: invalid UTF-8 in a complete record throws instead of being replaced.
+  const text = new TextDecoder("utf-8", { fatal: true })
+    .decode(raw.subarray(0, completeBytes));
+  const lines = text.split("\n");
   lines.pop(); // The final split item is empty after a newline.
   const events = lines.map((line, index) => {
     if (Buffer.byteLength(line + "\n") > MAX_EVENT_BYTES) {
@@ -99,7 +106,7 @@ export function remember(kind, data) {
     throw new Error("Log full: archive it with the writer stopped");
   }
   if (log.tailBytes) truncateSync(LOG, log.completeBytes);
-  appendFileSync(LOG, line, { encoding: "utf8", flush: true });
+  appendFileSync(LOG, line, { encoding: "utf8", flush: true, mode: 0o600 });
 }
 
 export function loadEvents() {
@@ -132,7 +139,7 @@ node --input-type=module -e 'import { remember } from "./memory.mjs"; remember("
 node --input-type=module -e 'import { loadMemory } from "./memory.mjs"; console.log(loadMemory());'
 ```
 
-Newline termination is this example's record boundary. A final JSON object without a newline is treated as uncommitted even if it parses. A damaged complete record stops the load so it can be investigated; this is not a general corruption repair tool. Flushing reduces the window for lost writes, but it does not promise survival of every filesystem or hardware failure. Backups, replication and filesystem-specific durability are separate work. See the [Node append documentation](https://nodejs.org/api/fs.html#fsappendfilesyncpath-data-options).
+Newline termination is this example's record boundary. A final JSON object without a newline is treated as uncommitted even if it parses. A damaged complete record, including invalid UTF-8, stops the load so it can be investigated; this is not a general corruption repair tool. The log is created owner-only (`0600`), and on POSIX systems an existing log with any group or other permission is refused for reads and writes until you `chmod 600` it, because another user could read those events or plant one. Flushing reduces the window for lost writes, but it does not promise survival of every filesystem or hardware failure. Backups, replication and filesystem-specific durability are separate work. See the [Node append documentation](https://nodejs.org/api/fs.html#fsappendfilesyncpath-data-options).
 
 ## How do you keep memory from overwhelming the context window?
 
@@ -181,7 +188,7 @@ The log is persistence: it keeps what happened. A memory layer adds policy on to
 
 ## Where does Northsun fit?
 
-Northsun is the memory and enrichment layer for AI agents. It's for the point where the log in this post stops being enough: when facts need an owner, two clocks, and a way to be forgotten. It's in private beta. The waitlist is on the [home page](/#waitlist).
+Northsun is the memory and enrichment layer for AI agents. It's aimed at the point where the log in this post stops being enough. Its design goals are the ones above: give each fact an owner, keep two clocks, and forget on purpose. Those are goals, not a description of what the private beta does today. The waitlist is on the [home page](/#waitlist).
 
 Nothing here is a measured latency, a customer, or a price.
 

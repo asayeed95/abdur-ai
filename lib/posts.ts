@@ -120,6 +120,7 @@ function toIso(v: unknown): string {
   return "";
 }
 
+/** Every published post's metadata, newest first; tags are normalized to strings. */
 export function getAllPosts(): PostMeta[] {
   const files = listMdxFiles();
   const posts = files
@@ -140,7 +141,10 @@ export function getAllPosts(): PostMeta[] {
         dateDisplay: dateIso ? shortDate(dateIso) : "",
         updated: toIso(data.updated) || dateIso,
         author: data.author || "Abdur Rahman Sayeed",
-        tags: data.tags || [],
+        // YAML can yield numbers/null; getRelatedPosts lowercases every tag.
+        tags: Array.isArray(data.tags)
+          ? data.tags.filter((t: unknown): t is string => typeof t === "string")
+          : [],
         readingTime: data.reading_time || Math.max(1, Math.round(words / 220)),
         wordCount: data.word_count || words,
         seoTitle: data.seo_title,
@@ -162,6 +166,7 @@ export function getAllPosts(): PostMeta[] {
   return posts;
 }
 
+/** Metadata for one published slug, or null. */
 export function getPost(slug: string): PostMeta | null {
   return getAllPosts().find((p) => p.slug === slug) ?? null;
 }

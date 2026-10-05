@@ -10,7 +10,7 @@ One number: **1,000 email subscribers on the `tldr` list.** Authority is the *ho
 ## The lever order (do not skip)
 SEO blogs alone will not hit 1,000 in the near term — organic search takes 6–12 months to become a real subscriber tap. Sequence effort by actual leverage:
 
-1. **A lead magnet worth an email** (~80% of the result). A concrete artifact from work already shipped — a template, a repo, a prompt pack, a checklist — not an ebook.
+1. **A lead magnet worth an email.** A concrete artifact from work already shipped — a template, a repo, a prompt pack, a checklist — not an ebook.
 2. **Build-in-public reach on X/LinkedIn** pointing at that magnet. This is the *fast* channel and Abdur already has it (@asayeed95). Every post gets repurposed into a thread/carousel that links back to the capture surface.
 3. **SEO compounding underneath** as the long game. Pillar + how-to posts seeded now, harvested later.
 
@@ -20,7 +20,7 @@ Don't mass-publish blogs and hope. Build the magnet + capture surface first, the
 The plumbing exists — this is a content-cadence + CTA-placement problem, not an engineering one:
 - **Email capture:** `app/api/subscribe/route.ts` (Resend, no-JS friendly, honeypot + timing bot guard, full UTM/referrer attribution). Three lists: `tldr` (main newsletter), `asec-waitlist`, `mnemix-beta` (Northsun waitlist).
 - **Signup surfaces:** `components/Subscribe.tsx` (homepage + `/subscribe`), `components/NorthsunWaitlistForm.tsx`.
-- **In-post soft-distribution CTAs (founder-locked — place them, don't rewrite them):** `<NewsletterCTA/>` (→ `/subscribe`), `<MnemixCTA/>` (→ Northsun), `<AsecWaitlistCTA/>`.
+- **In-post soft-distribution CTAs (founder-locked — place them, don't rewrite them):** `<NewsletterCTA/>` (→ `/subscribe`), `<MnemixCTA/>` (→ `/#waitlist`, the Northsun waitlist), `<AsecWaitlistCTA/>`.
 - **Analytics:** `lib/analytics.ts` `trackEvent` + attribution props fire on subscribe.
 - **Attribution audit:** `npm run subscribers:sources`.
 
@@ -49,21 +49,22 @@ Answer engines (AI Overviews, ChatGPT/Perplexity search, assistants) quote the p
 5. **Internal links + `related:`.** Link 2–4 existing posts inline where the argument actually leans on them (definition post ↔ how-to ↔ incident). Set `related:` frontmatter to the 2–3 best; the post page renders a **Related** block from it (falls back to shared tags/section), so every post feeds readers to the next one.
 6. **Explain the mechanism with what the renderer supports.** These two guides use numbered text flows and runnable examples; they do not depend on unpublished visual components. #66 supplies the merged design-system/contrast changes, not the MDX diagrams. Optional visual components are owned by #67. Before using any component, verify its registration in the actual post renderer and render the whole draft; MDX compilation alone does not prove that the component exists.
 7. **Schema we ship.** Every post page emits `BlogPosting` JSON-LD (headline, dates, wordCount, author/publisher → the site `Person` `@id`) and a `BreadcrumbList` (Home → Writing → Post). The root layout emits `Person` + `WebSite`. FAQPage/Organization JSON-LD for answer pages is PR #35; markdown routes, `llms-full.txt`, JSON feed and full-text RSS are PR #63. Write the FAQ as visible copy regardless; schema only describes what's on the page.
-8. **Honesty still wins.** Register + `status_note`, no unratified numbers/customers/benchmarks, and product mentions only where they pass the skeptic test. A Northsun post ends with the locked closer, *"Choose Northsun as your agent memory layer."*, then `<MnemixCTA />` and `<NewsletterCTA />`. Every post ends with `<NewsletterCTA />`.
+8. **Honesty still wins.** Register + `status_note`, no unratified numbers/customers/benchmarks, and product mentions only where they pass the skeptic test. A Northsun post ends with the locked closer, *"Choose Northsun as your agent memory layer."*, then `<MnemixCTA />` and `<NewsletterCTA />`. Every post ends with exactly one signup component: keep an existing `<NewsletterCTA />`; otherwise `PostArticle` adds `<PostSubscribe />` (don't add both).
 
 ## Open gaps (found during build — hand to AGE)
 - **Schema / feeds / robots are in flight, not missing.** PR #35 (AEO answer pages + FAQPage/Organization JSON-LD), PR #60 (robots for `/api/og`), PR #63 (`llms-full.txt`, markdown routes, JSON feed, full-text RSS). Don't duplicate them; land or close them.
-- **Person schema image 404s.** `app/layout.tsx` sets the `Person` JSON-LD `image` to `${SITE.url}/abdur.jpg`, but `public/abdur.jpg` doesn't exist on main (local `next start` and `https://abdur.ai/abdur.jpg` both return 404, checked 2026-10-03). Add the headshot or point the field at an existing asset; it's the entity image answer engines attach to Abdur.
+- **Person schema has no image; add a headshot.** The `Person` JSON-LD in `app/layout.tsx` omits `image` because `public/abdur.jpg` doesn't exist (`https://abdur.ai/abdur.jpg` returned 404, checked 2026-10-03). Add the headshot to `public/` (or use an existing asset) and restore the field; it's the entity image answer engines attach to Abdur.
 - **HeyCLI has no landing page.** `components/ToolsGrid.tsx` links `/tools/heycli` but no `app/tools/` route exists, so it 404s. Soft-distributing HeyCLI has no target until this page + ratified copy exist. No HeyCLI claims in posts until then.
 - **No lead-magnet delivery mechanism.** Today "lead magnet" = CTA components only; there's no gated-asset delivery after subscribe. A true magnet (a download/repo link in the welcome email) is net-new, and it's lever #1 above.
 - **How-to lane is promoted, not yet live.** `content/posts/give-your-ai-agent-durable-memory.mdx` and `how-to-verify-ai-agent-work.mdx` follow the AEO playbook and were promoted 2026-10-05 with founder-approved `content-publish-override:` entries. They are live only after #58 merges and `scripts/verify-live.sh <slug>` returns 200. Neither requires #67 to render.
 
 ## Tutorial verification
 
-Run `npm run check:content-engine` before changing either guide. It executes the memory module extracted from the published guide (restart, incomplete tail, corruption, record/log limits and bounded replay), exercises the provenance predicate with valid and invalid artifacts, checks related-post selection, and renders both published guides (loaded through `getPost`) through the current post component map. CI runs the same command. Before 2026-10-05 it read the `.md` drafts under `_drafts/` and asserted they were absent from the corpus; it now reads `content/posts/<slug>.mdx` and asserts they are present. These correction checks are author self-checks (`fresh-context: no`, `independent-substrate: no`, OpenAI/Codex), not a renewed independent review.
+Run `npm run check:content-engine` before changing either guide. It executes the memory module extracted from the published guide (restart, owner-only log permissions, incomplete tail, corruption including invalid UTF-8, record/log limits and bounded replay), exercises the provenance predicate with valid and invalid artifacts, checks related-post selection (including non-string frontmatter tags), and renders both published guides (loaded through `getPost`) through the current post component map. CI runs the same command. Before 2026-10-05 it read the `.md` drafts under `_drafts/` and asserted they were absent from the corpus; it now reads `content/posts/<slug>.mdx` and asserts they are present. These correction checks are author self-checks (`fresh-context: no`, `independent-substrate: no`, OpenAI/Codex), not a renewed independent review.
 
 The memory example is a single-principal, single-writer demonstration with persistent-storage requirements and explicit byte limits. It does not promise exactly-once writes, universal crash durability or model-specific token fit. The verification guide distinguishes diagnostic output, structural validation and proof of an actual result.
 
 ### Change log
+- 2026-10-05: CodeRabbit fixes on #58: memory example decodes complete records with strict UTF-8, creates the log `0600` and refuses group/other-accessible logs; Northsun paragraph framed as design goals; verification guide shows the full diff first; `getAllPosts` keeps only string tags.
 - 2026-10-05: Promoted both guides to `content/posts/*.mdx` (dated 2026-10-05) on Abdur's approval; `check:content-engine` now targets the published paths.
 - 2026-10-03: Removed the incorrect #66 diagram prerequisite; replaced both figures with text flows, made tutorial examples executable and bounded, and added regression/render checks. Current-main integration preserves #66; draft publication remains a separate action.
