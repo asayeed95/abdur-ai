@@ -15,10 +15,22 @@ import { useId, type ReactNode } from "react";
 
 export const VIEW_W = 320;
 
-/** Classes that let <StepThrough> dim the rest and light the active node. */
+/**
+ * Classes that let <StepThrough> dim the rest and light the active node.
+ * Dimmed is 75%, not lower: the faintest dimmed label (light clay on band)
+ * still clears 3.20:1, and dark meta on surface 3.58:1. Opacity alone is
+ * then a weak cue, so strokes carry a second one (NODE_STROKE).
+ */
 export const NODE_STATE =
   "group/node transition-opacity duration-300 motion-reduce:transition-none " +
-  "group-data-[stepping]/steps:opacity-40 data-[active]:!opacity-100";
+  "group-data-[stepping]/steps:opacity-75 data-[active]:!opacity-100";
+
+/**
+ * Stroke weight as the second state cue, for a node's outline or line: thin
+ * (1) while dimmed, heavy (2.5) while lit. Unchanged when nothing is stepping.
+ */
+export const NODE_STROKE =
+  "group-data-[stepping]/steps:[stroke-width:1] group-data-[active]/node:![stroke-width:2.5]";
 
 export function Diagram({
   title,
@@ -74,7 +86,7 @@ export function Box({
         height={h}
         rx={6}
         strokeWidth={1.5}
-        className="fill-surface stroke-border-2 group-data-[active]/node:stroke-clay"
+        className={`fill-surface stroke-border-2 group-data-[active]/node:stroke-clay ${NODE_STROKE}`}
       />
       <text
         x={cx}
@@ -121,7 +133,7 @@ export function Down({
 }) {
   return (
     <g data-node={node} className={NODE_STATE} aria-hidden="true">
-      <line x1={x} y1={y1} x2={x} y2={y2 - 7} strokeWidth={1.5} className="stroke-muted" />
+      <line x1={x} y1={y1} x2={x} y2={y2 - 7} strokeWidth={1.5} className={`stroke-muted ${NODE_STROKE}`} />
       <path d={`M ${x - 5} ${y2 - 8} L ${x + 5} ${y2 - 8} L ${x} ${y2} Z`} className="fill-muted" />
       {label && (
         <text
@@ -163,7 +175,7 @@ export function Loop({
   const back = head === "left" ? tx + 8 : tx - 8;
   return (
     <g data-node={node} className={NODE_STATE} aria-hidden="true">
-      <path d={d} fill="none" strokeWidth={1.5} strokeLinejoin="round" className="stroke-clay" />
+      <path d={d} fill="none" strokeWidth={1.5} strokeLinejoin="round" className={`stroke-clay ${NODE_STROKE}`} />
       <path d={`M ${back} ${ty - 5} L ${back} ${ty + 5} L ${tx} ${ty} Z`} className="fill-clay" />
       <text
         x={labelX}
