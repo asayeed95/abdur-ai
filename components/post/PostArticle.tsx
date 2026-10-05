@@ -87,7 +87,12 @@ export function PostArticle({
         <RegisterNote register={post.register} note={post.statusNote} />
       </header>
 
-      <div className="prose-clay max-w-prose mx-auto mt-12">
+      {/* Long unbroken strings (inline-code paths, bare URLs in source ledgers,
+          receipt notes) widened a 360 px page to as much as 549 px. Text may break
+          inside a word that would overflow; links and inline code may break anywhere.
+          Code blocks keep white-space: pre, so they never wrap and still scroll
+          sideways in their own box. */}
+      <div className="prose-clay max-w-prose mx-auto mt-12 break-words [&_a]:[overflow-wrap:anywhere] [&_:not(pre)>code]:[overflow-wrap:anywhere]">
         <MDXRemote
           source={source}
           options={{
