@@ -45,7 +45,7 @@ export default function AboutPage() {
             when.&rdquo;
           </p>
           <ul className="space-y-2 list-disc list-outside ml-6">
-            <li><strong className="text-text">heycli</strong> — multi-agent orchestrator that holds source-of-truth and pushes prompts to Claude Code, Codex, and Aider.</li>
+            <li><strong className="text-text">heycli</strong> — in engineering: voice-driven, multi-session orchestration for coding agents; an iOS client and a Node.js/TypeScript bridge over an authenticated WebSocket.</li>
             <li><strong className="text-text">retention-lab</strong> — cohort retention analytics for AI products.</li>
             <li><strong className="text-text">dockerfile.ai</strong> — an AI-native Dockerfile generator.</li>
             <li><strong className="text-text">memory primitives</strong> — ingestion, retrieval, memory, auto-push.</li>
