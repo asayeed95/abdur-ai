@@ -1,4 +1,4 @@
-import { Box, Diagram, Down, NODE_STATE } from "./parts";
+import { Box, Diagram, Down, NODE_STATE, NODE_STROKE } from "./parts";
 
 /**
  * What an agent memory layer sits between ("What is an agent memory layer?"):
@@ -52,7 +52,7 @@ export function MemoryLayerDiagram() {
           fill="none"
           strokeWidth={1.25}
           strokeDasharray="5 4"
-          className="stroke-muted group-data-[active]/node:stroke-clay"
+          className={`stroke-muted group-data-[active]/node:stroke-clay ${NODE_STROKE}`}
         />
         <text
           x={160}

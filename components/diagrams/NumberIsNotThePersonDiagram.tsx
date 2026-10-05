@@ -1,4 +1,4 @@
-import { Box, Diagram, Down, NODE_STATE } from "./parts";
+import { Box, Diagram, Down, NODE_STATE, NODE_STROKE } from "./parts";
 
 /**
  * "The number is not the person": two different people call from one shared
@@ -38,7 +38,7 @@ export function NumberIsNotThePersonDiagram() {
           fill="none"
           strokeWidth={1.25}
           strokeDasharray="5 4"
-          className="stroke-muted group-data-[active]/node:stroke-clay"
+          className={`stroke-muted group-data-[active]/node:stroke-clay ${NODE_STROKE}`}
         />
         <text x={36} y={410} fontSize={11} letterSpacing="0.12em" className="font-mono fill-meta">
           THE FIX · KEY BY A PRINCIPAL

@@ -1,4 +1,4 @@
-import { Box, Diagram, Down, NODE_STATE } from "./parts";
+import { Box, Diagram, Down, NODE_STATE, NODE_STROKE } from "./parts";
 
 /**
  * P-012 from "The night the doctrine failed": N safety layers that consume the
@@ -48,7 +48,7 @@ export function DoctrineSharedInputDiagram() {
           fill="none"
           strokeWidth={1.25}
           strokeDasharray="5 4"
-          className="stroke-muted group-data-[active]/node:stroke-clay"
+          className={`stroke-muted group-data-[active]/node:stroke-clay ${NODE_STROKE}`}
         />
         <text x={36} y={318} fontSize={11} letterSpacing="0.12em" className="font-mono fill-meta">
           SOURCE-INDEPENDENCE CHECK

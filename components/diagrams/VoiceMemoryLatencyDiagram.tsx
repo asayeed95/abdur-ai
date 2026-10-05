@@ -1,4 +1,4 @@
-import { Box, Diagram, Down, NODE_STATE } from "./parts";
+import { Box, Diagram, Down, NODE_STATE, NODE_STROKE } from "./parts";
 
 /**
  * One voice turn, two ways ("The latency objection for voice-AI memory is a
@@ -74,7 +74,7 @@ export function VoiceMemoryLatencyDiagram({ variant = "design" }: { variant?: st
           height={112}
           rx={6}
           strokeWidth={1.5}
-          className="fill-surface stroke-border-2 group-data-[active]/node:stroke-clay"
+          className={`fill-surface stroke-border-2 group-data-[active]/node:stroke-clay ${NODE_STROKE}`}
         />
         <text x={160} y={104} textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={500} className="fill-text">
           End-of-turn detection

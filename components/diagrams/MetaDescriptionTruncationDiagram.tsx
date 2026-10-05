@@ -1,4 +1,4 @@
-import { Diagram, NODE_STATE } from "./parts";
+import { Diagram, NODE_STATE, NODE_STROKE } from "./parts";
 
 /**
  * "12 of my 15 meta descriptions were too long for search": a results snippet
@@ -28,7 +28,7 @@ export function MetaDescriptionTruncationDiagram() {
       </text>
 
       <g data-node="serp" aria-hidden="true" className={NODE_STATE}>
-        <rect x={X0} y={26} width={SPAN} height={100} rx={6} strokeWidth={1.5} className="fill-surface stroke-border-2 group-data-[active]/node:stroke-clay" />
+        <rect x={X0} y={26} width={SPAN} height={100} rx={6} strokeWidth={1.5} className={`fill-surface stroke-border-2 group-data-[active]/node:stroke-clay ${NODE_STROKE}`} />
         <text x={X0 + 14} y={48} fontSize={11} className="font-mono fill-meta">
           abdur.ai › writing › …
         </text>

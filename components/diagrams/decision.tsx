@@ -1,4 +1,4 @@
-import { NODE_STATE } from "./parts";
+import { NODE_STATE, NODE_STROKE } from "./parts";
 
 /**
  * Branching parts for incident diagrams, on top of ./parts: a decision diamond
@@ -31,7 +31,7 @@ export function Decision({
         d={`M ${cx} ${y} L ${cx + hw} ${cy} L ${cx} ${y + 2 * hh} L ${cx - hw} ${cy} Z`}
         strokeWidth={1.5}
         strokeLinejoin="round"
-        className="fill-surface stroke-border-2 group-data-[active]/node:stroke-clay"
+        className={`fill-surface stroke-border-2 group-data-[active]/node:stroke-clay ${NODE_STROKE}`}
       />
       {lines.map((l, i) => (
         <text
@@ -130,7 +130,7 @@ export function SideNote({
         fill="none"
         strokeWidth={1.25}
         strokeDasharray="5 4"
-        className="stroke-muted group-data-[active]/node:stroke-clay"
+        className={`stroke-muted group-data-[active]/node:stroke-clay ${NODE_STROKE}`}
       />
       <text x={x + 16} y={y + 22} fontSize={11} letterSpacing="0.12em" className="font-mono fill-meta">
         {eyebrow}

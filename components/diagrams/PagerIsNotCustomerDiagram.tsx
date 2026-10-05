@@ -1,4 +1,4 @@
-import { Box, Diagram, Down, NODE_STATE } from "./parts";
+import { Box, Diagram, Down, NODE_STATE, NODE_STROKE } from "./parts";
 
 /**
  * "Your pager is not your customer": a synthetic health cron pings Redis; the
@@ -60,7 +60,7 @@ export function PagerIsNotCustomerDiagram() {
           fill="none"
           strokeWidth={1.25}
           strokeDasharray="5 4"
-          className="stroke-muted group-data-[active]/node:stroke-clay"
+          className={`stroke-muted group-data-[active]/node:stroke-clay ${NODE_STROKE}`}
         />
         <text x={46} y={362} fontSize={11} letterSpacing="0.12em" className="font-mono fill-meta">
           CUSTOMER IMPACT · UNKNOWN
