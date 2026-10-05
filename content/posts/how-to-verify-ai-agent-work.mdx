@@ -6,7 +6,7 @@ subtitle: "A checklist for the gap between what an agent reports and what it act
 description: "Don't trust an AI agent's report. Read the diff, re-run the check, confirm it ran, trace claims to commits, and measure what shipped. Commands included."
 dek: "Every gate in my repo cleanup returned green, and ten of twelve dispositions were wrong. Here is the checklist I run now before I trust an agent's work: what to check, the command for each, and what verification still can't catch."
 tldr: "Don't verify an AI agent's work by reading its report; check the artifacts the report points at. Read the diff instead of the summary. Re-run the gate yourself and read the exit code. Confirm the check actually executed, because a skipped CI job can satisfy a required check. Trace every claim to a primary source: a commit SHA, the file at that SHA, ancestry on main. Reject any verification artifact that can't name its verifier, time, and source. Measure the shipped output, not the source file. And check that your gates don't all read the same upstream input, because N checks fed one artifact are one check. Verification catches false claims; it doesn't replace judgment about whether the change was the right one."
-date: 2026-10-06T09:00:00-04:00
+date: 2026-10-05T10:00:00-04:00
 author: Abdur Rahman Sayeed
 section: "Agent Systems"
 register: argued
@@ -25,23 +25,6 @@ related:
   - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
   - meta-description-length-truncated-snippets
 ---
-
-{/*
-REVIEW DRAFT, not published. This file is content/posts/_drafts/*.md, so the
-loader skips it and the publish gate never sees it.
-
-PUBLISH BLOCKERS:
-  - A `content-publish-override: content/posts/how-to-verify-ai-agent-work.mdx`
-    entry in docs/superpowers/specs/overrides.md, approved by Abdur.
-
-To publish after founder review:
-  1. Rename to how-to-verify-ai-agent-work.mdx and move to content/posts/
-  2. Set `date:` to the real publish date and update citation_preferred to match
-  3. Confirm register/status_note still hold
-  4. Add the content-publish-override entry above
-  5. npm run check:content-engine and ./scripts/check-phase.sh --hard must pass
-  6. Delete this comment block
-*/}
 
 I once ran a repo cleanup through a seven-rule protocol, five rounds of adversarial audit, and an independent cross-verifier. Every gate returned green. When I re-checked the close candidates against primary sources, ten of the twelve dispositions were wrong. The first close I had approved would have destroyed the only fix for a production bug. That's [The night the doctrine failed](/writing/the-night-the-doctrine-failed). This post is the checklist I run because of it.
 

@@ -1,4 +1,4 @@
-/** C-13: execute the actual draft examples and render via the post's MDX map. */
+/** C-13: execute the published guides' examples and render via the post's MDX map. */
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -18,8 +18,9 @@ import rehypeSlug from 'rehype-slug';
 const root = process.cwd();
 const require = createRequire(import.meta.url);
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'content-engine-'));
+// Published 2026-10-05 (AGE-2391); previously content/posts/_drafts/<slug>.md.
 const drafts = ['give-your-ai-agent-durable-memory', 'how-to-verify-ai-agent-work'];
-const readDraft = slug => matter(fs.readFileSync(path.join(root, 'content/posts/_drafts', `${slug}.md`), 'utf8'));
+const readDraft = slug => matter(fs.readFileSync(path.join(root, 'content/posts', `${slug}.mdx`), 'utf8'));
 const blocks = (text, language) => [...text.matchAll(new RegExp('```' + language + '\\n([\\s\\S]*?)```', 'g'))].map(m => m[1]);
 let checks = 0;
 const pass = name => { checks++; console.log(`PASS ${name}`); };
@@ -184,8 +185,10 @@ try {
     const { data, content } = readDraft(slug);
     assert.ok(data.description.length <= 155, `${slug} description length ${data.description.length}`);
     assert.ok((data.seo_title + ' · abdur.ai').length <= 60);
-    assert.equal(posts.getPost(slug), null, 'draft must not enter the published corpus');
-    const post = { ...data, slug, date: new Date(data.date).toISOString(), dateDisplay: 'DRAFT', statusNote: data.status_note, readingTime: 8 };
+    assert.equal(data.slug, slug, 'frontmatter slug must match the filename');
+    const post = posts.getPost(slug);
+    assert.ok(post, 'published guide must be in the post corpus');
+    assert.equal(posts.getPostSource(slug), content);
     const tree = PostArticle({ post, source: content, prev: null, next: null });
     const html = renderToStaticMarkup(await resolveMDX(tree));
     assert.ok(html.includes('Short answer:'));
@@ -195,7 +198,7 @@ try {
     fs.writeFileSync(path.join(temp, `${slug}.html`), html);
     pass(`rendered ${slug} through PostArticle and its actual MDX component map`);
   }
-  console.log(`${checks}/${checks} groups passed. Drafts remain unpublished.`);
+  console.log(`${checks}/${checks} groups passed.`);
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }

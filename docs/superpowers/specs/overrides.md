@@ -293,3 +293,11 @@ every article's h1 and body prose are untouched.
   content-publish-override: content/posts/voice-ai-memory-latency-is-a-dead-argument.mdx
   reason: append-only update note (and frontmatter `updated:`) linking this post to the first production-measurement field report; no existing sentence changed. The note says the field report is an engineering account of a small sample and does not validate the figure.
   approved-by: Abdur / live session (Claude Code session_0129i77Ey6E7kn1L1Fc1CNL8; "You are authorized to research, maintain the editorial backlog, write and edit articles, publish to abdur.ai, make supporting abdur.ai improvements, verify production behavior, and document the work in Linear. Execute ordinary decisions without waiting for Abdur.") / 2026-10-03
+- task-id: AGE-2391
+  content-publish-override: content/posts/give-your-ai-agent-durable-memory.mdx
+  reason: publish the C-13 answer-first how-to on restart-surviving agent memory (argued; status_note kept; no receipts owed). Text-flow version from 54c88f8; only MnemixCTA/NewsletterCTA components; Northsun mentions use the verbatim identity line and closer; no price, benchmark, customer or integration claim. Examples executed by `npm run check:content-engine`.
+  approved-by: Abdur / Slack 2026-10-05 'okay then go ahead brother' (reply to the publish request)
+- task-id: AGE-2391
+  content-publish-override: content/posts/how-to-verify-ai-agent-work.mdx
+  reason: publish the C-13 answer-first how-to on verifying AI agent work (argued; status_note kept; no receipts owed). Text-flow version from 54c88f8; only NewsletterCTA; no price, benchmark, customer or integration claim. Shell examples executed by `npm run check:content-engine`.
+  approved-by: Abdur / Slack 2026-10-05 'okay then go ahead brother' (reply to the publish request)

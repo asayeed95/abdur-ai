@@ -6,7 +6,7 @@ subtitle: "A recoverable event log and bounded replay, before you reach for a ve
 description: "Keep agent events on persistent storage and replay a bounded window after restart. A runnable JSONL example with recovery and explicit size limits."
 dek: "If an agent keeps its history only in RAM, restart loses it. Start with persistent storage and a bounded replay window; add retrieval when the working set needs it."
 tldr: "Restart survival is a persistence problem before it is a search problem. Store events outside the process on a persistent volume, then replay a bounded recent window as data. This single-writer JSONL example validates complete records, ignores an incomplete final record on read, and removes that tail before the next append. It flushes writes and refuses oversized records and logs. Its context is byte-bounded, not guaranteed to fit every model token budget. Older events stay on disk but are omitted from the prompt; optional summarization needs its own bounded input, output and failure policy. A file does not provide multi-user isolation, replication, exactly-once writes or automatic forgetting."
-date: 2026-09-25T09:00:00-04:00
+date: 2026-10-05T09:00:00-04:00
 author: Abdur Rahman Sayeed
 section: "Agent Systems"
 register: argued
@@ -25,23 +25,6 @@ related:
   - the-number-is-not-the-person
   - voice-ai-memory-latency-is-a-dead-argument
 ---
-
-{/*
-REVIEW DRAFT, not published. This file is content/posts/_drafts/*.md, so the
-loader skips it and the publish gate never sees it.
-
-PUBLISH BLOCKERS:
-  - A `content-publish-override: content/posts/give-your-ai-agent-durable-memory.mdx`
-    entry in docs/superpowers/specs/overrides.md, approved by Abdur.
-
-To publish after founder review:
-  1. Rename to give-your-ai-agent-durable-memory.mdx and move to content/posts/
-  2. Set `date:` to the real publish date and update citation_preferred to match
-  3. Confirm register/status_note still hold
-  4. Add the content-publish-override entry above
-  5. npm run check:content-engine and ./scripts/check-phase.sh --hard must pass
-  6. Delete this comment block
-*/}
 
 An agent can appear to remember every preference until you restart its process. If its only history was in RAM, the next run has nothing to replay. The first question is where the events live, not which vector database to buy.
 

@@ -1,6 +1,6 @@
 # abdur.ai Content Engine
 
-Updated: 2026-10-03 (C-13 / AGE-2391 tutorial corrections).
+Updated: 2026-10-05 (C-13 / AGE-2391: both how-to guides promoted for publication).
 
 Internal operating doc + reusable prompt pack for growing the abdur.ai audience. Ratifies the AGE-2391 content-engine work into the repo (it previously lived only in Slack). Load `prompt-pack.md` alongside this.
 
@@ -56,13 +56,14 @@ Answer engines (AI Overviews, ChatGPT/Perplexity search, assistants) quote the p
 - **Person schema image 404s.** `app/layout.tsx` sets the `Person` JSON-LD `image` to `${SITE.url}/abdur.jpg`, but `public/abdur.jpg` doesn't exist on main (local `next start` and `https://abdur.ai/abdur.jpg` both return 404, checked 2026-10-03). Add the headshot or point the field at an existing asset; it's the entity image answer engines attach to Abdur.
 - **HeyCLI has no landing page.** `components/ToolsGrid.tsx` links `/tools/heycli` but no `app/tools/` route exists, so it 404s. Soft-distributing HeyCLI has no target until this page + ratified copy exist. No HeyCLI claims in posts until then.
 - **No lead-magnet delivery mechanism.** Today "lead magnet" = CTA components only; there's no gated-asset delivery after subscribe. A true magnet (a download/repo link in the welcome email) is net-new, and it's lever #1 above.
-- **How-to lane is drafted, not published.** `content/posts/_drafts/give-your-ai-agent-durable-memory.md` and `how-to-verify-ai-agent-work.md` follow the AEO playbook; both remain unpublished pending founder review and a founder-approved `content-publish-override:`. Neither requires #67 to render.
+- **How-to lane is promoted, not yet live.** `content/posts/give-your-ai-agent-durable-memory.mdx` and `how-to-verify-ai-agent-work.mdx` follow the AEO playbook and were promoted 2026-10-05 with founder-approved `content-publish-override:` entries. They are live only after #58 merges and `scripts/verify-live.sh <slug>` returns 200. Neither requires #67 to render.
 
 ## Tutorial verification
 
-Run `npm run check:content-engine` before promoting either guide. It executes the memory module extracted from the draft (restart, incomplete tail, corruption, record/log limits and bounded replay), exercises the provenance predicate with valid and invalid artifacts, checks related-post selection, and renders both drafts through the current post component map. CI runs the same command. The guides remain `.md` files under `_drafts/`; validation does not publish them. These correction checks are author self-checks (`fresh-context: no`, `independent-substrate: no`, OpenAI/Codex), not a renewed independent review.
+Run `npm run check:content-engine` before changing either guide. It executes the memory module extracted from the published guide (restart, incomplete tail, corruption, record/log limits and bounded replay), exercises the provenance predicate with valid and invalid artifacts, checks related-post selection, and renders both published guides (loaded through `getPost`) through the current post component map. CI runs the same command. Before 2026-10-05 it read the `.md` drafts under `_drafts/` and asserted they were absent from the corpus; it now reads `content/posts/<slug>.mdx` and asserts they are present. These correction checks are author self-checks (`fresh-context: no`, `independent-substrate: no`, OpenAI/Codex), not a renewed independent review.
 
 The memory example is a single-principal, single-writer demonstration with persistent-storage requirements and explicit byte limits. It does not promise exactly-once writes, universal crash durability or model-specific token fit. The verification guide distinguishes diagnostic output, structural validation and proof of an actual result.
 
 ### Change log
+- 2026-10-05: Promoted both guides to `content/posts/*.mdx` (dated 2026-10-05) on Abdur's approval; `check:content-engine` now targets the published paths.
 - 2026-10-03: Removed the incorrect #66 diagram prerequisite; replaced both figures with text flows, made tutorial examples executable and bounded, and added regression/render checks. Current-main integration preserves #66; draft publication remains a separate action.
