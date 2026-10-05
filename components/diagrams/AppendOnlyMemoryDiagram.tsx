@@ -1,4 +1,4 @@
-import { Box, Diagram, Down, Loop, NODE_STATE } from "./parts";
+import { Box, Diagram, Down, Loop, NODE_STATE, NODE_STROKE } from "./parts";
 
 /**
  * Append-only agent memory: the run appends events to a log that is never
@@ -43,7 +43,7 @@ export function AppendOnlyMemoryDiagram() {
           fill="none"
           strokeWidth={1.25}
           strokeDasharray="5 4"
-          className="stroke-muted group-data-[active]/node:stroke-clay"
+          className={`stroke-muted group-data-[active]/node:stroke-clay ${NODE_STROKE}`}
         />
         <text x={46} y={386} fontSize={11} letterSpacing="0.12em" className="font-mono fill-meta">
           SIDE NOTE · VECTOR INDEX

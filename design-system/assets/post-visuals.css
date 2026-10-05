@@ -386,8 +386,14 @@
 .group\/node[data-active] .group-data-\[active\]\/node\:stroke-clay {
     stroke: rgb(var(--c-clay) / 1)
 }
-.group\/steps[data-stepping] .group-data-\[stepping\]\/steps\:opacity-40 {
-    opacity: 0.4
+.group\/steps[data-stepping] .group-data-\[stepping\]\/steps\:opacity-75 {
+    opacity: 0.75
+}
+.group\/steps[data-stepping] .group-data-\[stepping\]\/steps\:\[stroke-width\:1\] {
+    stroke-width: 1
+}
+.group\/node[data-active] .group-data-\[active\]\/node\:\!\[stroke-width\:2\.5\] {
+    stroke-width: 2.5 !important
 }
 @media (prefers-reduced-motion: reduce) {
     .motion-reduce\:transition-none {

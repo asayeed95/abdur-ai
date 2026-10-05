@@ -1,4 +1,4 @@
-import { Box, Diagram, Down, Loop, NODE_STATE } from "./parts";
+import { Box, Diagram, Down, Loop, NODE_STATE, NODE_STROKE } from "./parts";
 
 /**
  * The verification loop: an agent's "done" is a claim, not a result. Run the
@@ -32,7 +32,7 @@ export function VerificationLoopDiagram() {
           d="M 170 284 L 262 330 L 170 376 L 78 330 Z"
           strokeWidth={1.5}
           strokeLinejoin="round"
-          className="fill-surface stroke-border-2 group-data-[active]/node:stroke-clay"
+          className={`fill-surface stroke-border-2 group-data-[active]/node:stroke-clay ${NODE_STROKE}`}
         />
         <text x={170} y={321} textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={500} className="fill-text">
           Matches
