@@ -3,6 +3,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import { MnemixCTA, AsecWaitlistCTA, NewsletterCTA } from "@/components/post/LeadMagnets";
+import { PostSubscribe } from "@/components/post/PostSubscribe";
 import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
 import { RegisterBadge, RegisterNote } from "@/components/post/RegisterNote";
@@ -111,6 +112,14 @@ export function PostArticle({
             },
           }}
           components={{
+            // A wide table must scroll inside its own box, never widen the page: on a
+            // 390 px phone an unwrapped four-column table pushed the layout viewport
+            // out to 406 px. Keyboard-focusable so it can be scrolled without a pointer.
+            table: (props: React.ComponentProps<"table">) => (
+              <div className="overflow-x-auto" role="region" aria-label="Table, scrolls sideways" tabIndex={0}>
+                <table {...props} />
+              </div>
+            ),
             MnemixCTA,
             AsecWaitlistCTA,
             NewsletterCTA,
@@ -121,6 +130,10 @@ export function PostArticle({
           }}
         />
       </div>
+
+      {/* Every article ends with a way to subscribe. Posts that already embed
+          <NewsletterCTA /> keep their own; the rest get the inline form. */}
+      {!source.includes("<NewsletterCTA") && <PostSubscribe />}
 
       <nav aria-label="Previous and next post" className="max-w-prose mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
         {prev ? (
