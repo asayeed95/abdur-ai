@@ -81,7 +81,7 @@ Never Inter, Roboto, Arial or system fonts as a visible choice. Never Geist Sans
 - The **mark** is a cut diamond: two filled polygons in a 32 × 32 box, `16,3 29,16 27.4,17.6 4.6,17.6 3,16` and `7.4,20.4 24.6,20.4 16,29`. The gap between them is the *cut*. Never close it.
 - The **wordmark** is `northsun`, all lowercase, Manrope 800.
 - The mark takes the ink of its ground: `#FAFAFA` on Noir, `#17171A` on Day.
-- **Never** recolour the mark, put it in a gradient tile, add a glow, outline it, rotate it, or use it as a status icon or bullet. Never set the Mnemix and Northsun wordmarks side by side.
+- **Never** recolour the mark, put it in a gradient tile, add a glow, outline it, rotate it, or use it as a status icon or bullet. Never lock the Northsun wordmark side by side with the Memory Lab's mark.
 - If you can't reproduce the mark exactly, leave it out and set the word `northsun` in Manrope 800 instead. Don't draw an approximation.
 
 ---
