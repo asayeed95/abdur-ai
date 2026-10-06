@@ -1,0 +1,184 @@
+---
+slug: two-runtimes-two-hashes-unicode-lowercase
+title: "The same email gave two different hashes in Node and Python. Nothing raised an error."
+seo_title: "Same email, two hashes: Node vs Python lowercase"
+subtitle: "Lowercasing depends on the Unicode version your runtime was built with. Here is how we found it, how big it is, and the rule that does not depend on it."
+description: "Node and Python lowercase some characters differently because their Unicode tables differ. Why that splits a hash, and a rule that cannot."
+dek: "A review of a draft Northsun encoding spec showed that one email address can hash two ways depending on the runtime. We re-ran it on five stock runtimes."
+tldr: "Lowercasing text is not one function. JavaScript's toLowerCase() and Python's str.lower() use the Unicode version their runtime was built with, so a character added in a newer Unicode version is lowercased by one runtime and left alone by the other. Hash that text and one email address gets two digests, with no error anywhere. A review of a draft Northsun encoding spec found it with an email address containing U+A7CB. We re-ran it on five stock runtimes: Node 22.22.0 and Python 3.11 to 3.13 disagree on 27 code points, Node 22.22.2 and Python on 55, and two patch releases of Node 22 disagree with each other on 28. The rule we wrote down instead trims six ASCII whitespace characters and lowercases A to Z only. On every one of the 1,112,064 non-surrogate code points, all five runtimes agree. The cost is that É and é stay different. The spec is a candidate, not accepted."
+date: 2026-10-06T16:45:00-04:00
+author: Abdur Rahman Sayeed
+section: "Builder Logs"
+register: reported
+tags:
+  - northsun
+  - unicode
+  - hashing
+  - interoperability
+  - testing
+  - nodejs
+  - python
+receipts:
+  - path: "GRAMMAR.md, in the canon directory (version 1)"
+    sha: "acf65ed5"
+    note: "PR #1116, merged 2026-10-02. Section 4.2 is the text rule as written: trim, replace ASCII A to Z, encode as UTF-8, nothing else, with the reason (every Unicode case table depends on the runtime's Unicode version) and the stated trade-off. Private repository."
+  - path: "canon/FREEZE-v1.md"
+    sha: "fb00e6ee"
+    note: "PR #1424, merged 2026-10-05. Records the finding (G2R-1 and F-25), the fix, the mutation runs that swap the rule back to each runtime's own lowercasing, and the open items. Its state line still reads CANDIDATE."
+  - path: "canon/reviews/age-380/REPORT.md"
+    sha: "6ba3825c"
+    note: "PR #1138, merged 2026-10-05. Round 1 of a separate AI review session: the candidate was refuted on this finding, with the reproducing input and the table of runtimes (Python 3.11.15 with Unicode 14.0, Node 22.22.2 with Unicode 17.0)."
+  - path: "canon/reviews/age-380/REPORT-round2.md"
+    sha: "6ba3825c"
+    note: "Same merge. Round 2 on the rewritten rule: not refuted, with its own cross-runtime comparison. The reader was a different model on the same provider as the author; the report says it does not close the ticket."
+  - path: "unicode.org/Public/VERSION/ucd/UnicodeData.txt for 14.0.0, 15.1.0, 16.0.0 and 17.0.0"
+    note: "Public. Fetched 2026-10-05. Counts of characters with a simple lowercase mapping: 1,433, 1,433, 1,460 and 1,488. U+A7CB is in the 16.0 and 17.0 files and not in the 15.1.0 file."
+  - path: "The listings in this post (lower.mjs, lower.py, rule.mjs, rule.py, hash.mjs, hash.py)"
+    note: "Run on 2026-10-06 under Node 22.22.0, Node 22.22.2, Python 3.11.15, 3.12.3 and 3.13.14. The numbers in the tables are their output."
+citation_preferred: "Sayeed, Abdur Rahman. 'The same email gave two different hashes in Node and Python. Nothing raised an error.' abdur.ai, 6 October 2026."
+related:
+  - the-analytics-call-that-couldnt-fail
+  - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
+  - worker-next-to-database-fail-open-budget
+---
+
+**Short answer:** if you hash, sign or compare text across languages, "lowercase it" is not a specification. Each runtime lowercases with the Unicode tables it was built with, so a character added in a newer Unicode version gets lowercased by one runtime and left alone by another. The two strings are different, so their hashes are different, and nothing raises an error. Write down the exact transformation instead of naming a library function. Ours is smaller than any case mapping: trim six ASCII whitespace characters, lowercase A to Z, encode as UTF-8.
+
+**Status of what this describes:** the spec is a draft in Northsun's private repository. It is merged as a candidate, it is not accepted, and no running service uses it. A separate AI review session tried to refute it twice: the first candidate was refuted on this exact finding, and the third was not refuted. Two lesser findings from that review are still open, and neither is about the rule below. The measurements in this post are re-runs on stock runtimes on 6 October 2026. They need no Northsun data, and you can reproduce them with the listings below.
+
+**Who did the work:** Northsun's delivery agents wrote the spec, and a second agent session reviewed it from a fresh checkout. They are AI sessions working under written rules. The runtime comparison in this post was run on 6 October 2026 by the AI session that drafts these write-ups, not by me and not by the agents who wrote the spec. The review itself was not re-run for this post. Where this post says "we", it means the agents and the Northsun project.
+
+## What happened
+
+Northsun is the memory and enrichment layer for AI agents.
+
+We were writing down an encoding for the objects a memory layer stores, in a draft spec. One part of it is a keyed hash of an identifier such as an email address or a phone number, so that two producers can agree they mean the same person without comparing the raw value. That only works if both producers turn the same input into the same bytes before hashing. The first draft said how: trim, take the Unicode default lowercase mapping, normalize to NFC. It named JavaScript's `toLowerCase` and Python's `str.lower` as the two reference behaviors.
+
+The review session wrote its own implementation from the spec text alone, and by its own account did not run or read ours before forming its findings. It ran the text rule in Node and in Python, and they disagreed. Its reproducing input was `Pat` followed by `U+A7CB` (LATIN CAPITAL LETTER RAMS HORN) and `@Example.COM`. The report rated it P1 and called the candidate refuted on it.
+
+## One input, two digests
+
+Here is that input lowercased, UTF-8 encoded and hashed with SHA-256 (first 16 hex characters shown), on four runtimes:
+
+| Runtime | Unicode version | What the lowercase did to `U+A7CB` | SHA-256 prefix |
+|---|---|---|---|
+| Node 22.22.0 | 16.0 | became `U+0264` | `c57f2b5d522000f4` |
+| Node 22.22.2 | 17.0 | became `U+0264` | `c57f2b5d522000f4` |
+| Python 3.11.15 | 14.0.0 | left unchanged | `d17b1a6dd10a1949` |
+| Python 3.13.14 | 15.1.0 | left unchanged | `d17b1a6dd10a1949` |
+
+Two things about that table. The split is between runtimes that know the character (it was added in Unicode 16.0) and runtimes that do not. And the two Node builds agree here only because both are new enough. A character added in Unicode 17.0, `U+A7CE`, shows the other case:
+
+| Runtime | Unicode version | SHA-256 prefix of `Pat` + `U+A7CE` + `@Example.COM`, lowercased |
+|---|---|---|
+| Node 22.22.0 | 16.0 | `60a3b97ca92c39ca` |
+| Node 22.22.2 | 17.0 | `3cf0e3f74e258982` |
+| Python 3.11.15 and 3.13.14 | 14.0.0 and 15.1.0 | `60a3b97ca92c39ca` |
+
+Same language, same major and minor version, same code, same input: two patch releases of Node 22 gave two different digests. A producer that upgrades its runtime would stop matching its own earlier output for inputs like that.
+
+## How many characters, and why
+
+For each runtime, count every code point that its lowercase operation changes:
+
+```js
+// lower.mjs: which code points does toLowerCase() change, on this runtime?
+const out = [];
+for (let cp = 0; cp <= 0x10ffff; cp++) {
+  if (cp >= 0xd800 && cp <= 0xdfff) continue; // lone surrogates are not text
+  const s = String.fromCodePoint(cp);
+  if (s.toLowerCase() !== s) out.push(cp.toString(16));
+}
+console.error(`node ${process.version} unicode ${process.versions.unicode}: ${out.length} code points change`);
+console.log(out.join("\n"));
+```
+
+```python
+# lower.py: which code points does str.lower() change, on this runtime?
+import sys, unicodedata
+out = []
+for cp in range(0x110000):
+    if 0xD800 <= cp <= 0xDFFF:
+        continue  # lone surrogates are not text
+    s = chr(cp)
+    if s.lower() != s:
+        out.append("%x" % cp)
+print(f"python {sys.version.split()[0]} unicode {unicodedata.unidata_version}: {len(out)} code points change", file=sys.stderr)
+print("\n".join(out))
+```
+
+| Runtime | Unicode version | Code points whose lowercase differs from themselves |
+|---|---|---|
+| Python 3.11.15 | 14.0.0 | 1,433 |
+| Python 3.12.3 | 15.0.0 | 1,433 |
+| Python 3.13.14 | 15.1.0 | 1,433 |
+| Node 22.22.0 | 16.0 | 1,460 |
+| Node 22.22.2 | 17.0 | 1,488 |
+
+Diffing the lists gives the disagreements. Node 22.22.0 and any of the three Pythons disagree on **27** code points. Node 22.22.2 and any of the Pythons disagree on **55**. The two Node builds disagree with each other on **28**. The 27 are Unicode 16.0 additions: the Garay capitals `U+10D50` to `U+10D65`, plus `U+1C89`, `U+A7CB`, `U+A7CC`, `U+A7DA` and `U+A7DC`. The 28 are Unicode 17.0 additions: `U+16EA0` to `U+16EB8`, plus `U+A7CE`, `U+A7D2` and `U+A7D4`.
+
+That the cause is the Unicode version, and not a bug in either runtime, is supported by the public data. The Unicode Character Database lists 1,433 characters with a lowercase mapping in 14.0.0 and 1,433 in 15.1.0 (the first and last of the three Pythons' versions; 15.0.0 sits between them and was not fetched), 1,460 in 16.0.0 and 1,488 in 17.0.0, which are exactly the counts above. The review report's number was 55, from a Node 22.22.2 build against Python 3.11. The Node 22.22.0 build used here gave 27 against the same Python, and 55 reproduced only after a 22.22.2 build was installed for the comparison. The count depends on which two builds you compare, and it grows with every Unicode release.
+
+## Why nothing raised an error
+
+Each producer is consistent with itself. Both outputs are valid UTF-8, both digests are well formed, and every test that stays inside one runtime passes. The failure appears only when two producers meet, or when one producer's runtime is upgraded under it. In the draft the digest is also what a block list matches on, and the review's reasoning was that an identifier blocked under one runtime's digest would pass under the other's. A lookup keyed on the digest simply misses a record that is there.
+
+## What we wrote down instead
+
+The review offered two fixes: pin one Unicode version and ship a conformance check, or restrict the lowercasing to ASCII and move full case mapping to a later version of the rule. We took the ASCII rule for the first version of the spec, and dropped NFC as well. In prose, the rule is: take well-formed text, trim the six ASCII whitespace characters (tab, line feed, vertical tab, form feed, carriage return, space) from both ends, replace each ASCII capital A to Z with the lowercase letter, encode as UTF-8, and change nothing else: no case mapping, no case folding, no normalization. An empty result is an error. The same rule in both languages:
+
+```js
+// rule.mjs
+export const rule = (s) =>
+  s.replace(/^[\t\n\v\f\r ]+|[\t\n\v\f\r ]+$/g, "").replace(/[A-Z]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 32));
+```
+
+```python
+# rule.py
+def rule(s: str) -> str:
+    return "".join(chr(ord(c) + 32) if "A" <= c <= "Z" else c for c in s.strip("\t\n\v\f\r "))
+```
+
+Run over every one of the 1,112,064 non-surrogate code points, as a single-character string, on all five runtimes, with the UTF-8 bytes compared: **0 differ**, for every pair, including the two Node builds with each other. The review session made the same comparison with its own implementations and also found none. The `Pat` plus `U+A7CB` input now hashes to `d17b1a6dd10a1949` on all five.
+
+## What it costs
+
+`É` and `é` stay different, and a precomposed `é` and a decomposed `e` followed by a combining accent are different too. A producer that wants them treated as the same has to normalize before the hash, identically every time. Full case mapping and normalization, pinned to one named Unicode version, are left for a later version of the rule, and the spec says so. The trade is deliberate: a rule that carries no Unicode table cannot drift when a runtime ships a new one.
+
+## How we keep it fixed
+
+The spec ships test vectors that pin bytes, among them an input with `U+A7CB`, the same input already lowercased, and one with the mapped character, plus `É` and `é` in several forms. It also has two reference implementations written separately, and each must reproduce every vector. The mutation runs include one that swaps the rule back to Node 22's own lowercasing plus NFC and one that swaps it back to Python 3.11's. Both must make verification fail, and they do. An implementation that lowercases with its runtime's own tables is what those vectors are there to catch.
+
+## What this does not show
+
+- It does not show that the spec is right or accepted. It is a candidate. The ticket's evidence contract asked for a reader from a different provider than the author, and the reader was a different model from the same provider. The review report leaves that call to the owner.
+- It covers Node and Python, five builds. Other languages, a Python with Unicode 16 or 17 tables, and `casefold` were not tested.
+- On the one pair where normalization alone was checked (Node 22.22.0 and Python 3.11), NFC changed the same 1,120 code points in both, so the whole difference came from the lowercase table. NFC was not checked on the other builds.
+- That a patch release changed the Unicode version is an observation about these two builds. Why it changed was not looked into, and your build may match neither.
+- The review was not re-run. Its Node 22.22.2 build and its 55 are reproduced above, but its other findings are as reported.
+
+## How to check your own pair
+
+Run the two listings above on the runtimes you actually deploy, save each output, and diff them. If the diff is not empty, any text you lowercase before hashing can split across those two runtimes. Then add a test vector with a character your older runtime does not know. `U+A7CB` works for Unicode 14 and 15, and `U+A7CE` for 16.
+
+## FAQ
+
+### Why does Python's lower() give a different result from JavaScript's toLowerCase() for some characters?
+
+Each uses the Unicode data bundled with its runtime build. In the pairs measured here the entire difference was characters that one build knows and the other does not. A newer Unicode version adds cased letters, and an older runtime leaves them alone.
+
+### Does normalizing to NFC fix it?
+
+Not in the pair we checked. NFC alone changed the same set of code points in Node 22.22.0 and Python 3.11. The disagreement came from the lowercase table. We did not test NFC on the other builds, and a normalization rule that names no Unicode version has the same version question.
+
+### Can I pin a Unicode version instead of going ASCII-only?
+
+Yes, but every producer then has to carry the same table or pass a conformance check, and it has to stay in step when a runtime moves. We chose the rule that needs no table for the first version and left a pinned-version rule for a later one.
+
+## The receipts
+
+The Northsun repository and issue tracker are private, so these are paths and merge commits for anyone with access to check, plus the public Unicode data. The spec's check counts and hash values are internal and left out.
+
+<ReceiptsBlock />
+
+For other failures that stayed quiet until two things were compared, read [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail) and [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran).
