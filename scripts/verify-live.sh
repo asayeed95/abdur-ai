@@ -21,16 +21,18 @@ URL="$BASE/writing/$SLUG"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/verify-live.XXXXXX")"; trap 'rm -rf "$TMP"' EXIT
 
 stamp() { date -u +%FT%TZ; }
-# Prints the HTTP status, or 000 if the transport failed on all 3 tries (a reset is retried twice;
-# resets were seen on cache-busted URLs on 2026-10-06, so one retry was not enough).
+# Prints the HTTP status, or 000 if the transfer failed on all 3 tries (a reset is retried twice;
+# resets were seen on cache-busted URLs on 2026-10-06, so one retry was not enough). A transfer
+# only counts if curl itself exited 0: a reset after the "200" header leaves %{http_code} at 200
+# with a truncated body (curl exit 18 or 56), and that must be retried, not trusted.
 fetch() {
-  local c i
+  local c rc i
   for i in 1 2 3; do
-    c="$(curl -sS --max-time 30 -o "$1" -D "$1.hdr" -w '%{http_code}' "$2" 2>/dev/null)"
-    if [ -n "$c" ] && [ "$c" != "000" ]; then break; fi
+    c="$(curl -sS --max-time 30 -o "$1" -D "$1.hdr" -w '%{http_code}' "$2" 2>/dev/null)"; rc=$?
+    if [ "$rc" -eq 0 ] && [ -n "$c" ] && [ "$c" != "000" ]; then echo "$c"; return; fi
     sleep 2
   done
-  echo "${c:-000}"
+  echo 000
 }
 
 check_once() {
