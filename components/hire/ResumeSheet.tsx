@@ -19,16 +19,16 @@ const EXPERIENCE = [
     title: "Applied AI Products",
     dates: "Sep 2025 – Present",
     bullets: [
-      "Lead governed-context product strategy, workflow and interface design, system decisions, and implementation on Northsun.",
-      "Build HeyCLI — voice-oriented multi-session coding-agent orchestration; iOS-first client, authenticated WebSocket, Node/TS bridge.",
-      "Design BrowseFlow's agent-agnostic browser automation and shape Dockerfile.ai's container-workflow intelligence.",
+      "Architect systems, orchestrate AI coding agents to implement them, and audit every change for verifiable execution.",
+      "Northsun — AI-agent infrastructure with governed context and evidence systems. HeyCLI — voice and coding-agent orchestration across sessions.",
+      "BrowseFlow — accessibility-tree browser automation with approval points. Contributor on Dockerfile.ai.",
     ],
   },
   {
     title: "Enterprise Retail IT Delivery",
     dates: "Apr 2024 – Jul 2025",
     bullets: [
-      "Retail IT subcontract for Vox Elements supporting ETRO Fashion US — 200+ users, 14 sites, 500+ tracked assets.",
+      "Independent IT contractor for ETRO Fashion US (client) via Vox Elements, billed through One Asec — 200+ users, 14 sites, 500+ tracked assets.",
       "Identity and endpoint policy across Active Directory, Entra ID, and Intune; Lansweeper, Cisco/RingCentral, Jira triage, cross-site escalation.",
     ],
   },
@@ -36,7 +36,7 @@ const EXPERIENCE = [
     title: "Automotive Business Systems & Growth",
     dates: "2020 – 2024",
     bullets: [
-      "Built and operated the business and technology foundations for three automotive-service businesses through their growth stages.",
+      "Built business, IT and financial infrastructure from the ground up for Autoblitz, Carfixed LLC and Exquisite Auto Repairs: entity setup, networks, diagnostic workstations, POS and inventory.",
       "QuickBooks, Excel, and Power BI reporting for pricing, profitability, and cash flow; reconciliation automated with Python and SQL.",
     ],
   },
@@ -92,7 +92,7 @@ export function ResumeSheet() {
       className="bg-bg-2 border-y border-border py-12 md:py-16 flex flex-col items-center gap-4 px-3 md:px-6"
     >
       <p className="font-mono text-[10px] tracking-widest uppercase text-meta">
-        abdur.ai/hire · US Letter · one page
+        abdur.ai/hire · US Letter · one page · ATS PDFs regenerated 2026-10-06
       </p>
 
       <div className="hire-sheet relative w-full md:w-[816px] md:min-h-[1056px] bg-[#FBF7EF] text-[#1F1A14] p-5 md:px-12 md:py-10 box-border flex flex-col gap-3.5">
@@ -113,7 +113,7 @@ export function ResumeSheet() {
         <div className="flex flex-col md:flex-row justify-between items-start gap-5 md:gap-6">
           <div>
             <p className="font-mono text-[10px] tracking-[0.22em] uppercase text-[#B4563A] mb-2">
-              Applied AI Engineer · Client Delivery &amp; AI Workflow Architecture
+              Applied AI &amp; Systems Engineer · Agent Orchestration &amp; Verifiable Execution
             </p>
             <h2 className="font-display font-extrabold text-[30px] md:text-[38px] leading-none tracking-tight text-[#1F1A14]">
               Abdur Rahman M. Sayeed
@@ -156,12 +156,12 @@ export function ResumeSheet() {
             <div>
               <div className="flex justify-between items-baseline gap-3">
                 <h3 className="font-display text-[16.5px] text-[#1F1A14]">
-                  Forward Deployed Engineer · IT &amp; Business Systems Lead
+                  Applied AI &amp; Systems Engineer
                 </h3>
                 <span className="font-mono text-[9.5px] text-[#7E766A] whitespace-nowrap">2020 – Present</span>
               </div>
               <p className="font-mono text-[10px] text-[#B4563A] mt-0.5 mb-1">
-                One Asec LLC · Prospect Park, NJ / Remote
+                One Asec LLC · independent practice since 2020, incorporated 2021 · Prospect Park, NJ / Remote
               </p>
               <p className="text-[11.5px] leading-snug text-[#7E766A] mb-2.5">
                 Client engagements below are delivery phases, most recent first.
