@@ -39,11 +39,11 @@ export const PROJECTS: PoppyProject[] = [
   {
     slug: "heycli",
     name: "HeyCLI",
-    status: "In engineering",
+    status: "Working prototype",
     tone: "progress",
     body: "Voice-driven, multi-session orchestration for coding agents: an iOS client and a Node.js/TypeScript bridge over an authenticated WebSocket.",
     poppy: "A harness around an agent, not a chat box around a model. Same design instinct Poppy needs: meet the user in their workflow.",
-    explainer: "HeyCLI is in engineering. It lets one person direct several coding-agent sessions by voice, through an iOS-first client and a Node.js/TypeScript bridge over an authenticated WebSocket.",
+    explainer: "HeyCLI is a working prototype. It lets one person direct several coding-agent sessions by voice, through an iOS-first client and a Node.js/TypeScript bridge over an authenticated WebSocket.",
   },
   {
     slug: "abdur-ai",
@@ -78,13 +78,14 @@ export const PROJECTS: PoppyProject[] = [
     explainer: "Relay is the event spine for One Asec's automations: authenticated webhook ingress, fenced leases, and receipts that make a duplicate impossible. It is internal infrastructure, not a public product.",
   },
   {
+    // TODO: flip to 'Shipped' when public launch is confirmed (AGE-2393 POPPY-PATCH).
     slug: "dockerfile-ai",
     name: "Dockerfile.ai",
-    status: "In engineering",
+    status: "Deployed · final testing",
     tone: "progress",
     body: "An AI tool around Dockerfiles — applied AI on a concrete developer workflow.",
     poppy: "Applied AI with a tight feedback loop: one workflow, done well, judged by output quality.",
-    explainer: "Dockerfile.ai is in engineering and is not yet a released service. Its public site describes the workflow: Dockerfile generation, explanation, and optimization.",
+    explainer: "Dockerfile.ai is deployed and in final testing before public launch. Its public site describes the workflow: Dockerfile generation, explanation, and optimization.",
     links: [{ label: "Visit product site", href: "https://dockerfile.ai", external: true }],
   },
   {
@@ -95,5 +96,15 @@ export const PROJECTS: PoppyProject[] = [
     body: "A concept on the shelf — kept honest as a concept, not dressed up as a launch.",
     poppy: "I scope honestly. Parked means parked.",
     explainer: "Halo is intentionally parked: a concept on the shelf, not an available product.",
+  },
+  {
+    slug: "baylio",
+    name: "Baylio",
+    status: "Parked concept",
+    tone: "parked",
+    detail: "early prototype exists",
+    body: "An AI call-assistant concept for auto repair shops. Work started; not launched.",
+    poppy: "Parked means parked — scoped honestly, even when a prototype exists.",
+    explainer: "Baylio is a parked concept: an AI call assistant for auto repair shops. An early prototype exists; it is not launched.",
   },
 ];

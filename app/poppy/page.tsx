@@ -216,7 +216,7 @@ export default function PoppyPage() {
         <section id="projects" className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
           <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-[#176f70]">/// What I&apos;ve built and am building</p>
           <div className="mt-5 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-            <h2 className="max-w-[16ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Seven projects, one honest status system.</h2>
+            <h2 className="max-w-[16ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Eight projects, one honest status system.</h2>
             <p className="max-w-[39ch] text-[16px] leading-relaxed text-[#526460]">Honest labels. No theater. Each card says exactly where the project stands.</p>
           </div>
           <div className="mt-12 grid gap-4 lg:grid-cols-2">
