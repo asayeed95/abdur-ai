@@ -36,7 +36,7 @@ const EXPERIENCE = [
     title: "Automotive Business Systems & Growth",
     dates: "2020 – 2024",
     bullets: [
-      "Built business, IT and financial infrastructure from the ground up for Autoblitz, Carfixed LLC and Exquisite Auto Repairs: entity setup, networks, diagnostic workstations, POS and inventory.",
+      "Built business, IT and financial infrastructure from the ground up for Autoblitz LLC, Carfixed LLC and Exquizit Auto Repair: entity setup, networks, diagnostic workstations, POS and inventory.",
       "QuickBooks, Excel, and Power BI reporting for pricing, profitability, and cash flow; reconciliation automated with Python and SQL.",
     ],
   },
