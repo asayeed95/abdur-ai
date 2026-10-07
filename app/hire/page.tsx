@@ -145,7 +145,7 @@ const SYSTEMS: { name: string; dot: Dot; strongBorder: boolean; status: string; 
     dot: "gold",
     strongBorder: true,
     status: "Deployed pilot · agent control plane in review",
-    body: "Event spine for the company's automations: authenticated webhook ingress, fenced leases, receipts that make a duplicate impossible.",
+    body: "Event spine for the company's automations: authenticated webhook ingress, fenced leases, receipts that reject duplicate deliveries.",
   },
   {
     name: "BrowseFlow",
@@ -165,7 +165,8 @@ const SYSTEMS: { name: string; dot: Dot; strongBorder: boolean; status: string; 
     name: "Dockerfile.ai",
     dot: "gold",
     strongBorder: true,
-    status: "Shipped",
+    // TODO: flip to 'Shipped' when public launch is confirmed (AGE-2393 POPPY-PATCH).
+    status: "Deployed · final testing",
     body: "Dockerfile generation, explanation, and optimization — verified in a sandbox before you trust it.",
   },
 ];

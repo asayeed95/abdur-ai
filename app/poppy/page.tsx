@@ -45,7 +45,7 @@ const DISCLAIMER = "Independent candidate brief — not affiliated with Poppy AI
 const WHY = [
   {
     title: "Agentic systems are my main surface",
-    body: "The Poppy posting says the next version is the harness: understand the goal, pull together the right context, use the right tools, get the work done. That’s the layer I’ve been building since September 2025 — agent-agnostic browser automation (BrowseFlow), a CLI agent harness (HeyCLI), retrieval and memory plumbing in Northsun. The work goes beyond a model API: it includes the surrounding system and its operator-facing evidence.",
+    body: "The Poppy posting describes making Poppy agentic through what it calls the harness: understand the goal, pull the right context, use the right tools, produce the work. That’s the layer I’ve been building since September 2025 — agent-agnostic browser automation (BrowseFlow), a CLI agent harness (HeyCLI), retrieval and memory plumbing in Northsun. The work goes beyond a model API: it includes the surrounding system and its operator-facing evidence.",
   },
   {
     title: "Cost, speed, and reliability are product features",
@@ -53,22 +53,37 @@ const WHY = [
   },
   {
     title: "One Asec delivery experience",
-    body: "At One Asec LLC, I work across business systems, IT delivery, and applied-AI product development. That includes finance/reporting, CRM and invoicing, marketing-support workflows, IT systems, and process design, alongside product strategy, UX, architecture, implementation, and operator-facing proof for AI-native products. I prefer direct operating evidence: clear scope, status labels, and a record of what is actually built.",
+    body: "At One Asec LLC, I work across business systems, IT delivery, and applied-AI product development. That includes finance/reporting, IT systems, and process design, alongside product strategy, UX, architecture, implementation, and operator-facing proof for AI-native products. I prefer direct operating evidence: clear scope, status labels, and a record of what is actually built.",
   },
 ];
 
-const HYPOTHESES = [
+type Hypothesis = {
+  title: string;
+  body: string;
+  /** Poppy surface names verified on getpoppy.ai and its posting, 2026-10-06. */
+  exists: string[];
+  /** What this brief proposes; not a Poppy feature. */
+  proposed: string[];
+};
+
+const HYPOTHESES: Hypothesis[] = [
   {
     title: "From goal to campaign, one harness",
-    body: "I’d make this the first ambitious but bounded build: a harness over the existing Find → Understand → Create spine. A creator sets the campaign goal; the harness uses the board plus its Vault, Creator Profile, and selected Brand context, finds any missing inputs, then drives a visible creation plan. The goal is to reduce the remaining setup and orchestration burden between research and a campaign-ready draft, with explicit creator approval at the moments that matter.",
+    body: "I’d make this the first ambitious but bounded build: a harness over the existing Find → Understand → Create spine. A creator sets the campaign goal; the harness reads what is already on the board and in that brand’s workspace, including its brand voice, finds any missing inputs, then drives a visible creation plan. The goal is to reduce the remaining setup and orchestration burden between research and a campaign-ready draft, with explicit creator approval at the moments that matter.",
+    exists: ["Find → Understand → Create", "Boards", "Workspaces", "Brand voice"],
+    proposed: ["Visible plan · creator approval"],
   },
   {
     title: "Brand fidelity as an eval, not a vibe",
-    body: "I’d add a visible quality layer around Poppy’s existing Brands: compare each draft against the selected Brand and creator reference, score the result, and use the outcome to route work between an efficient draft model and a stronger finishing model. That creates a focused path toward better creative fidelity and clearer model-economics decisions as the product learns.",
+    body: "I’d add a visible quality layer around Poppy’s existing brand voice: compare each draft against the saved brand voice and the creator’s own reference content, score the result, and use the outcome to route work between an efficient draft model and a stronger finishing model. That creates a focused path toward better creative fidelity and clearer model-economics decisions as the product learns.",
+    exists: ["Brand voice"],
+    proposed: ["Visible eval · routing signal"],
   },
   {
     title: "Context becomes campaign momentum",
-    body: "I’d use Poppy’s existing Vault, Creator Profiles, and Brand context as the starting point for an agent that can resume campaign planning: carry forward the goal, creative constraints, rejected directions, and the next best question when a creator returns. The ambition is a harness that makes the existing context more actionable over time instead of making the creator reconstruct it from scratch.",
+    body: "I’d use Poppy’s existing boards, chats, and per-brand workspaces as the starting point for an agent that can resume campaign planning: carry forward the goal, creative constraints, rejected directions, and the next best question when a creator returns. The ambition is a harness that makes the existing context more actionable over time instead of making the creator reconstruct it from scratch.",
+    exists: ["Boards", "Chats", "Workspaces"],
+    proposed: ["Resume with goal + constraints"],
   },
 ];
 
@@ -124,6 +139,30 @@ function StatusPill({ status, tone }: { status: string; tone: ProjectStatus }) {
   return <span className={`inline-flex rounded-sm border px-2 py-1 font-mono text-[11px] uppercase tracking-[0.12em] ${classes[tone]}`}>{status}</span>;
 }
 
+/** O1 chips: solid teal = Poppy's public surfaces; dashed clay = proposed in this brief. */
+function ChipRow({ id, label, srLabel, chips, kind }: { id: string; label: string; srLabel: string; chips: string[]; kind: "exists" | "proposed" }) {
+  const chipClass =
+    kind === "exists"
+      ? "border border-[#176f70]/40 bg-[#176f70]/10 text-[#123e3d]"
+      : "border border-dashed border-[#c98a6b] text-[#8a4a30]";
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+      <span id={id} className={`font-mono text-[11px] uppercase tracking-[0.12em] ${kind === "exists" ? "text-[#176f70]" : "text-[#8a4a30]"}`}>
+        {label}
+        <span className="sr-only"> {srLabel}</span>
+      </span>
+      <ul aria-labelledby={id} className="flex min-w-0 flex-wrap gap-1.5">
+        {chips.map((chip) => (
+          <li key={chip} className={`max-w-full rounded-full px-2.5 py-1 font-mono text-[11px] leading-snug ${chipClass}`}>
+            {chip}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function PoppyPage() {
   return (
     <div className="poppy-root min-h-screen font-body">
@@ -153,7 +192,7 @@ export default function PoppyPage() {
               Candidate brief / Poppy AI / AI Engineer — founder-level
             </p>
             <h1 className="max-w-[15ch] font-display text-[46px] font-semibold leading-[0.96] tracking-tight md:text-[76px]">
-              I build the <span className="poppy-highlight-lavender">harness</span> between an agent&apos;s plan and a creator&apos;s <span className="poppy-highlight-green">finished campaign</span>.
+              I&apos;d build the <span className="poppy-highlight-lavender">harness</span> between an agent&apos;s plan and a creator&apos;s <span className="poppy-highlight-green">finished campaign</span>.
             </h1>
             <p className="mt-8 max-w-[58ch] text-[18px] leading-relaxed text-[#435653] md:text-[20px]">
               I build the operating layer that turns an agent&apos;s plan into decisive creative progress: tool calling, model routing, retrieval, and human judgment with clear scope, status labels, and evidence behind the work.
@@ -216,7 +255,7 @@ export default function PoppyPage() {
         <section id="projects" className="mx-auto max-w-content px-6 py-20 md:px-10 md:py-28">
           <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-[#176f70]">/// What I&apos;ve built and am building</p>
           <div className="mt-5 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-            <h2 className="max-w-[16ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Seven projects, one honest status system.</h2>
+            <h2 className="max-w-[16ch] font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Eight projects, one honest status system.</h2>
             <p className="max-w-[39ch] text-[16px] leading-relaxed text-[#526460]">Honest labels. No theater. Each card says exactly where the project stands.</p>
           </div>
           <div className="mt-12 grid gap-4 lg:grid-cols-2">
@@ -262,10 +301,14 @@ export default function PoppyPage() {
             <p className="mt-6 max-w-[62ch] text-[15px] leading-relaxed text-[#435653]">These are candidate hypotheses, not commitments or insider knowledge. They describe the product work I would propose to test with the team.</p>
             <div className="mt-12 grid gap-4 md:grid-cols-3">
               {HYPOTHESES.map((item, index) => (
-                <article key={item.title} className="poppy-hypothesis relative overflow-hidden rounded-md border border-dashed p-6">
-                                    <p className="font-mono text-[11px] uppercase tracking-[0.17em] text-[#176f70]">Hypothesis 0{index + 1}</p>
+                <article key={item.title} className="poppy-hypothesis relative flex flex-col overflow-hidden rounded-md border border-dashed p-6">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.17em] text-[#176f70]">Hypothesis 0{index + 1}</p>
                   <h3 className="mt-5 font-display text-[25px] leading-tight text-[#123e3d]">{item.title}</h3>
-                  <p className="mt-4 text-[15px] leading-relaxed text-[#435653]">{item.body}</p>
+                  <p className="mt-4 flex-1 text-[15px] leading-relaxed text-[#435653]">{item.body}</p>
+                  <div className="mt-6 space-y-2.5 border-t border-[#c98a6b]/35 pt-4">
+                    <ChipRow id={`h0${index + 1}-exists`} label="Exists" srLabel="in Poppy today" chips={item.exists} kind="exists" />
+                    <ChipRow id={`h0${index + 1}-proposed`} label="Proposed" srLabel="in this brief" chips={item.proposed} kind="proposed" />
+                  </div>
                 </article>
               ))}
             </div>
@@ -288,8 +331,8 @@ export default function PoppyPage() {
             </Link>
             <div className="border-l-2 border-[#176f70] pl-5">
               <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-[#176f70]">Walkthrough · 2–3 min</p>
-              <p className="mt-4 font-display text-[24px] text-[#123e3d]">Walkthrough available with application materials</p>
-              <p className="mt-2 text-[15px] leading-relaxed text-[#526460]">A short screen-share can walk through this page and the evidence behind it.</p>
+              <p className="mt-4 font-display text-[24px] text-[#123e3d]">Walkthrough on request</p>
+              <p className="mt-2 text-[15px] leading-relaxed text-[#526460]">A 2–3 minute screen-share of this page and the evidence behind it, on request.</p>
             </div>
           </div>
         </section>
@@ -300,7 +343,7 @@ export default function PoppyPage() {
               <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-[#176f70]">/// About</p>
               <h2 className="mt-5 font-display text-[36px] leading-[1.03] tracking-tight text-[#123e3d] md:text-[52px]">Abdur Rahman Sayeed</h2>
               <p className="mt-6 max-w-[68ch] text-[17px] leading-relaxed text-[#435653]">Solo founder, One Asec LLC (NJ). Degree in Financial Mathematics &amp; Economics, University of Ottawa (no CS degree). ~6 years building and operating systems with code; ~1 year of focused AI-product engineering since September 2025.</p>
-              <p className="mt-4 max-w-[68ch] text-[15px] leading-relaxed text-[#526460]">TypeScript, Node.js, Python, SQL, React/Next.js, WebSockets, API integration.</p>
+              <p className="mt-4 max-w-[68ch] text-[15px] leading-relaxed text-[#526460]">Python, SQL. Product stacks I architect and review: TypeScript/Node.js, React/Next.js, WebSockets, API integrations.</p>
             </div>
             <div className="poppy-resume relative rounded-md border p-5 md:p-6">
               <div className="flex items-center gap-5 md:block">
