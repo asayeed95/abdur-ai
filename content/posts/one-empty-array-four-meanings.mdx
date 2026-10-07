@@ -113,7 +113,7 @@ It also cannot answer the original question for the two events. The private trac
 
 ## The script
 
-It uses only Node built-ins, and it was run on Node 22.22.0 and 22.22.2 on Linux. It has two toy parsers with the same shape as the record's old and new ones, and nine model answers. It does not model replies wrapped in a code fence, which the real parser handles. A separate AI session that fact-checked this post on 7 October 2026 ran copies of the old parser (at commit `77ee27c2`) and the merged one (at `40d46a65`), with their imports stubbed, on the same nine answers: the old one returned an empty list for the same eight, and the new one gave the stand-in's outcome and understood flag for all nine.
+It uses only Node built-ins, and it was run on Node 22.22.0 and 22.22.2 on Linux. It has two toy parsers with the same shape as the record's old and new ones, and nine model answers. It does not model replies wrapped in a code fence, which the real parser handles. Its scan also differs from the record's in one detail: it treats a backslash as an escape only inside a string, while the record's scan skips the character after a backslash wherever it appears. A separate AI session that fact-checked this post on 7 October 2026 ran copies of the old parser (at commit `77ee27c2`) and the merged one (at `40d46a65`), with their imports stubbed, on the same nine answers: the old one returned an empty list for the same eight, and the new one gave the stand-in's outcome and understood flag for all nine.
 
 ```js
 // repro.mjs: one empty array, four meanings.
@@ -147,7 +147,7 @@ function locate(text, { fastPath }) {
   for (let i = start; i < t.length; i++) {
     const ch = t[i];
     if (escaped) { escaped = false; continue; }
-    if (ch === "\\") { escaped = true; continue; }
+    if (inString && ch === "\\") { escaped = true; continue; }   // an escape only means something inside a string
     if (ch === '"') { inString = !inString; continue; }
     if (inString) continue;
     if (ch === "{") depth++;
