@@ -1,12 +1,12 @@
 ---
 slug: testing-linear-time-without-a-flaky-clock
-title: "A flaky timing test blocked a deploy. The fix made it blind to mild quadratics."
+title: "A flaky timing test blocked a deploy. The fix made it blind to cheap quadratics."
 seo_title: "Testing for linear time without a flaky clock"
 subtitle: "How to assert that eight times the input costs at most thirty times the time on a loaded CI runner, and what the floor that makes it stable can no longer see."
 description: "How to assert that 8x the input costs at most 30x the time without flaking on a loaded CI runner, and the blind spot the stabilising floor creates."
-dek: "Northsun's timing test failed main's push CI on a loaded runner and blocked a deploy. The harness that replaced it is stable, and its blind spot is one you can measure."
-tldr: "A Northsun test that asserted eight times the input costs at most a bound times the time failed main's push CI on a loaded runner and blocked a deploy. It divided two noisy numbers, and the small one was under a millisecond. The replacement warms both sizes up, takes the fastest of nine interleaved runs per size, floors the small time, and uses one bound between linear (about eight times) and quadratic (about sixty-four times). The record reports it stable under heavy synthetic load and red for a quadratic planted in each scanner, and it names the price: a defect that costs less than the bound times the floor at the large size passes. A runnable toy on a local machine shows the same pattern. Under heavy load the old shape fails most runs, the floor is what keeps a correct scanner green, and a milder planted quadratic goes from caught to missed. The change is test-only and merged. Nothing here is a claim about product behaviour."
-date: 2026-10-07T09:20:00+00:00
+dek: "Northsun's timing test failed main's push CI on a loaded runner and blocked a deploy. The record reports the replacement stable under heavy synthetic load, and its blind spot is one you can measure."
+tldr: "A Northsun test that asserted eight times the input costs at most a bound times the time failed main's push CI on a loaded runner and blocked a deploy. It divided two noisy numbers, and the small one was under a millisecond. The replacement warms both sizes up, takes the fastest of nine interleaved runs per size, floors the small time, and uses one bound between linear (about eight times) and quadratic (about sixty-four times). The record reports it stable under heavy synthetic load and red for a quadratic planted in each scanner, and it names the price: a defect that costs less than the bound times the floor at the large size passes. A runnable toy on a four-core sandbox machine shows the same pattern. Under heavy load the old shape fails most runs, the floor and not the fastest-of-nine is what keeps a correct scanner green, and a cheaper planted quadratic goes from caught to missed. The change is test-only and merged. Nothing here is a claim about product behaviour."
+date: 2026-10-07T10:10:00+00:00
 author: Abdur Rahman Sayeed
 section: "Builder Logs"
 register: reported
@@ -20,30 +20,33 @@ tags:
 receipts:
   - path: "tests/helpers/linear-cost.ts"
     sha: "061d4a06"
-    note: "PR #1549, merged 2026-10-05. The one helper every ratio arm now goes through: both sizes warmed up, the fastest of nine interleaved runs per size, a floor under the small time, one bound. Test-only. Private repository."
+    note: "PR #1549, merged 2026-10-05. The one helper every ratio arm in that test file now goes through: both sizes warmed up, the fastest of nine interleaved runs per size, a floor under the small time, one bound. Test-only. Private repository."
   - path: "docs/decisions-log/2026-10-05-age-3041-load-proof-timing-arms.md"
     sha: "061d4a06"
     note: "The decision record in the same merge: the property, the helper's design, the load runs, the planted quadratics, what the change does not do, and the rollback. The record carries internal figures and measurements, which this post leaves out."
   - path: "docs/superpowers/specs/build-plan/tasks/AGE-3041.md"
     sha: "061d4a06"
-    note: "The task row for the change. It names the failure on main's push CI and says it blocked the deploy."
+    note: "The task file for the change. It names the failure on main's push CI, says it blocked the deploy, and carries the provenance line."
   - path: "tests/services/observe/intake-redaction.test.ts"
     sha: "061d4a06"
     note: "The arms after the change. The old shape of the arms is in the merge's first parent. Private repository."
+  - path: "tests/services/observe/intake-redaction.test.ts"
+    sha: "fb00e6ee"
+    note: "The arms before the change, at the merge's first parent: median of three, no warm-up, the small time floored below a millisecond, a bound of 20 (one card arm had been widened to 30). Private repository."
   - path: "The listing in this post (demo.mjs)"
     note: "Run on 2026-10-07 under Node 22.22.0 and Node 22.22.2 on a four-core sandbox machine, with busy-loop processes as the load. The outputs shown are from those runs. The script is a stand-in with its own scanner, sizes, floor and load, not Northsun code."
-citation_preferred: "Sayeed, Abdur Rahman. 'A flaky timing test blocked a deploy. The fix made it blind to mild quadratics.' abdur.ai, 7 October 2026."
+citation_preferred: "Sayeed, Abdur Rahman. 'A flaky timing test blocked a deploy. The fix made it blind to cheap quadratics.' abdur.ai, 7 October 2026."
 related:
   - load-test-that-never-saw-its-own-burst
   - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
   - the-analytics-call-that-couldnt-fail
 ---
 
-**Short answer:** to assert that eight times the input costs at most a bound times the time, do not divide two raw timings. Warm both sizes up, take the fastest of several interleaved runs per size, put a floor under the small time, and choose a bound between linear (about eight times) and quadratic (about sixty-four times). Then know what you bought. Northsun's helper does this, reports it stable under heavy synthetic load, and states the price: a quadratic that costs less than the bound times the floor at the large size is not caught. In the toy below, the floor and not the fastest-of-nine is what kept a correct scanner green under heavy load, and inputs big enough that the floor never binds worked nearly as well.
+**Short answer:** to assert that eight times the input costs at most a bound times the time, do not divide two raw timings. Warm both sizes up, take the fastest of several interleaved runs per size, put a floor under the small time, and choose a bound between linear (about eight times) and quadratic (about sixty-four times). Then know what you bought. Northsun's helper does this. Its decision record reports it stable under heavy synthetic load and states the price: a quadratic that costs less than the bound times the floor at the large size is not caught. In effect, while the small time is under the floor the arm is an absolute ceiling on the large input and no longer tests growth. In the toy below, the floor and not the fastest-of-nine is what kept a correct scanner green under heavy load, and inputs big enough that the floor never binds worked nearly as well.
 
 **Status of what this describes:** a test-only change in Northsun's private repository, merged on 5 October 2026 as pull request 1549. Merged is not deployed, and this change deploys nothing: it changes no served code, and nothing here is a claim about how any service behaves. The script in this post is a stand-in, described below. It times a scanner written for the demo, on a four-core sandbox machine, with busy-loop processes as the load, and its numbers are its own.
 
-**Who did the work:** Northsun's agents, not me, with one thing I cannot separate out: the merge commit carries my account name, and the record does not say whether I or an automation merged it. The failure was reported and the fix assigned inside Northsun's agent workflow, and a build agent (an AI session) wrote the helper and changed the tests. The script and the runs of it in this post were done on 7 October 2026 by the AI session that drafts these write-ups, not by me and not by the build agent. Where this post says "Northsun", it means that project and its agents.
+**Who did the work:** Northsun's agents, not me. The record's provenance line names a build agent (an AI session) as the author of the change and says it was not written by me. The record does not say who merged: the merge commit's author is my account name and its committer is GitHub. The failing CI run was the origin of the work, and the fix was assigned inside Northsun's agent workflow. The script and the runs of it in this post were done on 7 October 2026 by the AI session that drafts these write-ups, not by me and not by the build agent. Where this post says "Northsun", it means that project and its agents.
 
 **Terms, as this post uses them.** A *ratio arm* is a test that times a piece of code on an input, times it on an input eight times larger, and asserts that the large time is at most a *bound* times the small one. A *flake* is a failure with no defect in the code under test. *Contention* is other work competing for the CPU. A *busy loop* is a process that does nothing but spin, used here to create contention. A *floor* is a lower limit put under the small time before dividing. *Fastest of nine* means nine timed runs of the same input, keeping the lowest.
 
@@ -53,13 +56,15 @@ Northsun is the memory and enrichment layer for AI agents.
 
 Northsun's test suite guards its text scanners against an accidental quadratic cost with ratio arms. Linear code costs about eight times more on eight times the input, and quadratic code about sixty-four times, so a bound between the two separates them without any absolute number to tune per machine.
 
-One such arm failed main's push CI on a loaded CI runner, and the failure blocked the deploy of main. The task row says so, and adds that two earlier reviews had already found the arm flaky, where it read just above its bound under load. The scanner was not defective. The record's diagnosis is about the measurement.
+One such arm failed main's push CI on a loaded CI runner, and the failure blocked the deploy of main. The task file says so, and adds that two earlier reviews had already found the arm flaky, where it read just above its bound under load. The record's diagnosis is that the scanner was not defective and the problem was the measurement.
 
-The old arms timed each size three times, the small size first and then the large size, with no warm-up. They took the median of each, divided the large median by the small median floored at a fraction of a millisecond, and asserted that the result stayed under a bound, 20 for the arms the record describes. That is the shape the arms had in the merge's first parent, and it is the shape the toy below calls the old arm.
+The old arms timed each size three times, the small size first and then the large size, with no warm-up. They took the median of each, divided the large median by the small median floored at a fraction of a millisecond, and asserted that the result stayed under a bound, 20 in all but one card arm that had already been widened to 30 after an earlier flake. That is the usual shape of the arms in the merge's first parent, and one arm timed the large size first. It is the shape the toy below calls the old arm.
 
 ## Why a ratio of two timings is a coin
 
-The record puts it in one sentence: under contention this is a ratio of two noisy numbers with a sub-millisecond denominator, so one slow run of the large size, or a small size that reads low, crosses the bound with no defect in the code. It adds the observation that carries the whole fix: contention only ever adds time to a run. A run can be slower than the code's true cost but not faster, so the slow runs say something about the machine and the fastest runs say the most about the code.
+The record puts it in one sentence: under contention this is a ratio of two noisy numbers with a sub-millisecond denominator, so one slow run of the large size, or a small size that reads low, crosses the bound with no defect in the code. It adds that contention only ever adds time to a run. A run can be slower than the code's true cost but not faster, so the fastest runs say the most about the code.
+
+The toy adds a measurement of its own, and it changes the picture a little. The line under the first table shows what four busy loops per core did to the fastest of nine runs of each input. The fastest of nine runs of the small input read the same as on an idle machine, and the fastest of nine runs of the large input read about four times its idle value, in all four runs. So in the toy the small reading was steady and the large reading was inflated, which is more than occasional noise: the fastest run is the least inflated run, not an uninflated one. That is why the fastest of nine was not enough at heavy load, and why a floor under the small time, which makes the denominator larger than the small input's true cost, did what a better estimate of the small input could not.
 
 ## What the replacement does
 
@@ -67,26 +72,26 @@ The record describes one shared helper, now used by every ratio arm in that file
 
 1. **Warm both sizes up.** Each size runs twice, unmeasured, so compilation and first-call allocation are not in the numbers.
 2. **Fastest of nine, interleaved.** Each size is the fastest of nine measured runs, run in the order small, large, small, large, so a burst of load lands on both sizes.
-3. **A floor under the small time.** The denominator is the larger of the small time and a floor of a few milliseconds. A reading that small is mostly timer and scheduler noise, and the floor means the large input may cost the bound times the floor before the arm goes red, which every linear scanner in the file clears by a wide margin.
+3. **A floor under the small time.** The denominator is the larger of the small time and a floor of a few milliseconds. The helper's comment calls a reading that small timer and scheduler noise. The floor means the large input may cost the bound times the floor before the arm goes red, which, the helper's own comment says, every linear scanner in the file clears by a wide margin.
 4. **One bound.** Eight times the input may cost at most thirty times the time, for every arm.
 
 The helper returns its measurement, so an arm can add the absolute ceiling it already kept behind an opt-in flag, and those ceilings are unchanged.
 
-The record's evidence is of two kinds, both as the record reports them and not re-run for this post. First, under heavy synthetic contention the old arms failed in a minority of runs and the new arms in none. It also says that busy loops alone, one per core, did not slow the file enough to reproduce the flake, and that more contention than that was needed. Second, a quadratic planted in each scanner family turned red every arm that covers that family, and only those arms.
+The record's evidence is of two kinds, both as the record reports them and not re-run for this post. First, under heavy synthetic contention the old arms failed in a minority of the runs it reports and the new arms in none of them. It also says that busy loops alone, one per core, did not slow the file enough to reproduce the flake, and that more contention than that was needed. Second, a quadratic planted in each scanner family (for the email scanner, the old backtracking expression) turned red every arm that covers that family, and only those arms.
 
-## A toy on a local machine
+## A toy on a four-core sandbox machine
 
-Northsun's scanners are private, so this is a toy. It has a linear scanner, the same scanner with a planted quadratic defect, and the old arm and each of the changes above, added one at a time. It reads the arms three ways: false alarms on the correct scanner under rising contention, defects the arms miss, and a stable ratio reached without a floor. It needs Node and nothing else. It starts its own busy-loop processes, up to four per core, and kills them when it ends, and a full run takes several minutes.
+Northsun's scanners are private, so this is a toy. It has a linear scanner, the same scanner with a planted quadratic defect, and the old arm followed by the changes above in four steps. Two steps change more than one thing: the fastest-of-nine step changes both the statistic and the number of runs, and the warm-up and the interleaving arrive together. The toy does not separate them. It reads the arms three ways: false alarms on the correct scanner under rising contention, defects the arms miss, and a stable ratio reached without a floor. It needs Node 18.14 or later and nothing else. It starts its own busy-loop processes, up to four per core, and kills them when it ends or is interrupted, and a full run takes several minutes.
 
 ```js
 // demo.mjs: why a ratio-of-timings test flakes under CPU contention, and what the fix costs.
-// Run: node demo.mjs   (takes several minutes; it starts its own busy-loop processes and kills them when it ends)
+// Run: node demo.mjs   (Node 18.14 or later; takes several minutes; it starts its own busy-loop processes and kills them when it ends)
 import { spawn } from "node:child_process";
 import { performance } from "node:perf_hooks";
 import os from "node:os";
 
 const CORES = os.availableParallelism(), TRIALS = 100;
-const text = (n) => "4111 1111 1111 1111 x".repeat(Math.ceil(n / 21)).slice(0, n);
+const text = (n) => "abab abab abab abab x".repeat(Math.ceil(n / 21)).slice(0, n);
 
 // The code under test: a linear scanner, and the same scanner with a planted quadratic defect:
 // for every character it also re-reads a `share` of the input, so its cost grows with the square of the input.
@@ -94,7 +99,7 @@ const scan = (s) => { const m = new Map(); for (let i = 0; i < s.length; i++) { 
 const withDefect = (share) => (s) => { let acc = scan(s); const inner = Math.floor(s.length * share); for (let i = 0; i < s.length; i++) for (let j = 0; j < inner; j++) acc ^= s.charCodeAt(j); return acc; };
 
 // The property under test: an input 8x larger costs at most `bound` times as much.
-// The small input is sized to take well under a millisecond when the machine is idle, which is where the flake lives.
+// The small input is sized to take about half a millisecond when the machine is idle, which is where the flake lives.
 const SMALL = text(25_000), LARGE = text(200_000);
 const BIG_SMALL = text(250_000), BIG_LARGE = text(2_000_000);   // ten times the input, for section 3
 
@@ -121,6 +126,7 @@ const ARMS = [
 const burners = [];
 const stopBurners = () => { for (const b of burners) b.kill("SIGKILL"); burners.length = 0; };
 process.on("exit", stopBurners);
+for (const s of ["SIGINT", "SIGTERM"]) process.on(s, () => process.exit(130));   // a killed script must not leave busy loops behind
 const startBurners = async (k) => {
   for (let i = 0; i < k; i++) burners.push(spawn(process.execPath, ["-e", "for(;;){}"], { stdio: "ignore" }));
   await new Promise((r) => setTimeout(r, 500));
@@ -130,22 +136,32 @@ const startBurners = async (k) => {
 console.log(`1. false alarms on a correct linear scanner, ${TRIALS} runs per cell, ${CORES} cores, busy-loop processes added:`);
 const levels = [0, CORES, 2 * CORES, 4 * CORES];
 const cells = ARMS.map(() => []);
+const fastestOf9 = (f) => fastest(Array.from({ length: 9 }, () => once(f)));
+const readings = {};   // at each load: the median over 30 trials of the fastest of nine runs of the small and of the large input
 for (const k of levels) {
   await startBurners(k);
   ARMS.forEach(([, arm], a) => { let red = 0; for (let t = 0; t < TRIALS; t++) if (ratio(arm, scan) >= arm.bound) red++; cells[a].push(red); });
+  const trials = Array.from({ length: 30 }, () => [fastestOf9(() => scan(SMALL)), fastestOf9(() => scan(LARGE))]);
+  readings[k] = [median(trials.map((x) => x[0])), median(trials.map((x) => x[1]))];
   stopBurners();
 }
 console.log(["arm".padEnd(40), ...levels.map((k) => String(k).padStart(4))].join(" ") + "   <- busy loops");
 ARMS.forEach(([name], a) => console.log([name.padEnd(40), ...cells[a].map((c) => String(c).padStart(4))].join(" ")));
+const heavy = levels[levels.length - 1];
+console.log(`   under ${heavy} busy loops the fastest of nine reads x${(readings[heavy][0] / readings[0][0]).toFixed(1)} of its idle value on the small input and x${(readings[heavy][1] / readings[0][1]).toFixed(1)} on the large one (median of 30 trials)`);
 
-// 2. Missed defects: a planted quadratic of decreasing severity, on an idle machine. For each arm, the ratio it computes and its verdict.
-// Red is the right answer for every row except the first, which is the correct scanner.
-console.log("\n2. the ratio each arm computes on an idle machine (the first row is the correct scanner):");
+// 2. Missed defects: a planted quadratic of decreasing severity, on an idle machine. For each arm, the ratio it computes and its verdict,
+// and what the defect costs at the large size as a multiple of the correct scanner's cost there. Red is the right answer for every row
+// except the first, which is the correct scanner.
+console.log("\n2. on an idle machine, the ratio each arm computes (the first row is the correct scanner):");
 const oldArm = ARMS[0][1], finalArm = ARMS[4][1];
+const idleLarge = fastest(Array.from({ length: 9 }, () => once(() => scan(LARGE))));
+const costOf = (f) => fastest(Array.from({ length: 3 }, () => once(() => f(LARGE)))) / idleLarge;
+console.log(`   the final arm's floor times its bound is ${(finalArm.floor * finalArm.bound / idleLarge).toFixed(0)} times the correct scanner's cost at the large size`);
 for (const share of [0, 0.005, 0.0012, 0.0006, 0.0003]) {
   const f = share === 0 ? scan : withDefect(share), a = ratio(oldArm, f), b = ratio(finalArm, f);
   const verdict = (r, arm) => (r >= arm.bound ? "red  " : "green");
-  console.log(`   ${share === 0 ? "no defect    " : "severity " + String(share).padEnd(7)} old arm ${a.toFixed(1).padStart(5)} ${verdict(a, oldArm)} | final arm ${b.toFixed(1).padStart(5)} ${verdict(b, finalArm)}`);
+  console.log(`   ${share === 0 ? "no defect    " : "severity " + String(share).padEnd(7)} costs x${costOf(f).toFixed(0).padEnd(4)} old arm ${a.toFixed(1).padStart(5)} ${verdict(a, oldArm)} | final arm ${b.toFixed(1).padStart(5)} ${verdict(b, finalArm)}`);
 }
 
 // 3. The other way to a stable ratio: make the small input cost more than the floor, so no floor is needed.
@@ -165,64 +181,69 @@ One run on Node 22.22.0, on four cores:
 ```text
 1. false alarms on a correct linear scanner, 100 runs per cell, 4 cores, busy-loop processes added:
 arm                                         0    4    8   16   <- busy loops
-old: median of 3, floor 0.5, bound 20       0    3   32   93
-+ fastest of 9                              0    0    4   70
+old: median of 3, floor 0.5, bound 20       0    3   25   98
++ fastest of 9                              0    0    6   82
 + floor of 5                                0    0    0    0
 + warm-up, interleaved                      0    0    0    0
 + bound 30 (the final arm)                  0    0    0    0
+   under 16 busy loops the fastest of nine reads x1.0 of its idle value on the small input and x4.0 on the large one (median of 30 trials)
 
-2. the ratio each arm computes on an idle machine (the first row is the correct scanner):
-   no defect     old arm   7.5 green | final arm   0.8 green
-   severity 0.005   old arm  61.1 red   | final arm  63.2 red  
-   severity 0.0012  old arm  61.3 red   | final arm  47.3 red  
-   severity 0.0006  old arm  51.4 red   | final arm  23.9 green
-   severity 0.0003  old arm  47.2 red   | final arm  12.5 green
+2. on an idle machine, the ratio each arm computes (the first row is the correct scanner):
+   the final arm's floor times its bound is 35 times the correct scanner's cost at the large size
+   no defect     costs x1    old arm  13.3 green | final arm   0.8 green
+   severity 0.005   costs x225  old arm  55.6 red   | final arm  61.4 red  
+   severity 0.0012  costs x59   old arm  55.8 red   | final arm  47.0 red  
+   severity 0.0006  costs x29   old arm  52.8 red   | final arm  24.2 green
+   severity 0.0003  costs x15   old arm  42.3 red   | final arm  12.5 green
 
 3. correct linear scanner, ten times the input, no floor (0.5), 30 runs per cell:
 final arm, 10x inputs, floor 0.5            0    0    0    0
 ```
 
-Across four runs of this listing, two on Node 22.22.0 and two on Node 22.22.2, the pattern was the same every time. In section 1 the old arm was red in 1 to 4 of 100 runs at one busy loop per core, 27 to 33 at two per core and 90 to 97 at four per core. The fastest of nine was red in none, 4 to 12 and 70 to 90 at the same loads. From the floor onward, no cell was red in any run. In section 2 the old arm read between 5.9 and 11.2 on the correct scanner, even on an idle machine, and the final arm read 0.8, because its denominator is the floor. The old arm was red for all four planted defects in every run. The final arm was red for the two severe ones and green for the two mild ones in every run, and green on a planted quadratic is a miss. In section 3 no cell was red in these four runs. In one earlier run while the script was being written, the same arm had a single red run in thirty at the heaviest load, and a separate exploratory script with sixty runs per cell had one red run at eight busy loops per core, so read it as almost never red in this toy and not as a guarantee.
+Across four runs of this listing, two on Node 22.22.0 and two on Node 22.22.2, the pattern was the same every time. In section 1 the old arm was red in 0 to 3 of 100 runs at one busy loop per core, 25 to 39 at two per core and 90 to 98 at four per core. The fastest of nine was red in none, 6 to 12 and 77 to 82 at the same loads. From the floor onward, no cell was red in any run. Under four busy loops per core the fastest of nine read the same as idle on the small input and about four times idle on the large one, in every run. In section 2 the old arm read between 7.9 and 13.3 on the correct scanner, even on an idle machine, and the final arm read 0.8, because its denominator is the floor. The old arm was red for all four planted defects in every run. The final arm was red for the two severe ones and green for the two cheaper ones in every run, and green on a planted quadratic is a miss. In section 3 no cell was red in these four runs. In two earlier development runs of the same arm there was a single red run, at four busy loops per core in one and at eight per core in the other, so read it as almost never red in this toy and not as a guarantee.
 
 ## What the floor can no longer see
 
-The record states the price plainly in its own words: a planted quadratic must cost more than a threshold at the large size to be caught, and a milder superlinear cost passes, because the floor trades sensitivity for stability. The threshold is the bound times the floor.
+The record states the price plainly: a planted quadratic must cost more than a threshold at the large size to be caught, and a milder superlinear cost passes, because the floor trades sensitivity for soundness. The task brief asked for that trade. The threshold is the bound times the floor.
 
-Section 2 of the toy shows what that means. The old arm, whose floor is a fraction of a millisecond, catches all four planted defects. The final arm catches the two severe ones and misses the two mild ones, because their large-input cost sits below the bound times the floor. The final arm's reading on the correct scanner is under 1, because the floor and not the small time is its denominator, and the two mild defects read 24 and 12 against a bound of 30. The record also keeps an absolute ceiling behind an opt-in flag and a separate benchmark for the absolute measure, which is where a defect that mild would have to be caught.
+Section 2 of the toy shows what that means, and a little more. The old arm, whose floor is a fraction of a millisecond, catches all four planted defects. The final arm catches the two severe ones and misses the two cheaper ones. It misses the cheapest because of the floor. It misses the next one because of the floor and the bound together: the same arm with the bound still at 20 reads about 24 on it and is red.
+
+There is a sharper way to say it. While the small input costs less than the floor, the ratio is the large cost divided by the floor, so the arm is red exactly when the large cost reaches the bound times the floor. It has become an absolute ceiling on the large input and no longer tests growth. In this toy the final arm's floor times its bound is 35 to 38 times the correct scanner's cost at the large size. The two cheaper defects cost about 30 and 15 times that cost, so they pass. The two severe ones cost about 60 and more than 200 times it, so they are caught. The test file also keeps an opt-in absolute ceiling and points to a separate benchmark for the absolute measure. Neither is said to cover the defects the floor lets through, so this post cannot say what would catch a defect that cheap.
 
 ## Another way to a stable ratio
 
-The floor is needed because the small input is cheap. Section 3 of the toy takes the other route: make the inputs big enough that the small one costs more than the floor, and take the floor off. On inputs ten times larger the correct scanner stayed green at every contention level in the four runs, and had a single red run at the heaviest load in two earlier development runs. The price is ten times the work in every run. That is a result of this toy. It is not Northsun's design and the record does not recommend it.
+The floor is needed because the small input is cheap. Section 3 of the toy takes the other route: make the inputs big enough that the small one costs more than the floor, and take the floor off. On inputs ten times larger the correct scanner stayed green at every contention level in the four runs, and had a single red run at the heaviest load in each of two earlier development runs. The price is ten times the work in every run, and about a hundred times for a quadratic defect, since its cost grows with the square of the input. Sensitivity is not lost, because the floor never binds. That is a result of this toy. It is not Northsun's design and the record does not recommend it.
 
 ## What this still does not prove
 
 - The toy does not reproduce Northsun's flake or any number in the record. Its scanner, sizes, floor and load are its own, and the contention at which it flakes will differ on another machine. The record needed more than busy loops alone, and the toy needed two to four per core.
 - The toy does not separate the warm-up and the interleaving from the floor. They were added after the floor, when no false alarms were left for them to fix, so no claim is made for them here.
-- Why the fastest of nine still fails under heavy load is a reading and not a measurement: the toy's pattern fits long runs being slowed more than short ones, and the scheduler was not instrumented.
+- The toy measures that the large reading is inflated under load and the small one is not. Why is a reading and not a measurement: the pattern fits long runs being slowed more than short ones, and the scheduler was not instrumented.
+- All the runs were on one four-core machine within about half an hour. The two Node versions are not hardware diversity.
 - A passing ratio arm shows that growth between two sizes stays under a bound. It does not show that the code is fast, or linear at other sizes.
 - The record's load runs and planted quadratics are as it reports them. They were not re-run for this post, and the Northsun repository is private.
 
 ## How to check your own timing test
 
-Five questions, in order. What is the smallest time in the ratio, and is it under a millisecond? Does the test take the fastest of several interleaved runs, or a median or a single run? Is there a floor, and what is the bound times the floor, which is the cost below which a defect passes? Have you planted a quadratic of the size you care about and watched the test go red? And have you run the test under contention you made on purpose, with more busy loops than cores, before trusting that it holds?
+Five questions, in order. What is the smallest time in the ratio, and is it under a millisecond? Does the test take the fastest of several runs, or a median or a single run? Is there a floor, and what is the bound times the floor, which is the cost below which a defect passes because the arm has become an absolute ceiling? Have you planted a quadratic of the size you care about and watched the test go red? And have you run the test under contention you made on purpose, with more busy loops than cores, before trusting that it holds?
 
 ## FAQ
 
 ### Why not just raise the bound?
 
-Because the bound has to sit between linear and quadratic, about eight and about sixty-four for an eightfold input, and every step upward gives up some of that gap. The failure here was a denominator problem more than a bound problem, and the toy's floor fixed it without moving the bound at all.
+Because the bound has to sit between linear and quadratic, about eight and about sixty-four for an eightfold input, and raising it costs sensitivity directly. In the toy the final arm reads about 24 on one planted defect, which is red at a bound of 20 and green at 30. The failure here was also not mainly a bound problem: in the toy, adding the floor with the bound unchanged took the false alarms to none. The record points the same way. The one arm whose bound had already been widened to 30 after an earlier flake was among the old arms that still failed in its heavy-load runs.
 
 ### Why the fastest run and not the median?
 
-Because contention only adds time, so the fastest run is the closest observation to the code's true cost. In the toy, at two busy loops per core the fastest of nine was red in 4 to 12 runs of 100 against 27 to 33 for the median of three, and at four per core it was still red in most runs, where the floor did the work.
+Because contention only adds time, so the fastest run is the closest observation to the code's true cost. It is closest, not close: under four busy loops per core the toy's fastest large run was still about four times its idle value. The toy compares the fastest of nine with the median of three, which changes the statistic and the number of runs together, and it does not separate them. At two busy loops per core the fastest of nine was red in 6 to 12 runs of 100 against 25 to 39 for the median of three, and at four per core it was still red in most runs, where the floor did the work.
 
 ### How do I choose the floor?
 
-The bound times the floor is the blind spot, so choose the floor from the smallest defect you need to catch, and back it with an absolute check for anything below that. Or make the inputs big enough that the small one never reaches the floor, at the cost of longer runs.
+Between two limits. It has to be high enough to exceed what the small input really costs, so that the floor and not a contended reading is the denominator. It has to be low enough that the bound times the floor sits below the cheapest defect you need to catch. If you cannot satisfy both, make the inputs big enough that the small one always costs more than the floor, at the cost of longer runs, and back the rest with an absolute check.
 
 ### Could I avoid the clock altogether?
 
-Yes, by counting steps instead of timing them, for example comparisons or characters visited, which does not depend on the machine's load. It needs the code or the test to expose a count, and it is not what Northsun did, so this post says nothing about how well it would work.
+Yes, by counting steps instead of timing them, for example comparisons or characters visited, which does not depend on the machine's load. It needs the code or the test to expose a count, a count only sees the steps you count, and it is not what Northsun did, so this post says nothing about how well it would work.
 
 ## The receipts
 
