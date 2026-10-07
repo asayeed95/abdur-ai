@@ -7,6 +7,7 @@ description: "Four ways a CI check exits 0 without checking anything: a symlinke
 dek: "Northsun's records describe four checks that could report success without doing their job. Each is reproduced here in a few lines, with the fix and how to catch the next one."
 tldr: "A check that cannot run still has to end somehow, and the easiest ending is exit 0, which CI reads as green. Northsun's records describe four ways that can happen; only the first is recorded in use, and the others were caught in review or by their authors. An entry-point guard compared a symlinked path with a resolved one, so the script's main function never ran and a repository gate reported clean. A latency gate compared a measurement with a ceiling missing from its config, which is always false. A sweep that could not read the API would find nothing red and print that it was clean. A count of gates filtered out the disabled ones before counting, so it could not notice them. Each is reproduced in one Node script, with the recorded fix: resolve both sides of a comparison, treat a missing ceiling as a breach, give could-not-look its own exit code, and count before filtering. These are tooling and test changes. Nothing here is a claim about product behaviour or about how any host is protected."
 date: 2026-10-07T14:51:00+00:00
+updated: 2026-10-07T20:56:00+00:00
 author: Abdur Rahman Sayeed
 section: "Builder Logs"
 register: reported
@@ -266,4 +267,4 @@ The Northsun repository and issue tracker are private, so these are paths and me
 
 <ReceiptsBlock />
 
-For the first stories of this kind, read [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran), [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail) and [a load test that counted its neighbours and never saw its own burst](/writing/load-test-that-never-saw-its-own-burst). A related one: [a flaky timing test that blocked a deploy](/writing/testing-linear-time-without-a-flaky-clock).
+For the first stories of this kind, read [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran), [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail) and [a load test that counted its neighbours and never saw its own burst](/writing/load-test-that-never-saw-its-own-burst). A related one: [a flaky timing test that blocked a deploy](/writing/testing-linear-time-without-a-flaky-clock). A later one, about an empty array that meant four different things, is [a model parser that returned the same empty array for four different things](/writing/one-empty-array-four-meanings).
