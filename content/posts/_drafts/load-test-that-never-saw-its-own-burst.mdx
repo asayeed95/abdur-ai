@@ -1,12 +1,12 @@
 ---
 slug: load-test-that-never-saw-its-own-burst
-title: "Our load test counted the neighbours and never saw its own burst."
+title: "A load test counted its neighbours and never saw its own burst."
 seo_title: "A load test that never saw its own burst"
-subtitle: "A connection-count test went red on unrelated pull requests and green when run alone. The code was fine. The measurement was not."
-description: "A connection-count test was red under load and green alone. It counted its neighbours and read zero for its own burst. What fixed the measurement."
-dek: "Northsun's connection-ownership test failed on two unrelated pull requests in one night and passed when run alone. The test was measuring the wrong thing, twice."
-tldr: "A test that asserted a ceiling on open database connections under a burst failed on two unrelated pull requests in one night and passed when run alone. It was measuring the wrong thing twice. It counted every connection on the shared test database, neighbours included, and its own samples ran before any of its connections had finished starting, so run alone it saw almost none of its own burst. The fix was to tag its own connections and count only the tag, sample from a dedicated connection opened before the work, prove that the tag is visible, and replace a timing-dependent floor with a barrier: hold every unit of work blocked on a database lock so all of them are provably open at once. A small TCP toy reproduces the shape of the problem. Counting everything inflates the count, samples queued with the burst read zero, a timer sampler's peak changes from run to run, and a barrier gives the exact count. The change is test-only and merged. Nothing here is a claim about product behaviour."
-date: 2026-10-07T01:30:00-04:00
+subtitle: "A connection-count test went red on two pull requests and green when run alone. The code under test did not change. The measurement did."
+description: "A connection-count test was red under load and green alone. It counted its neighbours and read zero for its own burst. How the measurement was fixed."
+dek: "Northsun's connection-ownership test went red on two pull requests in one night and passed when run alone. It was counting the neighbours and reading none of its own burst."
+tldr: "A Northsun test that asserted a ceiling on open database connections under a burst went red on two pull requests in one night and passed when run alone. It was measuring the wrong thing twice. It counted every connection the application's role held on a shared test database, so earlier test files' leftovers counted against it. And its samples were queued in the same synchronous loop that started the burst, so they ran before the burst's connections existed and, run alone, it read none of its own. The fix tagged the test's own connections and counted only the tag, sampled from a dedicated connection opened before the work, added a probe proving the tag reaches the server, and replaced a timing-dependent floor with a barrier: database locks hold every unit of work open at once, so the count is exact. A short script on a local Postgres reproduces each reading. The change is test-only and merged. Nothing here is a claim about product behaviour."
+date: 2026-10-07T02:40:00+00:00
 author: Abdur Rahman Sayeed
 section: "Builder Logs"
 register: reported
@@ -20,227 +20,177 @@ tags:
 receipts:
   - path: "tests/age/connection-ownership.test.ts"
     sha: "eb0e86ee"
-    note: "PR #1612, merged 2026-10-06. The test after the change: connections tagged with a per-run application name, a dedicated sampler, a non-vacuity arm, an ownership assertion, a lock barrier, and cleanup that waits for every unit before it returns. Test-only. Private repository."
+    note: "PR #1612, merged 2026-10-06. The test after the change: connections tagged with a per-run application name, a dedicated sampler, a probe that the tag reaches the server, an ownership assertion, a lock barrier, and cleanup that waits for every unit before it returns. Test-only. Private repository."
   - path: "docs/decisions-log/2026-10-06-age-3136-connection-ownership-load-proof.md"
     sha: "eb0e86ee"
-    note: "The decision record in the same merge: what was wrong, the alternatives rejected, the change, the receipts for each round, and what the change does not do. The record carries internal figures, which this post leaves out."
+    note: "The decision record in the same merge: what was wrong, the alternatives rejected, the change, the receipts for each review round, and what the change does not do. The record carries internal figures, which this post leaves out."
   - path: "docs/superpowers/specs/build-plan/tasks/AGE-3136.md"
     sha: "eb0e86ee"
     note: "The task row for the change. It names the two pull requests that went red in one night and the cause."
-  - path: "The listings in this post (toy.mjs, demo.mjs)"
-    note: "Run on 2026-10-07 under Node 22.22.0 and Node 22.22.2. The outputs shown are from those runs. The toy is a TCP stand-in, not a database, and not Northsun code."
-citation_preferred: "Sayeed, Abdur Rahman. 'Our load test counted the neighbours and never saw its own burst.' abdur.ai, 7 October 2026."
+  - path: "The listing in this post (demo.mjs)"
+    note: "Run on 2026-10-07 under Node 22.22.0 and Node 22.22.2, with postgres.js 3.4.9 against a local PostgreSQL 16.14. The outputs shown are from those runs. The script is a stand-in on a scratch database, not Northsun code."
+citation_preferred: "Sayeed, Abdur Rahman. 'A load test counted its neighbours and never saw its own burst.' abdur.ai, 7 October 2026."
 related:
   - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
   - the-analytics-call-that-couldnt-fail
   - two-runtimes-two-hashes-unicode-lowercase
 ---
 
-**Short answer:** if a test asserts a ceiling on something it counts under load, check what it counts and when it counts it. Ours counted every connection on a shared test database, so a neighbour's lingering sockets looked like our burst. And its own samples were taken before any of its connections had finished starting, so when it ran alone it read almost nothing and passed. Tag your own connections and count only the tag, sample from a connection that exists before the work starts, prove that the tag is visible, and hold the burst still with a barrier if you need an exact number.
+**Short answer:** if a test asserts a ceiling on something it counts under load, check what it counts and when it counts it. Northsun's test counted every connection its database role held on a shared test database, so earlier files' leftovers looked like its own burst. And it took its samples before its own connections existed, so when it ran alone it read none of them and passed. Tag your own connections and count only the tag, sample from a connection that already exists, prove that the tag reaches the server, and hold the burst still with a barrier if you need an exact number.
 
-**Status of what this describes:** a test-only change in Northsun's private repository, merged on 6 October 2026. It changes no served code, and nothing here is a claim about how any service behaves. The toy in this post is a stand-in written to show the shape of the measurement problem. It is not a database and not Northsun's test, and its numbers are its own.
+**Status of what this describes:** a test-only change in Northsun's private repository, merged on 6 October 2026 as pull request 1612. Merged is not deployed, and this change deploys nothing: it changes no served code, and nothing here is a claim about how any service behaves. The script in this post is a stand-in I describe below. It runs against a scratch Postgres, it is not Northsun's test, and its numbers are its own.
 
-**Who did the work:** Northsun's delivery agents found the failure, rewrote the test and ran the review rounds described here, not me. They are AI sessions working under written rules, and automated reviewers checked the change. The toy and the runs of it in this post were done on 7 October 2026 by the AI session that drafts these write-ups, not by me and not by the agents who wrote the test. Where this post says "we", it means the agents and the Northsun project.
+**Who did the work:** not me. The failure was reported and filed as a task inside Northsun's agent workflow, a build agent (an AI session working under written rules) rewrote the test, and an automated reviewer raised the findings described below. The script and the runs of it in this post were done on 7 October 2026 by the AI session that drafts these write-ups, not by me and not by the agent who wrote the test. Where this post says "Northsun", it means that project and its agents.
+
+**Terms, as this post uses them.** A *connection* is one open session between a client and the database server, and it occupies one of a fixed number of slots on the server. The *activity view* is Postgres's `pg_stat_activity`, which lists every open connection with, among other fields, its `application_name` (a label the client chooses and sends when it connects) and what the connection is waiting on. A *unit of work* is one request through the code, which here opens one connection. A *sampler* polls the activity view to count connections while work runs. A *barrier* stops every unit from finishing until the test says go.
 
 ## What happened
 
 Northsun is the memory and enrichment layer for AI agents.
 
-One of our tests drives a burst of concurrent requests of three kinds through the code and asserts that the number of open database connections stays under a ceiling with room to spare. The code under test opens one database client per request, so the test is there to catch a request that forgets to close its own. It sits in a shared test database that every test file in the suite uses.
+One of Northsun's tests drives a burst of concurrent requests of three kinds through the application code and asserts on how many database connections the burst opens. The code opens one database client per request, so the test is there to catch a request that forgets to close its own. It runs against a database container that the suite's real-database test files share, connecting as one database role. Its ceiling was set at half of the database's usable connection slots.
 
-In one night it failed on two unrelated pull requests, with a count above its budget, under the load of the full suite. Run alone, it passed. Nothing in either pull request touched the code it covers.
+In one night it went red on two pull requests, under the load of the full suite, with a count above that ceiling. Run alone, it passed. The merged test's own header calls the two pull requests unrelated to it.
 
 ## What it was actually counting
 
-The record of the investigation found two separate problems, and either one alone would have made the test untrustworthy.
+The decision record names three things wrong. The first two made the test unreliable. The third made its ceiling untrue.
 
-**It counted the whole container.** The test counted every connection that the application's database role held on the shared database server. Under a full-suite run, earlier test files had left sockets lingering until their idle timeout, which is longer when the machine is starved of CPU, and background writes were still in flight. Those neighbours were in the count. The failure was them, not the scenario.
+**It counted the whole container.** The test counted every connection the application's database role held on the shared server. The record attributes the extra connections in the failing runs to earlier test files' sockets, which linger until an idle timeout (longer, the record notes, when the machine is starved of CPU), and to background writes still in flight. Those were in the count, so the red was the neighbours and not the scenario. The record reproduced it on demand: a scratch file held a pile of untagged connections while the test ran, and the old test went red three times out of three while the new one went green three times out of three.
 
-**It never saw its own burst.** The old samples were requests queued on one shared administrative connection, and they were queued in the same synchronous loop that started the burst. They ran before any of the burst's connections had finished starting up, so the server did not yet report them. Instrumented with a tag, the old shape read about zero of the scenario's own connections at every sample when the test ran alone. The solo green was not evidence of headroom. It was a test that had measured nothing and been happy about it. The check that the count was above zero only held because the administrative connection itself was in the total.
+**It never saw its own burst.** The old samples were queued on one shared administrative connection, in the same synchronous loop that started the burst. They ran before any of the burst's connections had finished their handshake with the server. Instrumented with a tag, the old shape read none of the scenario's own connections at any sample when the test ran alone. The solo green was not evidence of headroom. It was a test that had measured nothing and been happy about it. Its check that the count was above zero held only because the administrative connection was itself in the total.
 
-There was a third problem under both. The budget was never true. The scenario opens one connection per unit of work, by construction. Half-headroom for that many simultaneous requests would mean bounding concurrency in production, which is a product decision and not a test tolerance. Sampled peaks of the unconstrained burst read lower than the number of units only because of when the samples happened to land.
+**The ceiling was never true.** The code opens one connection per unit of work, by construction, and the scenario has more units than half the usable slots. A ceiling at half the slots could only pass if the samples missed the burst, and sampled peaks of the unconstrained burst read lower than the unit count only because of when the samples happened to land. Holding the burst under that ceiling would mean bounding concurrency in production, which is a product decision and not a test tolerance, so the record rejected widening the number as well.
 
-## A toy that shows the shape of it
+## The same readings on a real Postgres
 
-A real multi-connection database was not available for this write-up, so here is a TCP stand-in. A small server counts connections per tag. Like a database's activity view, it learns a connection's tag only once the startup message ("HELLO tag") has been handled, which takes a moment. A unit of work opens a connection, says hello with a tag, makes one request and closes. A neighbour holds a connection under its own tag and does nothing.
-
-```js
-// toy.mjs: a TCP "database" that counts connections per tag. Like pg_stat_activity, it knows a
-// connection's tag only once the startup message ("HELLO <tag>") has been handled, which takes a moment.
-import net from "node:net";
-const WORK_MS = Number(process.env.WORK_MS ?? 15); // how long the server takes over one request
-
-export function startServer() {
-  const conns = new Set(); // { tag, blocked }
-  let barrier = null; // while set, a request waits for it
-  const server = net.createServer((sock) => {
-    const c = { tag: null, blocked: false };
-    conns.add(c);
-    let buf = "";
-    sock.on("data", (d) => {
-      buf += d;
-      for (let i; (i = buf.indexOf("\n")) >= 0; ) {
-        const line = buf.slice(0, i); buf = buf.slice(i + 1);
-        if (line.startsWith("HELLO ")) setTimeout(() => (c.tag = line.slice(6)), 3);
-        else if (line === "COUNT") sock.write(JSON.stringify(stats()) + "\n");
-        else if (line === "WORK") {
-          const done = () => { c.blocked = false; sock.write("OK\n"); };
-          if (barrier) { c.blocked = true; barrier.then(done); } else setTimeout(done, WORK_MS);
-        }
-      }
-    });
-    sock.on("close", () => conns.delete(c));
-    sock.on("error", () => conns.delete(c));
-  });
-  const stats = () => ({
-    all: [...conns].filter((c) => c.tag !== null).length, // every connection that has finished starting up
-    byTag: [...conns].reduce((m, c) => (c.tag && (m[c.tag] = (m[c.tag] || 0) + 1), m), {}),
-    blocked: [...conns].filter((c) => c.blocked).length,
-  });
-  return {
-    listen: () => new Promise((r) => server.listen(0, "127.0.0.1", () => r(server.address().port))),
-    close: () => server.close(),
-    stats,
-    hold: () => { let go; barrier = new Promise((r) => (go = r)); return () => { barrier = null; go(); }; },
-  };
-}
-
-// One unit of work: open a connection, introduce yourself with a tag, make one request, close.
-export function unit(port, tag, { leak = false } = {}) {
-  return new Promise((resolve) => {
-    const s = net.connect(port, "127.0.0.1", () => s.write(`HELLO ${tag}\nWORK\n`));
-    s.on("data", () => { if (leak) resolve(); else s.end(); }); // a leaking unit forgets to close
-    s.on("close", resolve);
-    s.on("error", resolve);
-  });
-}
-
-// A neighbour: holds a connection open under its own tag and does nothing.
-export function neighbour(port) {
-  const s = net.connect(port, "127.0.0.1", () => s.write("HELLO neighbour\n"));
-  return s;
-}
-```
-
-The demo reads "how many connections did my burst open?" five ways:
+To see the shapes without Northsun's private test, here is a script that reads "how many connections did my burst open?" five ways on a scratch database. It uses the same client library as the Northsun test, postgres.js, which connects lazily: a client opens its connection when it first needs one. It needs a local Postgres and the `postgres` npm package, for example `createdb burstdemo`, then `npm i postgres`, then `PGURL=postgres://postgres@127.0.0.1:5432/burstdemo node demo.mjs`, with the URL adjusted to your server. Each unit of work is one client, one insert, then close. A neighbour is a client that holds a connection open under its own label and does nothing.
 
 ```js
-// demo.mjs: five ways to read "how many connections did MY burst open?"
-import net from "node:net";
-import { startServer, unit, neighbour } from "./toy.mjs";
-const UNITS = 80, NEIGHBOURS = 50, TAG = "own-" + Math.random().toString(16).slice(2, 8);
+// demo.mjs: five ways to read "how many connections did MY burst open?" on a real Postgres.
+// Run: PGURL=postgres://postgres@127.0.0.1:5432/burstdemo node demo.mjs   (npm i postgres first)
+import postgres from "postgres";
+const URL = process.env.PGURL, UNITS = 40, NEIGHBOURS = 25;
+const TAG = "own-" + Math.random().toString(16).slice(2, 8);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const server = startServer();
-const port = await server.listen();
-const burst = (opts) => Array.from({ length: UNITS }, (_, i) => unit(port, TAG, opts?.(i)));
+const client = (name) => postgres(URL, { max: 1, onnotice: () => {}, connection: { application_name: name } });
 
-// 1. Count every connection on the shared server, with a neighbour holding some of them.
-const held = Array.from({ length: NEIGHBOURS }, () => neighbour(port));
-await sleep(50);
-let allPeak = 0, ownPeak = 0;
-const poll = setInterval(() => { const s = server.stats(); allPeak = Math.max(allPeak, s.all); ownPeak = Math.max(ownPeak, s.byTag[TAG] || 0); }, 2);
-await Promise.all(burst());
-clearInterval(poll);
-console.log(`1. neighbour holds ${NEIGHBOURS}, ${UNITS} units run. Peak counting every connection: ${allPeak}. Counting only our tag: ${ownPeak}.`);
+const admin = client("admin"); // the shared administrative connection every sample goes through
+await admin`create table if not exists burst_demo (n int)`;
+const count = () => admin`
+  select count(*) filter (where pid <> pg_backend_pid())::int                          as every,
+         count(*) filter (where application_name = ${TAG})::int                        as own,
+         count(*) filter (where application_name = ${TAG} and wait_event_type = 'Lock')::int as waiting
+  from pg_stat_activity where backend_type = 'client backend' and datname = current_database()`.then((r) => r[0]);
 
-// 2. Samples queued with the work: asked over an already-open control socket in the same loop that starts the burst.
-held.forEach((s) => s.destroy());
-await sleep(50);
-const control = net.connect(port, "127.0.0.1");
-await sleep(20);
-const queued = [];
-control.on("data", (d) => d.toString().trim().split("\n").forEach((l) => queued.push(JSON.parse(l))));
-const work2 = [];
-for (let i = 0; i < UNITS; i++) { work2.push(unit(port, TAG)); control.write("COUNT\n"); }
-await Promise.all(work2);
-await sleep(30);
-console.log(`2. ${queued.length} samples queued with the burst read our connections: at most ${Math.max(...queued.map((s) => s.byTag[TAG] || 0))}.`);
+const leaked = [];
+// One unit of work: its own client, one statement, then close (unless it leaks).
+const unit = async ({ leak = false } = {}) => {
+  const sql = client(TAG);
+  await sql`insert into burst_demo values (1)`;
+  if (leak) leaked.push(sql); else await sql.end();
+};
+const burst = (opts) => Array.from({ length: UNITS }, (_, i) => unit(opts?.(i)));
+// A sampler that polls as fast as the administrative connection answers, until told to stop.
+const sampleWhile = (work) => { const peak = { every: 0, own: 0 }; let on = true;
+  const loop = (async () => { while (on) { const s = await count(); peak.every = Math.max(peak.every, s.every); peak.own = Math.max(peak.own, s.own); } })();
+  return Promise.all(work).then(async () => { on = false; await loop; return peak; }); };
 
-// 3. A dedicated sampler on a timer, started before the workload, over five identical runs.
+// 1. Count every connection in the shared database, with a neighbour holding some of them.
+const held = Array.from({ length: NEIGHBOURS }, () => client("neighbour"));
+await Promise.all(held.map((s) => s`select 1`));
+const p1 = await sampleWhile(burst());
+console.log(`1. neighbour holds ${NEIGHBOURS}, ${UNITS} units run. Peak counting every connection: ${p1.every}. Counting only our tag: ${p1.own}.`);
+
+// 2. Samples queued with the work: asked on the already-open administrative connection in the same loop that starts the burst.
+await Promise.all(held.map((s) => s.end())); await sleep(100);
+const work2 = [], queued = [];
+for (let i = 0; i < UNITS; i++) { work2.push(unit()); queued.push(count()); }
+const reads = await Promise.all(queued); await Promise.all(work2);
+console.log(`2. ${reads.length} samples queued with the burst read our connections: at most ${Math.max(...reads.map((s) => s.own))}.`);
+
+// 3. A dedicated sampler started before the workload, over five identical runs.
 const peaks = [];
-for (let r = 0; r < 5; r++) {
-  let peak = 0;
-  const t = setInterval(() => { peak = Math.max(peak, server.stats().byTag[TAG] || 0); }, 2);
-  await Promise.all(burst());
-  clearInterval(t);
-  peaks.push(peak);
-}
-console.log(`3. a timer sampler saw peaks of ${peaks.join(", ")} of ${UNITS} across five identical runs.`);
+for (let r = 0; r < 5; r++) peaks.push((await sampleWhile(burst())).own);
+console.log(`3. a sampler started first saw peaks of ${peaks.join(", ")} of ${UNITS} across five identical runs.`);
 
-// 4. A barrier: the server holds every request until released, so every unit is provably open and blocked.
-const release = server.hold();
+// 4. A barrier: a second connection locks the table the units write, so every unit blocks on a lock from an open connection.
+let release; const gate = new Promise((r) => (release = r)); let locked; const lockedP = new Promise((r) => (locked = r));
+const locker = client("locker");
+const lockerDone = locker.begin(async (tx) => { await tx`lock table burst_demo in access exclusive mode`; locked(); await gate; });
+await lockedP;
 const work4 = burst();
-let seen;
-for (let i = 0; i < 2000 && !seen; i++) {
-  const s = server.stats();
-  if ((s.byTag[TAG] || 0) >= UNITS && s.blocked >= UNITS) seen = s;
-  else await sleep(2);
-}
-release();
-await Promise.all(work4);
-await sleep(30);
-console.log(`4. barrier: ${seen?.byTag[TAG]} of our connections open, ${seen?.blocked} blocked (exact); after release ${server.stats().byTag[TAG] || 0} left.`);
+let seen; for (let i = 0; i < 2000 && !seen; i++) { const s = await count(); if (s.own >= UNITS && s.waiting >= UNITS) seen = s; else await sleep(5); }
+release(); await lockerDone; await locker.end(); await Promise.all(work4);
+console.log(`4. barrier: ${seen?.own} of our connections open, ${seen?.waiting} waiting on a lock; after release ${(await count()).own} left.`);
 
 // 5. A leak: one unit in ten forgets to close. The ownership check after the work settles catches it.
 await Promise.all(burst((i) => ({ leak: i % 10 === 0 })));
-await sleep(30);
-console.log(`5. one unit in ten leaks: ${server.stats().byTag[TAG] || 0} of our connections left open after the work settled (expected 0).`);
-server.close(); control.destroy(); process.exit(0);
+console.log(`5. one unit in ten leaks: ${(await count()).own} of our connections left open after the work settled (expected 0).`);
+await Promise.all(leaked.map((s) => s.end())); await admin.end();
 ```
 
-Run with `WORK_MS=3 node demo.mjs` (the server takes only a few milliseconds per request, so the burst is short). One run on Node 22.22.0:
+One run on Node 22.22.0, postgres.js 3.4.9 and PostgreSQL 16.14:
 
 ```text
-1. neighbour holds 50, 80 units run. Peak counting every connection: 91. Counting only our tag: 41.
-2. 80 samples queued with the burst read our connections: at most 0.
-3. a timer sampler saw peaks of 28, 26, 28, 47, 38 of 80 across five identical runs.
-4. barrier: 80 of our connections open, 80 blocked (exact); after release 0 left.
-5. one unit in ten leaks: 8 of our connections left open after the work settled (expected 0).
+1. neighbour holds 25, 40 units run. Peak counting every connection: 64. Counting only our tag: 39.
+2. 40 samples queued with the burst read our connections: at most 0.
+3. a sampler started first saw peaks of 26, 31, 36, 39, 40 of 40 across five identical runs.
+4. barrier: 40 of our connections open, 40 waiting on a lock; after release 0 left.
+5. one unit in ten leaks: 4 of our connections left open after the work settled (expected 0).
 ```
 
-Lines 1 and 3 change from run to run, and that is part of the point. Lines 2, 4 and 5 did not change in any run: 80 samples queued with the burst read zero every time, the barrier read exactly 80, and the leak left exactly 8 connections open. On Node 22.22.2 the same script gave the same pattern, with peaks of 58, 45, 29, 44 and 1 on line 3. Without `WORK_MS` the server takes longer per request, which makes the toy's burst long enough for a timer sampler to see all of it every time (peaks of 80 in all five runs). That is why the toy takes `WORK_MS` as a setting: how well a sampler sees a burst depends on how long each connection lives.
+Across ten runs of this listing, five on Node 22.22.0 and five on Node 22.22.2, lines 2, 4 and 5 read the same every time: the samples queued with the burst read at most 0, the barrier saw exactly 40 connections open and 40 waiting on a lock with 0 left after release, and the leak left exactly 4 open. Lines 1 and 3 changed from run to run. On line 1 the peak counting every connection read 63 to 65 and the tagged peak read 38 to 40, and on line 3 the five peaks in a run ran from 23 to 40 of 40.
 
-What the toy shows: counting every connection on a shared server includes the neighbours (line 1); samples queued with the work, over a connection that already exists, run before the work's connections are visible (line 2); a sampled peak is a measurement of the sampler as much as of the burst (line 3); a barrier gives an exact count (line 4); and the property that matters for a leak is "zero left once the work settles" (line 5). What it does not show: how a real database or a real client library behaves, or anything about Northsun's numbers.
+What the script shows, with its limits. Line 1: counting every connection in a shared database includes the neighbours, and even the tagged count is itself a sampled peak, so it can read below the true number. The Northsun test counted by database role where this script counts by database, which has the same flaw. Line 2: samples queued over an already-open connection in the same loop that starts the burst run before the burst's connections exist, so they read zero. That is consistent with the record's account of the old test, and it is a reading of this script and not a replay of that test. Line 3: even a sampler started first reports a peak that changes from run to run, because each unit's connection lives only briefly. Line 4: a barrier makes the count exact, and the sampler waits on the lock wait event, not just on a count. Line 5: the property that catches a leak is "zero of my connections left once the work settles". What it does not show: how Northsun's database, role or code behave, or anything about Northsun's numbers.
 
 ## What fixed the measurement
 
 The change made the test measure only what its own scenario does, in five moves.
 
-1. **Tag your own connections.** Every connection URL the test hands to the code under test now carries a per-run application name. The server reports that name per connection, so the test counts the tag and nothing else. A neighbour can neither inflate the count nor hide a leak.
-2. **Sample from a connection that exists before the work.** A dedicated sampler connection is opened and warmed first, takes one sample before the burst and asserts that it reads exactly zero tagged connections, and only then starts the workload. The client library connects lazily, so a sampler created after the burst started could finish after it and record a low partial peak or a post-burst zero.
-3. **Prove the tag is visible.** A separate arm opens a connection from the same helper and asserts that it shows under the tag while live and is gone once ended. If the tag were ever dropped, say by a driver upgrade that rebuilds the URL without its query string, every other assertion would pass while measuring nothing.
-4. **Assert ownership, not just a peak.** The exact claim is that zero tagged connections remain the instant the work settles. A sampled peak is a tripwire for gross over-opening and not a meter: a version that opens one extra short-lived connection per unit stays under the ceiling and is caught only by the ownership assertion.
-5. **Replace the timing-dependent floor with a barrier.** A first version required the peak to reach half the units, but a correct run on a fast database can read under that, so the floor was itself flaky. The final version takes locks on the three tables that the units write, from a second connection, before the burst. Every unit's first statement then waits on a lock, and a unit can only wait while holding an open connection, so while the locks are held every unit is provably open and none can finish. The sampler polls until it sees every unit's connection open and blocked on a lock, then the test asserts the exact count.
+1. **Tag your own connections.** Every connection URL the test hands to the code under test carries a per-run application name. The server reports that name per connection, so the test counts the tag and nothing else. The tag is unique per run, so a neighbour can neither inflate the count nor hide a leak.
+2. **Sample from a connection that exists before the work.** A dedicated sampler connection is opened and warmed with one query first, takes one sample before the burst and asserts that it reads exactly zero tagged connections, and only then starts the workload. This came out of a review finding: the client library connects lazily, so a sampler whose first query was issued after the work had started could finish after it and record a low partial peak or a post-burst zero.
+3. **Prove the tag reaches the server.** A separate arm opens one connection through the same helper and the same client library, and asserts that it shows under the tag while live and is gone once ended. The test's own comment names the case it guards: if the tag were ever dropped, say by a driver upgrade or a URL rebuilt without its query string, the tagged count would read zero and the ceiling and ownership assertions, which expect small numbers, would pass without measuring anything. In the record's breakage run, dropping the tag turned both this arm and the burst arm red.
+4. **Assert ownership, not just a peak.** The exact claim is that zero tagged connections remain the instant the work settles. The old check compared all connections after the work with a baseline taken before it, which a neighbour's connection opening between the two reads could turn red. A sampled peak stays as a tripwire for gross over-opening and not as a meter: the record plants one extra short-lived connection per unit of one kind, measures a peak that plateaus below the ceiling, and says the peak does not catch it. A version that leaks its connections is caught by the ownership assertion.
+5. **Replace the timing-dependent floor with a barrier.** A floor added in the first review round required the peak to reach half the units, but a correct run on a fast database or a contended runner can read under that, and a valid reduction in concurrency would fail it too. The final version holds the burst still. A second connection takes `ACCESS EXCLUSIVE` locks on the three tables the units write, before the burst starts. Every unit's first statement then waits on a lock, and a unit can only wait from an open connection, so while the locks are held every unit's connection is provably open and none can finish. The sampler polls until it sees every unit's connection open and waiting on a lock, then the test asserts the exact count. The barrier is Postgres's own, so the code under test is unchanged. If the code ever opens fewer connections than there are units, the barrier is never reached and the test fails by name after a deadline, on purpose: a change in connections per unit should change that number knowingly.
 
 ## What the review rounds found
 
-The record shows automated reviewers finding a different way the test could pass or fail without measuring, in each round. The first fix of the sampler had it connect lazily, after the work had started, which could finish after the burst. A failure in the middle of the test left a privileged client open on the shared server, until the sampler's close moved into an outer `finally`. The timing-dependent floor became the barrier. And a rejected unit made `Promise.all` return on the first failure while the others kept running, against a database the next test file was about to use. The cleanup now releases the barrier, waits for every unit with `allSettled`, closes, and only then rethrows the original error. Each of those has a planted-failure arm, and the record says each deliberate breakage of the test (a connection that is never closed, extra connections held per unit, the tag dropped, the barrier removed, `allSettled` removed) makes it fail.
+The record shows an automated reviewer raising four findings on the pull request across three rounds. Each was a different way the test could pass or fail without measuring.
+
+- **Round two, first finding:** the sampler connected lazily, after the work had started, which could finish after the burst. It now exists before the work (move 2).
+- **Round two, second finding:** a failure in the middle of the test left a privileged client open on the shared server, until the sampler's close moved into an outer `finally` that always runs.
+- **Round three:** the half-the-units floor was timing-dependent. It became the barrier (move 5).
+- **A later finding:** a rejected unit made `Promise.all` return on the first failure while the other units kept running against a shared database, where late writes could contaminate the next test file. The cleanup now releases the barrier first, waits for every unit with `allSettled`, closes the connections, and only then rethrows the original error.
+
+Two kinds of check back the changes, both as the record reports them and not re-run for this post. First, the author ran the test against deliberately broken copies and reports red for each: a connection that is never closed, extra connections held per unit, the tag dropped from the URL, the barrier removed, the sampler readied after the work starts, and `allSettled` removed. The last one was caught on every run, but only one arm caught it every time: the arm where a unit rejects catches it on three runs of five, because the other units may finish before the cleanup looks, so a second arm that fails while every unit is still blocked at the barrier does the deterministic work. Second, three planted-failure arms in the test itself make the burst fail on purpose and assert that the planted error is the one reported, that every unit had settled when the function returned, and that no lock or tagged connection remains.
 
 ## What this still does not prove
 
-- A sampled peak is a tripwire for gross over-opening, not a per-unit meter. The record plants one extra short-lived connection per unit and shows it is not caught by the peak, only by the ownership assertion.
+- A sampled peak is a tripwire for gross over-opening, not a per-unit meter. The extra short-lived connection the record plants is not caught by the peak, only a leak is caught by the ownership assertion.
 - The ceiling's headroom for this workload is small. A bigger burst or another kind of unit breaches it, and that is the signal.
 - The tag makes the test independent of what ran before it. It does not make it independent of a neighbour that opens more than the container allows.
-- The toy is a toy. It shows the shape of the measurement problem on a TCP server, not the behaviour of any database, and no number from it says anything about Northsun.
-- The review rounds are as the record reports them. They were not re-run for this post.
+- The change is test-only and merged. It says nothing about how Northsun's service performs or behaves in production.
+- The script is not Northsun's test. It counts by database where the real test counted by role, and no number from it says anything about Northsun.
+- The review rounds, the breakage runs and the green runs are as the decision record reports them. They were not re-run for this post, and the Northsun repository is private.
 
 ## How to check your own test
 
-Four questions, in order. What exactly does the count include: can a neighbour appear in it? When does the first sample run: before or after the thing it counts is visible? What happens if the thing you tagged is no longer tagged: does anything fail? And does the test hold the burst still, or does it hope the sampler lands on the peak? If a test passes when run alone, make it fail on purpose first: hold sixty connections from another process and see what it says.
+Four questions, in order. What exactly does the count include: can a neighbour appear in it? When does the first sample run: before or after the thing it counts exists? What happens if the thing you tagged is no longer tagged: does anything fail? And does the test hold the burst still, or does it hope the sampler lands on the peak? If a test passes when run alone, make it fail on purpose first: hold a pile of connections open from another process and see what it says.
 
 ## FAQ
 
 ### Why did the test pass alone and fail in the full suite?
 
-It counted every connection on a shared database, so it passed when nobody else had any open and failed when earlier test files had left sockets lingering. Run alone, it also read almost none of its own connections, so even a leak would have passed.
+Two reasons, from the record. It counted every connection its role held on a shared database, so it passed when nothing else was open and went red when earlier test files had left connections behind. And its samples ran before its own connections existed, so alone it read none of them, which means a pass alone said nothing about headroom.
 
-### Can't I just raise the budget?
+### Can't I just raise the ceiling?
 
-Not honestly. The budget was already above what the scenario opens, so raising it would only hide the neighbours. The question to ask first is whether the test counts what it claims to count.
+The record rejected it. The old ceiling was below the number of connections the scenario opens by construction, so it only passed when the samples missed the burst, and a higher number would still have been counting neighbours. Once the test counts only its own connections, the ceiling can be structural: at most one connection per unit of work, and below the usable slots.
 
 ### Should a load test assert on a sampled peak at all?
 
-As a tripwire for gross over-opening, yes. As the exact claim, no: a sampled peak depends on when the samples land. Assert on something exact, such as zero of your own connections left after the work settles, and use a barrier when you need an exact peak.
+As a tripwire for gross over-opening, yes. As the exact claim, no, because a sampled peak depends on when the samples land. Assert on something exact, such as zero of your own connections left once the work settles, and use a barrier when you need an exact peak.
 
 ## The receipts
 
