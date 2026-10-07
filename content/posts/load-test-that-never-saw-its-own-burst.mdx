@@ -7,7 +7,7 @@ description: "A connection-count test was red under load and green alone. It cou
 dek: "Northsun's connection-ownership test went red on two pull requests in one night and passed when run alone. It was counting the neighbours and, run alone, reading none of its own burst."
 tldr: "A Northsun test that asserted a ceiling on open database connections under a burst went red on two pull requests in one night and passed when run alone. It was measuring the wrong thing twice. It counted every connection the application's role held on a shared test server, so earlier test files' leftovers counted against it. And its samples were queued in the same synchronous loop that started the burst, so they could run before the burst's connections had finished connecting and, run alone, it read none of its own. The fix tagged the test's own connections and counted only the tag, sampled from a dedicated connection opened before the work, added a probe proving the tag reaches the server, and replaced a timing-dependent floor with a barrier: database locks hold every unit of work open at once, so the count is exact. A short stand-in script on a local Postgres shows five ways of reading a connection count, two of them wrong. The change is test-only and merged. Nothing here is a claim about product behaviour."
 date: 2026-10-07T03:00:00+00:00
-updated: 2026-10-07T10:59:00+00:00
+updated: 2026-10-07T14:40:00+00:00
 author: Abdur Rahman Sayeed
 section: "Builder Logs"
 register: reported
@@ -241,4 +241,4 @@ The Northsun repository and issue tracker are private, so these are paths and th
 
 <ReceiptsBlock />
 
-For other checks that passed or failed without measuring what they claimed, read [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran) and [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail).
+For other checks that passed or failed without measuring what they claimed, read [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran) and [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail). Two later posts in the same family: [a flaky timing test that blocked a deploy](/writing/testing-linear-time-without-a-flaky-clock) and [four more ways a check goes green without running](/writing/four-more-ways-a-check-passes-by-not-running).

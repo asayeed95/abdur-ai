@@ -7,6 +7,7 @@ description: "How to assert that 8x the input costs at most 30x the time without
 dek: "Northsun's timing test failed main's push CI on a loaded runner and blocked a deploy. The record reports the replacement stable under heavy synthetic load, and the blind spot it bought is one you can measure."
 tldr: "A Northsun test that asserted eight times the input costs at most a bound times the time failed main's push CI on a loaded runner and blocked a deploy. It divided two noisy numbers, and the small one was under a millisecond. The replacement warms both sizes up, takes the fastest of nine interleaved runs per size, floors the small time, and uses one bound between linear (about eight times) and quadratic (about sixty-four times). The record reports it stable under heavy synthetic load and red for a quadratic planted in each scanner, and it names the price: a defect that costs less than the bound times the floor at the large size passes. A runnable toy on a four-core sandbox machine shows the same pattern. Under heavy load the old shape fails most runs, the floor and not the fastest-of-nine is what keeps a correct scanner green, and a cheaper planted quadratic goes from caught to missed. The change is test-only and merged. Nothing here is a claim about product behaviour."
 date: 2026-10-07T10:55:00+00:00
+updated: 2026-10-07T14:40:00+00:00
 author: Abdur Rahman Sayeed
 section: "Builder Logs"
 register: reported
@@ -253,4 +254,4 @@ The Northsun repository and issue tracker are private, so these are paths and th
 
 <ReceiptsBlock />
 
-For other checks that passed or failed without measuring what they claimed, read [a load test that counted its neighbours and never saw its own burst](/writing/load-test-that-never-saw-its-own-burst) and [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran).
+For other checks that passed or failed without measuring what they claimed, read [a load test that counted its neighbours and never saw its own burst](/writing/load-test-that-never-saw-its-own-burst) and [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran). A later post in the same family, about checks that exit 0 without doing their job, is [four more ways a check goes green without running](/writing/four-more-ways-a-check-passes-by-not-running).
