@@ -145,7 +145,7 @@ const SYSTEMS: { name: string; dot: Dot; strongBorder: boolean; status: string; 
     dot: "gold",
     strongBorder: true,
     status: "Deployed pilot · agent control plane in review",
-    body: "Event spine for the company's automations: authenticated webhook ingress, fenced leases, receipts that make a duplicate impossible.",
+    body: "Event spine for the company's automations: authenticated webhook ingress, fenced leases, receipts that reject duplicate deliveries.",
   },
   {
     name: "BrowseFlow",

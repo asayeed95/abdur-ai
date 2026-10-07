@@ -33,7 +33,7 @@ export const PROJECTS: PoppyProject[] = [
     tone: "progress",
     detail: "AI product · #1 priority · not GA",
     body: "My main AI product. Northsun is the memory and enrichment layer for AI agents. The work is retrieval and memory plumbing, with a client SDK published on npm.",
-    poppy: "The closest thing to their stack — AI harnesses, context/retrieval/memory, product UX over complex AI.",
+    poppy: "Closest to the posting's skill list: context, retrieval, and memory for agents, plus product UX over complex AI.",
     explainer: "Northsun is my priority product and is in active development. Its client SDK is published on npm; the platform is not generally available.",
   },
   {
@@ -75,7 +75,7 @@ export const PROJECTS: PoppyProject[] = [
     tone: "internal",
     body: "Internal infrastructure at One Asec: the event spine for the company's automations. Not a public product.",
     poppy: "Evidence of systems thinking: the unglamorous plumbing that keeps products running.",
-    explainer: "Relay is the event spine for One Asec's automations: authenticated webhook ingress, fenced leases, and receipts that make a duplicate impossible. It is internal infrastructure, not a public product.",
+    explainer: "Relay is the event spine for One Asec's automations: authenticated webhook ingress, fenced leases, and receipts that reject duplicate deliveries. It is internal infrastructure, not a public product.",
   },
   {
     // TODO: flip to 'Shipped' when public launch is confirmed (AGE-2393 POPPY-PATCH).
@@ -84,7 +84,7 @@ export const PROJECTS: PoppyProject[] = [
     status: "Deployed · final testing",
     tone: "progress",
     body: "An AI tool around Dockerfiles — applied AI on a concrete developer workflow.",
-    poppy: "Applied AI with a tight feedback loop: one workflow, done well, judged by output quality.",
+    poppy: "Applied AI with a tight feedback loop: one workflow, judged by output quality.",
     explainer: "Dockerfile.ai is deployed and in final testing before public launch. Its public site describes the workflow: Dockerfile generation, explanation, and optimization.",
     links: [{ label: "Visit product site", href: "https://dockerfile.ai", external: true }],
   },

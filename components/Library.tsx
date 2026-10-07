@@ -11,11 +11,13 @@ type Product = {
 
 const PRODUCTS: Product[] = [
   {
+    // TODO: restore ratified pricing at launch (AGE-2393 POPPY-PATCH). No price is
+    // live on dockerfile.ai yet and none is ratified for public copy.
     kind: "SaaS · self-serve",
     name: "Dockerfile.ai",
-    price: "From $9/mo",
-    cta: "Start free",
-    desc: "Generate a production Dockerfile that's verified in a sandbox before you ship it. Free tier, then $9–$49 a month.",
+    price: "Launching soon",
+    cta: "Visit site",
+    desc: "Generate a production Dockerfile that's verified in a sandbox before you ship it.",
     href: "https://dockerfile.ai",
   },
   {

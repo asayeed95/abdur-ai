@@ -4,7 +4,7 @@ import { Reveal } from "./Reveal";
 type Tool = {
   name: string;
   desc: string;
-  status: "Live" | "Near-launch" | "TestFlight" | "Building";
+  status: "Live" | "Deployed · final testing" | "Near-launch" | "TestFlight" | "Building";
   href: string;
   icon: React.ReactNode;
 };
@@ -13,7 +13,8 @@ const TOOLS: Tool[] = [
   {
     name: "Dockerfile.ai",
     desc: "Dockerfiles that actually build. Generates a multi-stage, security-aware build, then verifies it in a sandbox before you ever trust it.",
-    status: "Live",
+    // TODO: flip to 'Shipped' when public launch is confirmed (AGE-2393 POPPY-PATCH).
+    status: "Deployed · final testing",
     href: "https://dockerfile.ai",
     icon: (
       <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden>
@@ -63,6 +64,7 @@ const TOOLS: Tool[] = [
 
 const STATUS_CLASS: Record<Tool["status"], string> = {
   Live: "status-pill status-live",
+  "Deployed · final testing": "status-pill status-near",
   "Near-launch": "status-pill status-near",
   TestFlight: "status-pill status-flight",
   Building: "status-pill status-building",
