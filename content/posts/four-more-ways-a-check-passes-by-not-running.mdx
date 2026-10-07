@@ -5,8 +5,8 @@ seo_title: "Four ways a check goes green without running"
 subtitle: "An entry-point guard, a missing ceiling, a blind sweep and a shrinking denominator, each with a script you can run and the fix Northsun's records describe."
 description: "Four ways a CI check exits 0 without checking anything: a symlinked entry point, a missing ceiling, a blind sweep, a shrinking count. Runnable repros."
 dek: "Northsun's records describe four checks that could report success without doing their job. Each is reproduced here in a few lines, with the fix and how to catch the next one."
-tldr: "A check that cannot run still has to end somehow, and the easiest ending is exit 0, which CI reads as green. Northsun's records describe four ways that can happen. An entry-point guard compared a symlinked path with a resolved one, so the script's main function never ran and a repository gate reported clean. A latency gate compared a measurement with a ceiling missing from its config, which is always false. A sweep that could not read the API would find nothing red and print that it was clean. A count of gates filtered out the disabled ones before counting, so it could not notice them. Each is reproduced in one short Node script, with the fix the records describe: resolve both sides of a comparison, treat a missing ceiling as a breach, give could-not-look its own exit code, and count what exists before filtering. The changes are tooling and test code on Northsun's main branch. Nothing here is a claim about product behaviour or about how any host is protected."
-date: 2026-10-07T14:35:00+00:00
+tldr: "A check that cannot run still has to end somehow, and the easiest ending is exit 0, which CI reads as green. Northsun's records describe four ways that can happen; only the first is recorded in use, and the others were caught in review or by their authors. An entry-point guard compared a symlinked path with a resolved one, so the script's main function never ran and a repository gate reported clean. A latency gate compared a measurement with a ceiling missing from its config, which is always false. A sweep that could not read the API would find nothing red and print that it was clean. A count of gates filtered out the disabled ones before counting, so it could not notice them. Each is reproduced in one Node script, with the recorded fix: resolve both sides of a comparison, treat a missing ceiling as a breach, give could-not-look its own exit code, and count before filtering. These are tooling and test changes. Nothing here is a claim about product behaviour or about how any host is protected."
+date: 2026-10-07T14:51:00+00:00
 author: Abdur Rahman Sayeed
 section: "Builder Logs"
 register: reported
@@ -36,6 +36,9 @@ receipts:
   - path: "docs/decisions-log/2026-10-02-age-2809-gate-sweep.md"
     sha: "3acca906"
     note: "The decision record for the sweep, including the demonstration that pointed its API client at a command that always fails."
+  - path: "docs/decisions-log/2026-10-02-age-2812-orphaned-workflows.md"
+    sha: "0496e0c5"
+    note: "The decision record for the ORPHANED state, in the same merge as PR #1420: the rule that trust in a read is decided by its status and never by whether it is empty, and one mocked case per branch. Private repository."
   - path: "The listing in this post (repro.mjs)"
     note: "Run on 2026-10-07 under Node 22.22.0 and Node 22.22.2 on Linux; the two runs printed identical output. The script is a stand-in with its own toy checks, not Northsun code, and it was not run on macOS, where the entry-point incident happened."
 citation_preferred: "Sayeed, Abdur Rahman. 'Four more ways a check goes green without running.' abdur.ai, 7 October 2026."
@@ -50,7 +53,7 @@ related:
 
 **Status of what this describes:** tooling and test code in Northsun's private repository, all of it on its main branch by 2 October 2026. The entry-point incident is dated August 2026 in its header. This post does not say where any of it runs. Nothing here is a claim about product behaviour, and nothing says which checks run on which hosts or that any host is protected. The script in this post is a stand-in with toy checks of its own, described below.
 
-**Who did the work:** not me, as far as I can show. The commits behind the three pull requests carry my git name together with an AI co-author trailer. The commit that introduced the entry-point helper is outside the shallow checkout I read, so I make no claim about who wrote it. The two decision records cited here carry no provenance line and speak in the first person, so I report their sentences as theirs and do not claim them. The review findings the records credit came from automated reviewers. The script and the runs of it in this post were done on 7 October 2026 by the AI session that drafts these write-ups, not by me and not by whoever wrote the checks. Where this post says "Northsun", it means that project and its agents.
+**Who did the work:** not me, as far as I can show. The merge and squash commits for the three pull requests carry my account name, and the commit messages behind them carry an AI co-author trailer. The commit that introduced the entry-point helper is outside the shallow checkout that was read for this post, so I make no claim about who wrote it. Of the three decision records cited here, two carry no provenance line and one names an AI coding agent as its decider. All three speak in the first person, so I report their sentences as theirs and do not claim them. The review findings the records credit came from automated reviewers. The script and the runs of it in this post were done on 7 October 2026 by the AI session that drafts these write-ups, not by me and not by whoever wrote the checks. Where this post says "Northsun", it means that project and its agents.
 
 **Terms, as this post uses them.** An *exit code* is the number a program returns when it ends, and CI treats 0 as green. An *entry-point guard* is the test a script runs to decide whether it was started directly, so that importing it does not run its work. To *fail closed* is to treat a failure to check as a failure. A *denominator check* compares how many things a check classified with how many there were.
 
@@ -76,28 +79,28 @@ The fix makes a missing ceiling a breach, with the message that it is refusing t
 
 ## Three: a monitor that cannot tell blind from clean
 
-The sweep is a script used to decide whether any gate is red. Review found that it could not tell total blindness from a clean sweep. It ran with `set -uo pipefail` and no errexit, so the script carried on after a failed API call that had still left an empty file, because the shell's redirection creates the file first. The script then counted zero things, classified zero things, and passed its denominator check because zero equals zero. Nothing was red, so it printed `(no RED, no UNKNOWN)` and exited 0. Per the commit message, that blind version had lived on one machine until the script was committed to the repository. The record demonstrates the failure by pointing the script's API client at `/usr/bin/false`. Before the fix: that line and exit 0. After: a verdict that the sweep could not read what it classifies, and exit 2.
+The sweep is a script used to decide whether any gate is red. Review found that it could not tell total blindness from a clean sweep. It ran with `set -uo pipefail` and no errexit, so the script carried on after a failed API call that had still left an empty file, because the shell's redirection creates the file first. The script then counted zero things, classified zero things, and passed its denominator check because zero equals zero. Nothing was red, so it printed `(no RED, no UNKNOWN)` and exited 0. Per the commit message, an earlier version existed only on one machine until the script was committed, and is described as having reported `(no RED, no UNKNOWN)` and exit 0 while completely blind. The records do not say whether it ever did so outside review. The record demonstrates the failure by pointing the script's API client at `/usr/bin/false`. Before the fix: that line and exit 0. After: a verdict that the sweep could not read what it classifies, and exit 2.
 
 Fixing that exposed a second problem, in the exit codes. A failed per-workflow read had first been counted as unknown and reported with exit 1, the code that means "I looked at everything and found red", so a caller could not tell a genuinely red gate from a sweep that could not see. The record says the API call's status was being discarded in command substitution, so a separate counter now carries read failures. In bash a status is lost when the substitution's output is consumed by something else, as in `local x=$(…)`, a pipeline or `read`. The script also checks the status of each read and not only the shape of its output, because the API client can print one valid row and then fail, and a check on shape cannot see that. The documented contract is exit 0 for all clear, 1 for "I read everything and found RED or UNKNOWN", and 2 for "the sweep could not be trusted", which is never clean.
 
 The record also admits how its own demonstration was first misread: the fail-closed demonstration printed `exit=1` and was read as a pass, two screens below a header documenting exit 2 for exactly that case. In its words, having the measurement is not the same as checking it against the spec.
 
-Section 3 of the script has three sweeps over a world where one of three gates is red: one that swallows read failures, one that notices them but reports them with the same code as red, and one that gives them their own. The toy has no denominator check, so the 0 == 0 pass is reported from the record and not shown. Two cells of its table, the per-gate failure under the blind sweep and the unreadable list under the one-code sweep, are the toy's own extension.
+Section 3 of the script has three sweeps over a world where one of three gates is red: one that swallows read failures, one that notices them but reports them with the same code as red, and one that gives them their own. The toy has no denominator check, so the 0 == 0 pass is reported from the record and not shown. Three cells of its table, the per-gate failure under the blind sweep, the unreadable list under the one-code sweep, and the empty list, are the toy's own extension.
 
 ## Four: a denominator that shrinks with the numerator, and an absence read as intent
 
 The same sweep filtered out workflows that were not active before it computed its total. The denominator check then compared two numbers that had been reduced in the same way, and it would have passed while a gate sat disabled and unable to run. The record calls that latent, not hypothetical. Review found it, and the fix is to enumerate every workflow first. A disabled workflow is never green, and a deleted one is counted and reported instead of dropped.
 
-A later change fixed a cousin of the same mistake. The sweep had classified a workflow with zero runs as not applicable, and its header described that state as "PR-only by design". The change's commit message says the script cannot see design: it observed an absence of runs and asserted an intent from it. It added an `ORPHANED` state for a workflow that is active, whose definition path is under the workflows directory but absent from the branch's own listing. The reference set is one read of that listing, with membership tested locally instead of one request per workflow. Per the record, trust in that read is decided by its status and never by whether it is empty. A successful read that returns nothing is accepted as the truth, because a branch with no workflows directory is a valid state and failing closed on it would block exactly the case the new state exists to detect. An unreadable listing, or a not-found on a branch name that does not resolve, ends the sweep as untrusted, because without the listing every workflow would look orphaned. The record adds that its first version also failed closed on an empty listing, and that this was wrong. Separately, an enumeration that comes back with zero workflows is still treated as a failed read and not as an empty repository.
+A later change fixed a cousin of the same mistake. The sweep had classified a workflow with zero runs as not applicable, and its header described that state as "PR-only by design". The change's commit message says the script cannot see design: it observed an absence of runs and asserted an intent from it. It added an `ORPHANED` state for a workflow that is active, whose definition path is under the workflows directory but absent from the branch's own listing. The reference set is one read of that listing, with membership tested locally instead of one request per workflow. Per the record, trust in that read is decided by its status and never by whether it is empty. An HTTP 200 is accepted as the truth even when the listing is empty. So is a confirmed not-found when the branch name still resolves, because a branch with no workflows directory is a valid state and failing closed on it would block exactly the case the new state exists to detect. A not-found where the branch name does not resolve, or any other failed read, ends the sweep as untrusted, because without the listing every workflow would look orphaned. The record says its first version failed closed on a read error and on an empty listing, and that both halves were wrong. Separately, an enumeration that comes back with zero workflows is still treated as a failed read and not as an empty repository.
 
 Section 4 of the script counts four gates, one of them disabled, once by filtering before the count and once by putting every gate into a bucket first. The second also treats a disabled gate as never green, so two changes are in it. It then reads a zero-run gate as intent and as absence.
 
 ## The script
 
-It needs Node 18 or later and nothing else, and it was tested on Linux. It makes a scratch directory with a symlink for section 1 and removes it at the end.
+It uses only Node built-ins, and it was run on Node 22.22.0 and 22.22.2 on Linux. It makes a scratch directory with a symlink for section 1 and removes it when section 1 finishes.
 
 ```js
-// repro.mjs: four ways a check goes green without running. Node 18 or later, no dependencies.
+// repro.mjs: four ways a check goes green without running. Node built-ins only, no dependencies.
 // Run: node repro.mjs
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync, realpathSync, rmSync } from "node:fs";
@@ -142,7 +145,7 @@ for (const [label, budgets] of [["budgets with limit_ms: 300", { limit_ms: 300 }
 // A sweep reads a list of gates, then reads each gate's last result. Exit 0 = all clear, 1 = something is red, 2 = could not look.
 // This toy has no denominator check: the record's 0 == 0 pass is reported in the post, not shown here.
 const world = (broken) => ({
-  list: () => { if (broken === "list") throw new Error("api down"); return ["build", "deploy", "nightly"]; },
+  list: () => { if (broken === "list") throw new Error("api down"); if (broken === "empty") return []; return ["build", "deploy", "nightly"]; },
   last: (g) => { if (broken === "reads") throw new Error("api down"); return g === "deploy" ? "failure" : "success"; },
 });
 function sweepBlind(w) {                       // swallows read failures: an empty read looks like an empty world
@@ -166,7 +169,7 @@ function sweepHonest(w) {
 }
 console.log("\n3. sweep over three gates, one of them red; the API is broken in different ways:");
 console.log("   " + "situation".padEnd(27) + "blind".padEnd(19) + "one code for both".padEnd(32) + "honest");
-for (const [label, broken] of [["API healthy", null], ["list unreadable", "list"], ["per-gate reads unreadable", "reads"]]) {
+for (const [label, broken] of [["API healthy", null], ["list unreadable", "list"], ["list comes back empty", "empty"], ["per-gate reads unreadable", "reads"]]) {
   const cell = (r) => `exit ${r.exit} ${r.text}`;
   console.log("   " + label.padEnd(27) + cell(sweepBlind(world(broken))).padEnd(19) + cell(sweepOneCode(world(broken))).padEnd(32) + cell(sweepHonest(world(broken))));
 }
@@ -181,7 +184,7 @@ const denominatorNaive = (all) => { const active = all.filter((g) => g.state ===
   return { exit: total === classified ? 0 : 2, text: `total=${total} classified=${classified}` }; };
 const denominatorHonest = (all) => {                                                          // every gate lands in exactly one bucket
   const counts = {}; for (const g of all) counts[bucket(g)] = (counts[bucket(g)] ?? 0) + 1;
-  const classified = Object.values(counts).reduce((a, b) => a + b, 0), notGreen = all.filter((g) => bucket(g) !== "green");
+  const classified = ["green", "red", "unknown", "disabled"].reduce((a, k) => a + (counts[k] ?? 0), 0), notGreen = all.filter((g) => bucket(g) !== "green");
   if (classified !== all.length) return { exit: 2, text: "UNTRUSTED: a gate fell out of the count" };
   return { exit: notGreen.length ? 1 : 0, text: `total=${all.length} classified=${classified} not green: ${notGreen.map((g) => `${g.n} (${bucket(g)})`).join(", ") || "none"}` }; };
 for (const [name, f] of [["filter, then count", denominatorNaive], ["count, then bucket (disabled is never green)", denominatorHonest]]) { const r = f(gates); console.log(`   ${name.padEnd(45)} exit ${r.exit}  ${r.text}`); }
@@ -210,6 +213,7 @@ Output from Node 22.22.0 on Linux. The run on Node 22.22.2 printed the same text
    situation                  blind              one code for both               honest
    API healthy                exit 1 RED         exit 1 not green                exit 1 RED
    list unreadable            exit 0 (no RED)    exit 1 could not read the list  exit 2 UNTRUSTED
+   list comes back empty      exit 0 (no RED)    exit 0 all clear                exit 2 UNTRUSTED
    per-gate reads unreadable  exit 0 (no RED)    exit 1 not green                exit 2 UNTRUSTED
 
 4. four gates, one of them disabled so it can never run:
@@ -220,7 +224,7 @@ Output from Node 22.22.0 on Linux. The run on Node 22.22.2 printed the same text
    ghost  naive: N/A (PR-only by design)    checks the definition: ORPHANED (active, but its definition is not on the branch)
 ```
 
-What it shows, with its limits. Section 1: a guard that compares as typed exits 0 without running through a symlinked directory. A guard that resolves both sides runs in all three setups. A guard that resolves only `argv[1]` fails under `--preserve-symlinks-main`, which matches the caution in the header. This is a Linux run with a symlinked directory, and the incident in the record was a macOS `/tmp`. Section 2: a missing key makes an unguarded comparison read as passing, and the guard turns it into a breach. Section 3: only the sweep with its own exit code lets a caller tell a red gate from a sweep that could not look. Section 4: a count taken after the filter passes with a disabled gate in the world, and counting first with disabled never green does not, and a zero-run gate is only suspicious if something checks that its definition exists. It does not show how Northsun's sweep, gate or guard behave today.
+What it shows, with its limits. Section 1: a guard that compares as typed exits 0 without running through a symlinked directory. A guard that resolves both sides runs in all three setups. A guard that resolves only `argv[1]` fails under `--preserve-symlinks-main`, which matches the caution in the header. This is a Linux run with a symlinked directory, and the incident in the record was a macOS `/tmp`. Section 2: a missing key makes an unguarded comparison read as passing, and the guard turns it into a breach. Section 3: only the sweep with its own exit code lets a caller tell a red gate from a sweep that could not look, and an empty list is the case where the one-code sweep reports all clear. Section 4: a count taken after the filter passes with a disabled gate in the world, and counting first with disabled never green does not, and a zero-run gate can only be told from an orphan if something checks that its definition exists. It does not show how Northsun's sweep, gate or guard behave today.
 
 ## What the four have in common
 
@@ -242,11 +246,11 @@ Five questions, in order. What does the check exit when it cannot read its input
 
 ### Why exit 2 and not exit 1 for "could not look"?
 
-Because exit 1 asserts a complete look. The sweep's header says it is never returned when a read failed, so a caller can tell "I read everything and something is red" from "I could not see".
+Because exit 1 asserts a complete look. The sweep's header says it is never returned when a read failed, so a caller can tell "I read everything and found RED or UNKNOWN" from "the sweep could not be trusted".
 
 ### Why not just turn on errexit?
 
-The records do not discuss errexit, so this is shell behaviour and not their finding. Errexit stops at the first failed read with that command's own status, which is not the code 2 the sweep reserves, and it is switched off inside `if` tests and `local x=$(…)`. The sweep keeps going, counts every read failure and returns 2. The records add that checking the shape of the output was not enough: the API client can print one valid row and then fail, so the status of each read has to be checked too.
+The records name the missing errexit as part of the failure but do not weigh turning it on, so this is shell behaviour and not their finding. Errexit stops at the first failed read with that command's own status, which is not the code 2 the sweep reserves. It is ignored in `if` conditions, and `local x=$(…)` masks the status. For per-workflow reads the sweep keeps going, counts every read failure and returns 2, and an unreadable enumeration ends it at once with 2. The records add that checking the shape of the output was not enough: the API client can print one valid row and then fail, so the status of each read has to be checked too.
 
 ### Is the symlink problem only a macOS problem?
 
