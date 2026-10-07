@@ -4,9 +4,9 @@ title: "Four more ways a check goes green without running."
 seo_title: "Four ways a check goes green without running"
 subtitle: "An entry-point guard, a missing ceiling, a blind sweep and a shrinking denominator, each with a script you can run and the fix Northsun's records describe."
 description: "Four ways a CI check exits 0 without checking anything: a symlinked entry point, a missing ceiling, a blind sweep, a shrinking count. Runnable repros."
-dek: "Northsun's records describe four checks that reported success without doing their job. Each is reproduced here in a few lines, with the fix and how to catch the next one."
-tldr: "A check that cannot run still has to end somehow, and the easiest ending is exit 0, which reads as green. Northsun's records describe four ways that happened. An entry-point guard compared a symlinked path with a resolved one, so the script's main function never ran. A latency gate compared a measurement with a ceiling that was missing from its config, which is always false, so it never fired. A sweep that could not read the API found nothing red and said it was clean. And a count of gates filtered out the disabled ones before counting, so the count could not notice them. Each is reproduced in one short Node script that runs anywhere, with the fix the records describe: resolve both sides of the comparison, treat a missing ceiling as a breach, give could-not-look its own exit code, and count what exists before filtering. The changes are tooling and test code, merged and not deployed. Nothing here is a claim about product behaviour or about how any host is protected."
-date: 2026-10-07T14:55:00+00:00
+dek: "Northsun's records describe four checks that could report success without doing their job. Each is reproduced here in a few lines, with the fix and how to catch the next one."
+tldr: "A check that cannot run still has to end somehow, and the easiest ending is exit 0, which CI reads as green. Northsun's records describe four ways that can happen. An entry-point guard compared a symlinked path with a resolved one, so the script's main function never ran and a repository gate reported clean. A latency gate compared a measurement with a ceiling missing from its config, which is always false. A sweep that could not read the API would find nothing red and print that it was clean. A count of gates filtered out the disabled ones before counting, so it could not notice them. Each is reproduced in one short Node script, with the fix the records describe: resolve both sides of a comparison, treat a missing ceiling as a breach, give could-not-look its own exit code, and count what exists before filtering. The changes are tooling and test code on Northsun's main branch. Nothing here is a claim about product behaviour or about how any host is protected."
+date: 2026-10-07T14:35:00+00:00
 author: Abdur Rahman Sayeed
 section: "Builder Logs"
 register: reported
@@ -20,19 +20,19 @@ tags:
 receipts:
   - path: "scripts/lib/is-main-module.mjs"
     sha: "7b49345d"
-    note: "The entry-point guard helper. Its header documents the incident (dated August 2026) and the fix. 7b49345d is the earliest commit that carries it in the shallow checkout read for this post, and the file is unchanged since. Private repository."
+    note: "The entry-point guard helper. Its header documents the incident (dated August 2026) and the fix. 7b49345d is a commit that carries the file, identical at the checkout's head. The checkout is shallow, so the commit that introduced it was not readable. Private repository."
   - path: "The soak evaluation test under scripts/evals, as changed by PR #1330"
     sha: "e46ad35c"
-    note: "PR #1330, merged 2026-10-01. The fail-closed check on a missing ceiling, with the comment that explains it. Named by merge commit and not by file name. Private repository."
+    note: "PR #1330, merged 2026-10-01 (US Eastern). The fail-closed check on a missing ceiling, with the comment that explains it. Named by merge commit and not by file name. Private repository."
   - path: "The 2026-10-01 policy record added to docs/decisions-log by PR #1330"
     sha: "e46ad35c"
     note: "The decision record in the same merge, named by merge commit and not by file name. It carries internal figures, which this post leaves out."
-  - path: "ci/mini/gate-sweep.sh"
+  - path: "The gate-sweep script under ci/, as added by PR #1410"
     sha: "3acca906"
-    note: "PR #1410, merged 2026-10-02. The sweep after it was made to fail closed, with a header that lists every way it had lied."
-  - path: "ci/mini/gate-sweep.sh"
+    note: "PR #1410, merged 2026-10-02. The sweep after it was made to fail closed, with a header that lists the rules it learned from how it had lied. Named by merge commit and not by full path."
+  - path: "The gate-sweep script under ci/, as changed by PR #1420"
     sha: "0496e0c5"
-    note: "PR #1420, merged 2026-10-02. The sweep after it stopped reading an absence of runs as intent."
+    note: "PR #1420, merged 2026-10-02. The sweep after it stopped reading an absence of runs as intent, and its final rule for deciding when to trust a read."
   - path: "docs/decisions-log/2026-10-02-age-2809-gate-sweep.md"
     sha: "3acca906"
     note: "The decision record for the sweep, including the demonstration that pointed its API client at a command that always fails."
@@ -46,90 +46,101 @@ related:
   - testing-linear-time-without-a-flaky-clock
 ---
 
-**Short answer:** a check that cannot do its job still has to end somehow, and the easiest way to end is exit 0, which every caller reads as green. Give "I could not look" a result of its own, different from "I looked and found nothing", and make the check count what exists before it filters anything. Then break its input on purpose and read the result against what you documented. Four checks in Northsun's repository went green without running, for four different reasons. Each is reproduced below in a few lines of Node, with the fix their records describe.
+**Short answer:** a check that cannot do its job still has to end somehow, and the easiest way to end is exit 0, which CI reads as green. Give "I could not look" a result of its own, different from "I looked and found nothing", and make the check count what exists before it filters anything. Then break its input on purpose and read the result against what you documented. Four checks in Northsun's repository could go green without running. One did, in use, according to its own header. The records describe the other mechanisms as found in review, or by their authors soon after, and fixed. Each is reproduced below in a few lines of Node, with the fix the records describe.
 
-**Status of what this describes:** tooling and test code in Northsun's private repository, merged between August and 2 October 2026. None of it is served code, so none of it is deployed to anything a user touches. Nothing here is a claim about product behaviour, and nothing says which hosts run which hooks or sweeps or that any host is protected. The script in this post is a stand-in with toy checks of its own, described below.
+**Status of what this describes:** tooling and test code in Northsun's private repository, all of it on its main branch by 2 October 2026. The entry-point incident is dated August 2026 in its header. This post does not say where any of it runs. Nothing here is a claim about product behaviour, and nothing says which checks run on which hosts or that any host is protected. The script in this post is a stand-in with toy checks of its own, described below.
 
-**Who did the work:** not me, as far as I can show. The commits on these changes carry my git name together with an AI co-author trailer. The decision records carry no provenance line and speak in the first person, so I quote their sentences as the records' own and do not claim them, and I do not say which sentence was written by whom. The review findings the records credit came from automated reviewers. The script and the runs of it in this post were done on 7 October 2026 by the AI session that drafts these write-ups, not by me and not by the people or agents who wrote the checks. Where this post says "Northsun", it means that project and its agents.
+**Who did the work:** not me, as far as I can show. The commits behind the three pull requests carry my git name together with an AI co-author trailer. The commit that introduced the entry-point helper is outside the shallow checkout I read, so I make no claim about who wrote it. The two decision records cited here carry no provenance line and speak in the first person, so I report their sentences as theirs and do not claim them. The review findings the records credit came from automated reviewers. The script and the runs of it in this post were done on 7 October 2026 by the AI session that drafts these write-ups, not by me and not by whoever wrote the checks. Where this post says "Northsun", it means that project and its agents.
 
-**Terms, as this post uses them.** An *exit code* is the number a program returns when it ends, and a CI gate treats 0 as green. An *entry-point guard* is the test a script runs to decide whether it was started directly, so that importing it does not run its work. To *fail closed* is to treat a failure to check as a failure. A *denominator check* compares how many things a check classified with how many there were.
+**Terms, as this post uses them.** An *exit code* is the number a program returns when it ends, and CI treats 0 as green. An *entry-point guard* is the test a script runs to decide whether it was started directly, so that importing it does not run its work. To *fail closed* is to treat a failure to check as a failure. A *denominator check* compares how many things a check classified with how many there were.
 
 ## What happened
 
 Northsun is the memory and enrichment layer for AI agents.
 
-Northsun's repository is full of checks written as small scripts: gates that exit 0 for green, a sweep that looks for red workflows, evaluation gates with ceilings. The site has already told several stories about checks that pass without checking. A skipped job satisfied a required check, and a shell operator-precedence slip made a mutation test lie, in [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran). Optional chaining on a missing provider made an analytics call that could not fail in [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail). A test that counted the wrong thing and read zero for its own burst is in [a load test that counted its neighbours](/writing/load-test-that-never-saw-its-own-burst). These four are different mechanisms, and the repository's records describe each one.
+Northsun's repository is full of checks written as small scripts: gates that exit 0 for green, a sweep that looks for red workflows, evaluation gates with ceilings. The site has already told several stories about checks that pass without checking. A skipped job satisfied a required check, and a mutation was absorbed by operator precedence, in [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran). Optional chaining on a missing provider made an analytics call that could not fail in [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail). A test that counted the wrong thing and read zero for its own burst is in [a load test that counted its neighbours](/writing/load-test-that-never-saw-its-own-burst). These four are different mechanisms, and the repository's records describe each one.
 
 ## One: an entry-point guard that never matches
 
-The header of the repository's entry-point helper dates the incident to August 2026. Many scripts had hand-rolled the same guard, comparing `import.meta.url` with the path Node was started with. Node resolves a module entry point through symlinks, so `import.meta.url` holds the real path, while `process.argv[1]` keeps the path as it was typed. On macOS, `/tmp` is a symlink to `/private/tmp`, so any script run from a path under `/tmp` compared unequal. Its main function never ran, the module fell off the end, and the process exited 0. A phase gate that treats exit 0 as green reported clean without validating anything from a worktree under `/tmp`.
+The header of the repository's entry-point helper dates the incident to August 2026. Scripts across the repository had hand-rolled the same guard, comparing `import.meta.url` with the path Node was started with. Node resolves a module entry point through symlinks, so `import.meta.url` holds the real path, while `process.argv[1]` keeps its symlinks and is made absolute. On macOS, `/tmp` is a symlink to `/private/tmp`, so any script run from a path under `/tmp` compared unequal. Its main function never ran, the module fell off the end, and the process exited 0. A phase gate that treats exit 0 as green reported clean without validating anything from a worktree under `/tmp`.
 
-The fix, per the header, is to resolve both sides through `realpath` before comparing, and to fall back to the unresolved path instead of throwing when a path cannot be read. The header also cautions that resolving only one side brings the bug back under Node's `--preserve-symlinks-main` flag. That caution is the record's, and the repro below does not run it.
+The fix, per the header, is to resolve both sides through `realpath` before comparing. The helper's own comment adds that it falls back to the unresolved path instead of throwing when a path cannot be read. The header also cautions that resolving only one side brings the bug back under Node's `--preserve-symlinks-main` flag, and section 1 of the script runs exactly that: under the flag, the guard that resolves only `argv[1]` fails and the one that compares as typed passes.
 
-Section 1 of the script reproduces the shape with a check that exits 1 when it finds a problem, run by its real path and through a symlinked directory.
+Section 1 reproduces the shape with a check that exits 1 when it finds a problem, run by its real path, through a symlinked directory, and through a symlinked directory with the flag.
 
 ## Two: a gate that stops gating when its ceiling is missing
 
-An evaluation gate asserted that a measured latency stayed under a ceiling read from a budgets file. The run could be pointed at another budgets file, and a legacy one carried keys for a different percentile. The key the gate looked for was then `undefined`, and `measured > undefined` is false for every measured value, so all four latency gates silently stopped gating. The comment in the code puts it plainly: a gate that quietly stops gating is worse than no gate. The decision record says the problem was found in review of the pull request and calls it a real fail-open that the change itself had shipped.
+An evaluation gate asserted that a measured latency stayed under a ceiling read from a budgets file. The run could be pointed at another budgets file, and a legacy one carried keys for a different percentile. The key the gate looked for was then `undefined`, and `measured > undefined` is false for every measured value, so every latency gate would silently have stopped gating. The comment in the code puts it plainly: a gate that quietly stops gating is worse than no gate. The decision record says the problem was found in review of the pull request, and calls it a real fail-open that the pull request itself had introduced.
 
-The fix makes a missing ceiling a breach with the message that it is refusing to run ungated. Section 2 of the script shows a gate with and without the fix against a budgets object that lacks the key.
+The fix makes a missing ceiling a breach, with the message that it is refusing to run ungated. Section 2 of the script shows a gate with and without the fix against a budgets object that lacks the key.
 
 ## Three: a monitor that cannot tell blind from clean
 
-The sweep is a script used to decide whether any gate is red. Review found that it could not tell total blindness from a clean sweep. It ran with `set -uo pipefail` and no errexit, so a failed API call still created an empty file. The script then counted zero things, classified zero things, and passed its denominator check because zero equals zero. Nothing was red, so it printed `(no RED, no UNKNOWN)` and exited 0. The record demonstrates it by pointing the script's API client at `/usr/bin/false`. Before the fix: that line and exit 0. After: a verdict that the sweep could not read what it classifies, and exit 2.
+The sweep is a script used to decide whether any gate is red. Review found that it could not tell total blindness from a clean sweep. It ran with `set -uo pipefail` and no errexit, so the script carried on after a failed API call that had still left an empty file, because the shell's redirection creates the file first. The script then counted zero things, classified zero things, and passed its denominator check because zero equals zero. Nothing was red, so it printed `(no RED, no UNKNOWN)` and exited 0. Per the commit message, that blind version had lived on one machine until the script was committed to the repository. The record demonstrates the failure by pointing the script's API client at `/usr/bin/false`. Before the fix: that line and exit 0. After: a verdict that the sweep could not read what it classifies, and exit 2.
 
-Fixing that exposed a second problem, in the exit codes. A failed per-workflow read had first been counted as unknown and reported with exit 1, the code that means "I looked at everything and found red", so a caller could not tell a genuinely red gate from a sweep that could not see. Command substitution discards the API call's status, so a separate counter now carries read failures, and exit 2 is returned before exit 1. The script also checks the status of each read and not only the shape of its output, because the API client can print one valid row and then fail, and a check on shape cannot see that. The documented contract is exit 0 for all clear, 1 for "I read everything and found red or unknown", and 2 for "this sweep cannot be trusted", which is never clean.
+Fixing that exposed a second problem, in the exit codes. A failed per-workflow read had first been counted as unknown and reported with exit 1, the code that means "I looked at everything and found red", so a caller could not tell a genuinely red gate from a sweep that could not see. The record says the API call's status was being discarded in command substitution, so a separate counter now carries read failures. In bash a status is lost when the substitution's output is consumed by something else, as in `local x=$(…)`, a pipeline or `read`. The script also checks the status of each read and not only the shape of its output, because the API client can print one valid row and then fail, and a check on shape cannot see that. The documented contract is exit 0 for all clear, 1 for "I read everything and found RED or UNKNOWN", and 2 for "the sweep could not be trusted", which is never clean.
 
-The record also admits how the demonstration itself nearly slipped: the author's fail-closed demonstration printed `exit=1` and was read as a pass, two screens below a header documenting exit 2 for exactly that case. In its words, having the measurement is not the same as checking it against the spec.
+The record also admits how its own demonstration was first misread: the fail-closed demonstration printed `exit=1` and was read as a pass, two screens below a header documenting exit 2 for exactly that case. In its words, having the measurement is not the same as checking it against the spec.
 
-Section 3 of the script has three sweeps over a world where one of three gates is red: one that swallows read failures, one that notices them but reports them with the same code as red, and one that gives them their own.
+Section 3 of the script has three sweeps over a world where one of three gates is red: one that swallows read failures, one that notices them but reports them with the same code as red, and one that gives them their own. The toy has no denominator check, so the 0 == 0 pass is reported from the record and not shown. Two cells of its table, the per-gate failure under the blind sweep and the unreadable list under the one-code sweep, are the toy's own extension.
 
 ## Four: a denominator that shrinks with the numerator, and an absence read as intent
 
-The same sweep filtered out workflows that were not active before it computed its total. The denominator check then compared two numbers that had been reduced in the same way, and it passed while a gate sat disabled and unable to run. Review found it, and the fix is to enumerate every workflow first. A disabled workflow is never green, and a deleted one is counted and reported instead of dropped.
+The same sweep filtered out workflows that were not active before it computed its total. The denominator check then compared two numbers that had been reduced in the same way, and it would have passed while a gate sat disabled and unable to run. The record calls that latent, not hypothetical. Review found it, and the fix is to enumerate every workflow first. A disabled workflow is never green, and a deleted one is counted and reported instead of dropped.
 
-A later change fixed a cousin of the same mistake. The sweep had classified a workflow with zero runs as not applicable, and its header described that state as "PR-only by design". The change's commit message says the script cannot see design: it observed an absence of runs and asserted an intent from it. It added an `ORPHANED` state for a workflow that is active, whose definition path is under the workflows directory but absent from the branch's own listing. The reference set is one read of that listing, tested locally. The check fails closed on a read error and on an empty listing, because an unreadable listing would make every workflow look orphaned, and an empty one contradicts the enumeration that had just returned workflows.
+A later change fixed a cousin of the same mistake. The sweep had classified a workflow with zero runs as not applicable, and its header described that state as "PR-only by design". The change's commit message says the script cannot see design: it observed an absence of runs and asserted an intent from it. It added an `ORPHANED` state for a workflow that is active, whose definition path is under the workflows directory but absent from the branch's own listing. The reference set is one read of that listing, with membership tested locally instead of one request per workflow. Per the record, trust in that read is decided by its status and never by whether it is empty. A successful read that returns nothing is accepted as the truth, because a branch with no workflows directory is a valid state and failing closed on it would block exactly the case the new state exists to detect. An unreadable listing, or a not-found on a branch name that does not resolve, ends the sweep as untrusted, because without the listing every workflow would look orphaned. The record adds that its first version also failed closed on an empty listing, and that this was wrong. Separately, an enumeration that comes back with zero workflows is still treated as a failed read and not as an empty repository.
 
-Section 4 of the script counts four gates, one disabled, with the filter before the count and after it, and then reads a zero-run gate as intent and as absence.
+Section 4 of the script counts four gates, one of them disabled, once by filtering before the count and once by putting every gate into a bucket first. The second also treats a disabled gate as never green, so two changes are in it. It then reads a zero-run gate as intent and as absence.
 
 ## The script
 
-It needs Node 18 or later and nothing else. It makes a scratch directory with a symlink for section 1 and removes it at the end.
+It needs Node 18 or later and nothing else, and it was tested on Linux. It makes a scratch directory with a symlink for section 1 and removes it at the end.
 
 ```js
 // repro.mjs: four ways a check goes green without running. Node 18 or later, no dependencies.
 // Run: node repro.mjs
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 // ---- 1. An entry-point guard that never matches --------------------------------------------------------------
-// A check script that only runs its work when it is the entry point. The work "finds a problem", so it exits 1.
-const naive = `import { pathToFileURL } from "node:url";
-if (import.meta.url === pathToFileURL(process.argv[1]).href) { console.log("check ran: problem found"); process.exit(1); }`;
-const fixed = `import { pathToFileURL, fileURLToPath } from "node:url"; import { realpathSync } from "node:fs"; import { resolve } from "node:path";
-const real = (p) => { try { return realpathSync(resolve(p)); } catch { return resolve(p); } };
-if (real(fileURLToPath(import.meta.url)) === real(process.argv[1])) { console.log("check ran: problem found"); process.exit(1); }`;
-const root = mkdtempSync(join(tmpdir(), "guard-"));
+// A check script that only does its work when it is the entry point. The work "finds a problem", so it exits 1.
+const GUARDS = {
+  "compares as typed": `import { pathToFileURL } from "node:url";
+const isMain = import.meta.url === pathToFileURL(process.argv[1]).href;`,
+  "resolves argv only": `import { pathToFileURL } from "node:url"; import { realpathSync } from "node:fs";
+const isMain = import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;`,
+  "resolves both sides": `import { fileURLToPath } from "node:url"; import { realpathSync } from "node:fs";
+const isMain = realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1]);`,
+};
+const root = realpathSync(mkdtempSync(join(tmpdir(), "guard-")));
 mkdirSync(join(root, "real"));
 symlinkSync(join(root, "real"), join(root, "alias"), "dir");   // like /tmp being a symlink to /private/tmp on macOS
-const exitOf = (file) => spawnSync(process.execPath, [file]).status;
-console.log("1. entry-point guard, check exits 1 when it finds a problem (0 would read as green):");
-for (const [name, body] of [["naive guard", naive], ["guard that resolves both sides", fixed]]) {
-  writeFileSync(join(root, "real", "check.mjs"), body);
-  console.log(`   ${name.padEnd(32)} run by its real path: exit ${exitOf(join(root, "real", "check.mjs"))}   run through a symlinked directory: exit ${exitOf(join(root, "alias", "check.mjs"))}`);
-}
+const run = (file, flags = []) => {
+  const r = spawnSync(process.execPath, [...flags, file], { encoding: "utf8" });
+  return `exit ${r.status} ${r.stdout.includes("check ran") ? "(ran)" : "(did not run)"}`;
+};
+console.log("1. entry-point guard; the check exits 1 when it finds a problem, so exit 0 reads as green:");
+console.log("   " + "guard".padEnd(22) + "real path".padEnd(18) + "symlinked dir".padEnd(26) + "symlinked dir with --preserve-symlinks-main");
+try {
+  for (const [name, guard] of Object.entries(GUARDS)) {
+    writeFileSync(join(root, "real", "check.mjs"), `${guard}\nif (isMain) { console.log("check ran: problem found"); process.exit(1); }\n`);
+    const real = join(root, "real", "check.mjs"), alias = join(root, "alias", "check.mjs");
+    console.log("   " + name.padEnd(22) + run(real).padEnd(18) + run(alias).padEnd(26) + run(alias, ["--preserve-symlinks-main"]));
+  }
+} finally { rmSync(root, { recursive: true, force: true }); }   // the scratch directory this script made
 
 // ---- 2. A gate that stops gating when its ceiling is missing -------------------------------------------------
-console.log("\n2. latency gate, measured value 900 against budgets that may lack the key:");
-const gateNaive = (measured, budgets) => (measured > budgets.p95_ms ? "BREACH" : "ok");
-const gateClosed = (measured, budgets) => (typeof budgets.p95_ms !== "number" ? "BREACH (ceiling missing, refusing to run ungated)" : measured > budgets.p95_ms ? "BREACH" : "ok");
-for (const [label, budgets] of [["budgets with p95_ms: 200", { p95_ms: 200 }], ["legacy budgets with only p99_ms", { p99_ms: 200 }]])
+console.log("\n2. latency gate, measured value 900, budgets that may lack the key:");
+const gateNaive = (measured, budgets) => (measured > budgets.limit_ms ? "BREACH" : "ok");
+const gateClosed = (measured, budgets) => (typeof budgets.limit_ms !== "number" ? "BREACH (ceiling missing, refusing to run ungated)" : measured > budgets.limit_ms ? "BREACH" : "ok");
+for (const [label, budgets] of [["budgets with limit_ms: 300", { limit_ms: 300 }], ["legacy budgets, other key only", { old_limit_ms: 300 }]])
   console.log(`   ${label.padEnd(34)} naive: ${gateNaive(900, budgets).padEnd(7)} fail closed: ${gateClosed(900, budgets)}`);
 
 // ---- 3. A monitor that cannot tell blind from clean ----------------------------------------------------------
 // A sweep reads a list of gates, then reads each gate's last result. Exit 0 = all clear, 1 = something is red, 2 = could not look.
+// This toy has no denominator check: the record's 0 == 0 pass is reported in the post, not shown here.
 const world = (broken) => ({
   list: () => { if (broken === "list") throw new Error("api down"); return ["build", "deploy", "nightly"]; },
   last: (g) => { if (broken === "reads") throw new Error("api down"); return g === "deploy" ? "failure" : "success"; },
@@ -147,6 +158,7 @@ function sweepOneCode(w) {                     // notices failed reads but repor
 }
 function sweepHonest(w) {
   let gates; try { gates = w.list(); } catch { return { exit: 2, text: "UNTRUSTED" }; }
+  if (!gates.length) return { exit: 2, text: "UNTRUSTED" };   // zero gates enumerated is a failed read, not an empty repo
   let readFailures = 0, red = 0;
   for (const g of gates) { try { if (w.last(g) === "failure") red++; } catch { readFailures++; } }
   if (readFailures) return { exit: 2, text: "UNTRUSTED" };
@@ -163,31 +175,36 @@ for (const [label, broken] of [["API healthy", null], ["list unreadable", "list"
 console.log("\n4. four gates, one of them disabled so it can never run:");
 const gates = [{ n: "build", state: "active", last: "success" }, { n: "deploy", state: "active", last: "success" },
                { n: "nightly", state: "disabled", last: undefined }, { n: "lint", state: "active", last: "success" }];
-const denominatorNaive = (all) => { const active = all.filter((g) => g.state === "active"); const total = active.length; const classified = active.filter((g) => g.last).length;
+const bucket = (g) => (g.state !== "active" ? "disabled" : g.last === "success" ? "green" : g.last ? "red" : "unknown");
+const denominatorNaive = (all) => { const active = all.filter((g) => g.state === "active");   // filtered BEFORE counting
+  const total = active.length, classified = active.filter((g) => g.last).length;
   return { exit: total === classified ? 0 : 2, text: `total=${total} classified=${classified}` }; };
-const denominatorHonest = (all) => { const total = all.length; const classified = all.length;           // every gate reaches a state
-  const notGreen = all.filter((g) => g.state !== "active" || g.last !== "success");
-  return { exit: notGreen.length ? 1 : 0, text: `total=${total} classified=${classified} not green: ${notGreen.map((g) => g.n + (g.state !== "active" ? " (" + g.state + ")" : "")).join(", ") || "none"}` }; };
-for (const [name, f] of [["filter before counting", denominatorNaive], ["count what exists first", denominatorHonest]]) { const r = f(gates); console.log(`   ${name.padEnd(26)} exit ${r.exit}  ${r.text}`); }
+const denominatorHonest = (all) => {                                                          // every gate lands in exactly one bucket
+  const counts = {}; for (const g of all) counts[bucket(g)] = (counts[bucket(g)] ?? 0) + 1;
+  const classified = Object.values(counts).reduce((a, b) => a + b, 0), notGreen = all.filter((g) => bucket(g) !== "green");
+  if (classified !== all.length) return { exit: 2, text: "UNTRUSTED: a gate fell out of the count" };
+  return { exit: notGreen.length ? 1 : 0, text: `total=${all.length} classified=${classified} not green: ${notGreen.map((g) => `${g.n} (${bucket(g)})`).join(", ") || "none"}` }; };
+for (const [name, f] of [["filter, then count", denominatorNaive], ["count, then bucket (disabled is never green)", denominatorHonest]]) { const r = f(gates); console.log(`   ${name.padEnd(45)} exit ${r.exit}  ${r.text}`); }
 console.log("   and a gate with zero runs, read as intent or as absence:");
-const defined = new Set(["build", "deploy", "lint"]);   // the files that exist on the branch
+const defined = new Set(["build", "deploy", "lint"]);   // the definition files that exist on the branch
 for (const g of [{ n: "lint", runs: 0 }, { n: "ghost", runs: 0 }]) {
   const asIntent = "N/A (PR-only by design)", asAbsence = defined.has(g.n) ? "N/A (definition exists, no runs yet)" : "ORPHANED (active, but its definition is not on the branch)";
   console.log(`   ${g.n.padEnd(6)} naive: ${asIntent.padEnd(26)} checks the definition: ${asAbsence}`);
 }
-rmSync(root, { recursive: true, force: true });   // the scratch directory this script made for section 1
 ```
 
 Output from Node 22.22.0 on Linux. The run on Node 22.22.2 printed the same text.
 
 ```text
-1. entry-point guard, check exits 1 when it finds a problem (0 would read as green):
-   naive guard                      run by its real path: exit 1   run through a symlinked directory: exit 0
-   guard that resolves both sides   run by its real path: exit 1   run through a symlinked directory: exit 1
+1. entry-point guard; the check exits 1 when it finds a problem, so exit 0 reads as green:
+   guard                 real path         symlinked dir             symlinked dir with --preserve-symlinks-main
+   compares as typed     exit 1 (ran)      exit 0 (did not run)      exit 1 (ran)
+   resolves argv only    exit 1 (ran)      exit 1 (ran)              exit 0 (did not run)
+   resolves both sides   exit 1 (ran)      exit 1 (ran)              exit 1 (ran)
 
-2. latency gate, measured value 900 against budgets that may lack the key:
-   budgets with p95_ms: 200           naive: BREACH  fail closed: BREACH
-   legacy budgets with only p99_ms    naive: ok      fail closed: BREACH (ceiling missing, refusing to run ungated)
+2. latency gate, measured value 900, budgets that may lack the key:
+   budgets with limit_ms: 300         naive: BREACH  fail closed: BREACH
+   legacy budgets, other key only     naive: ok      fail closed: BREACH (ceiling missing, refusing to run ungated)
 
 3. sweep over three gates, one of them red; the API is broken in different ways:
    situation                  blind              one code for both               honest
@@ -196,30 +213,30 @@ Output from Node 22.22.0 on Linux. The run on Node 22.22.2 printed the same text
    per-gate reads unreadable  exit 0 (no RED)    exit 1 not green                exit 2 UNTRUSTED
 
 4. four gates, one of them disabled so it can never run:
-   filter before counting     exit 0  total=3 classified=3
-   count what exists first    exit 1  total=4 classified=4 not green: nightly (disabled)
+   filter, then count                            exit 0  total=3 classified=3
+   count, then bucket (disabled is never green)  exit 1  total=4 classified=4 not green: nightly (disabled)
    and a gate with zero runs, read as intent or as absence:
    lint   naive: N/A (PR-only by design)    checks the definition: N/A (definition exists, no runs yet)
    ghost  naive: N/A (PR-only by design)    checks the definition: ORPHANED (active, but its definition is not on the branch)
 ```
 
-What it shows, with its limits. Section 1: a guard that compares a resolved path with an unresolved one exits 0 through a symlinked directory, and a guard that resolves both sides does not. It does so on Linux with a symlinked directory, and the incident in the record was a macOS `/tmp`. Section 2: a missing key makes an unguarded comparison read as passing, and the guard turns it into a breach. Section 3: only the sweep with its own exit code lets a caller tell a red gate from a sweep that could not look. Section 4: a count taken after the filter passes with a disabled gate in the world, and a count taken before it does not, and a zero-run gate is only suspicious if something checks that its definition exists. It does not show how Northsun's sweep, gate or guard behave today.
+What it shows, with its limits. Section 1: a guard that compares as typed exits 0 without running through a symlinked directory. A guard that resolves both sides runs in all three setups. A guard that resolves only `argv[1]` fails under `--preserve-symlinks-main`, which matches the caution in the header. This is a Linux run with a symlinked directory, and the incident in the record was a macOS `/tmp`. Section 2: a missing key makes an unguarded comparison read as passing, and the guard turns it into a breach. Section 3: only the sweep with its own exit code lets a caller tell a red gate from a sweep that could not look. Section 4: a count taken after the filter passes with a disabled gate in the world, and counting first with disabled never green does not, and a zero-run gate is only suspicious if something checks that its definition exists. It does not show how Northsun's sweep, gate or guard behave today.
 
 ## What the four have in common
 
-Each check had a default that meant success. Each could not tell "nothing to report" from "could not see". The fixes the records describe are the same few moves. Make "could not look" a result of its own, with its own exit code, and never let it share a code with "found a problem". Fail closed on a missing input, a failed read and an empty listing. Count what exists before filtering, so the denominator does not shrink with the numerator. Never infer a design from an absence. And demonstrate the fix by breaking the input on purpose.
+Each check had a default that meant success, and each could not tell "nothing to report" from "could not see". The records' fixes share a few moves, and not every record says all of them. Make "could not look" a result of its own, with its own exit code, and never let it share a code with "found a problem". Fail closed on a missing input and on a failed read. Whether an empty answer is a failure depends on what you know: the sweep treats an enumeration of zero workflows as a failed read, and a successful but empty listing of workflow files as the truth. Count what exists before filtering, so the denominator does not shrink with the numerator. The sweep's records add two more: never infer a design from an absence, and demonstrate the fix by breaking the input on purpose.
 
 ## What this still does not prove
 
 - The script is not Northsun's code. Its toy checks stand in for the patterns, and its output says nothing about how any Northsun tool behaves today.
-- The sweep's own tests are not in the repository this post read, so its behaviour is reported from its header, its commit messages and its decision record, and the pattern is reproduced in a toy and not by running the sweep.
-- The repro ran on Linux under two Node versions. The entry-point incident happened on macOS, and the `--preserve-symlinks-main` caution is the record's, not tested here.
-- All of it is tooling and test code, merged and not deployed. The post makes no claim about which hosts run which hooks or sweeps, and none that any host is protected.
+- The sweep's own tests are not in the repository this post read, so its behaviour is reported from its header, its commit messages and its decision records, and the pattern is reproduced in a toy and not by running the sweep.
+- The repro ran on Linux under two Node versions. The entry-point incident happened on macOS, and no macOS run is shown.
+- All of it is tooling and test code on the main branch. The post says nothing about where any of it runs, and makes no claim that any host is protected.
 - The review findings and the demonstrations in the records are as the records report them. They were not re-run for this post, and the repository is private.
 
 ## How to check your own checks
 
-Five questions, in order. What does the check exit when it cannot read its input, and is that the same code as when it found nothing? Is the denominator computed from what exists or from what survived a filter? Does "unknown" have a result of its own, separate from red and from clean? Have you run the check through a symlinked path, with a missing config key, and with its API client pointed at a command that always fails, and read each result against what you documented? And is any "by design" label inferred from an absence?
+Five questions, in order. What does the check exit when it cannot read its input, and is that the same code as when it found nothing? Is the denominator computed from what exists or from what survived a filter? Does "unknown" have a result of its own, separate from red and from clean? Have you broken the check's input on purpose, with its API client pointed at a command that always fails, with a config key missing, and, if it compares paths, through a differently spelled path, and read each result against what you documented? And is any "by design" label inferred from an absence?
 
 ## FAQ
 
@@ -229,7 +246,7 @@ Because exit 1 asserts a complete look. The sweep's header says it is never retu
 
 ### Why not just turn on errexit?
 
-The sweep's record does not say that would have been enough, and it describes a second problem that errexit would not address: the API client can print one valid row and then fail, so a check on the shape of the output cannot see the failure and only the status can. This post says nothing more about errexit than that.
+The records do not discuss errexit, so this is shell behaviour and not their finding. Errexit stops at the first failed read with that command's own status, which is not the code 2 the sweep reserves, and it is switched off inside `if` tests and `local x=$(…)`. The sweep keeps going, counts every read failure and returns 2. The records add that checking the shape of the output was not enough: the API client can print one valid row and then fail, so the status of each read has to be checked too.
 
 ### Is the symlink problem only a macOS problem?
 
@@ -245,4 +262,4 @@ The Northsun repository and issue tracker are private, so these are paths and me
 
 <ReceiptsBlock />
 
-For the first stories of this kind, read [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran), [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail), [a load test that counted its neighbours and never saw its own burst](/writing/load-test-that-never-saw-its-own-burst) and [a flaky timing test that blocked a deploy](/writing/testing-linear-time-without-a-flaky-clock).
+For the first stories of this kind, read [how 29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran), [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail) and [a load test that counted its neighbours and never saw its own burst](/writing/load-test-that-never-saw-its-own-burst). A related one: [a flaky timing test that blocked a deploy](/writing/testing-linear-time-without-a-flaky-clock).
