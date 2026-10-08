@@ -46,7 +46,7 @@ related:
 
 **Short answer:** I killed and restarted my bridge server, and my iOS app went into an endless "Invalid or expired token" loop. It took two bugs, and they fed each other. The server generated a fresh signing secret on every start, so every restart invalidated every token. The client treated "the server rejected my token" the same as "the network dropped", so it kept reconnecting with a token that could never work again. The first bug alone would have cost a re-pair after every restart. The second alone would have sat quietly until some other rejection arrived, a token reaching day 30, say. Together they made a loop.
 
-*Context: this is from HeyCLI, which was called RemoteCLI when I wrote this code. It's a project I'm building: an iOS app that talks to a small Node bridge server on my own machine over an authenticated WebSocket. The repo is private, so every excerpt below is verbatim from the fix commit, `5215874`, and the commit is the audit trail.*
+*Context: this is from HeyCLI, which was called RemoteCLI when I wrote this code. It's a project I'm building: an iOS app that talks to a small Node bridge server on my own machine over an authenticated WebSocket. The repo is private, so every excerpt below is verbatim from the fix commit, `5215874`, and the commit is the audit trail. None of the receipts at the end is something you can open yourself. What you can check is the code in this post: the excerpts show both bugs on their own. How I found them (an end-to-end walkthrough) and the test counts come from the private commit message and review doc, so treat those as my word.*
 
 ## What did the app do when I restarted the server?
 

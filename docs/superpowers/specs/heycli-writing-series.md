@@ -20,11 +20,23 @@ The Daemon, which is what HeyCLI is now being built as, has not been shown runni
 - **Post 6 may clear G1 early** if written as research with no HeyCLI product claim. It would need the non-affiliation line and a re-check on current tool versions.
 - **No HeyCLI social copy is sent.** It can be staged under `content/distribution/<slug>/`.
 
+## Gate G2: receipts a reader can check, before any `reported` post is promoted
+
+`content/posts/REGISTERS.md` defines a receipt as "something a reader could independently check". Codex flagged (PR #82, P2) that draft #1's receipts point only at a private repo. That is true, and it is not specific to this draft: most published `reported` posts cite private-repo paths, SHAs and PR numbers. So the house practice, labelled private-source receipts, and the register's wording are in tension. Reconciling them is the maintainer's call, and this series does not amend `REGISTERS.md`.
+
+So a `reported` post whose receipts live only in a private repo is **not promoted** until one of these holds, and the promotion override says which:
+
+1. **A public immutable artifact backs the receipts**, for example the public server repo from AGE-426 once it exists, or a verbatim evidence file committed to this public repo. Do not publish proprietary `app/` code beyond the short excerpts already in the post.
+2. **The maintainer confirms** the labelled-private-receipts practice applies to this post.
+3. **The post is re-registered** so it claims only what the shown code supports.
+
+Either way the post says plainly which claims a reader can check from the code it shows and which rest on the private commit.
+
 ## The series
 
 | # | Slug / working title | Register | Source (pin SHAs when drafting) | Gate |
 |---|---|---|---|---|
-| 1 | `the-auth-loop-that-took-two-bugs` | reported | remotecli `5215874` (2026-04-07, on `main`); review doc `af186b3` | clears G1 — **drafted** |
+| 1 | `the-auth-loop-that-took-two-bugs` | reported | remotecli `5215874` (2026-04-07, on `main`); review doc `af186b3` | clears G1; **G2 pending**; drafted |
 | 2 | The audit that found the agent had booted for 120 seconds | reported | `docs/daemon/DIFF-2026-09-17.md`, `PATHS-2026-09-18.md` (epic branch) | G1 |
 | 3 | A voice agent needs a bouncer: was that sentence for me? | designed | `NORTH-STAR.md` D.5/D.6 (Attention Gate) | G1 |
 | 4 | The front desk never cooks: two loops for a talking agent | designed | `NORTH-STAR.md` D-R5..R7; ADR 2026-08-04 | G1 |
@@ -42,7 +54,7 @@ A designed piece that opens with one real incident is `reported` (REGISTERS.md: 
 
 ## Known gaps
 
-1. **Receipts point at a private repo.** Readers can't open `5215874`. Each `reported` post therefore inlines verbatim excerpts, and the SHA is an audit trail, not proof. AGE-426's public repo starts with fresh history, so its SHAs will differ.
+1. **Receipts point at a private repo** (gate G2 above). Readers can't open `5215874`. Each `reported` post therefore inlines verbatim excerpts, and the SHA is an audit trail, not proof. AGE-426's public repo starts with fresh history, so its SHAs will differ.
 2. **`<ReceiptsBlock />` is not rendered on any published `reported` post.** `PostArticle` renders receipts only where the MDX body contains the tag, and none of the published posts include it (checked in a production build). Draft #1 includes the tag. The published posts are locked copy and are untouched here; see RETRO 2026-10-05.
 3. **`content/voice/` is not in this checkout.** Voice is matched to the three most recent posts: first person, short declaratives, a bold **Short answer:** opener, question H2s, a FAQ, roughly 1,200–1,650 words.
 4. **Merged is not published** (RETRO 2026-10-05): after any promotion, confirm the live URL returns 200.
