@@ -21,11 +21,18 @@ URL="$BASE/writing/$SLUG"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/verify-live.XXXXXX")"; trap 'rm -rf "$TMP"' EXIT
 
 stamp() { date -u +%FT%TZ; }
-# Prints the HTTP status, or 000 if the transport failed twice (a reset is retried once).
+# Prints the HTTP status, or 000 if the transfer failed on all 3 tries (a reset is retried twice;
+# resets were seen on cache-busted URLs on 2026-10-06, so one retry was not enough). A transfer
+# only counts if curl itself exited 0: a reset after the "200" header leaves %{http_code} at 200
+# with a truncated body (curl exit 18 or 56), and that must be retried, not trusted.
 fetch() {
-  local c; c="$(curl -sS --max-time 30 -o "$1" -D "$1.hdr" -w '%{http_code}' "$2" 2>/dev/null)"
-  if [ -z "$c" ] || [ "$c" = "000" ]; then sleep 2; c="$(curl -sS --max-time 30 -o "$1" -D "$1.hdr" -w '%{http_code}' "$2" 2>/dev/null)"; fi
-  echo "${c:-000}"
+  local c rc i
+  for i in 1 2 3; do
+    c="$(curl -sS --max-time 30 -o "$1" -D "$1.hdr" -w '%{http_code}' "$2" 2>/dev/null)"; rc=$?
+    if [ "$rc" -eq 0 ] && [ -n "$c" ] && [ "$c" != "000" ]; then echo "$c"; return; fi
+    sleep 2
+  done
+  echo 000
 }
 
 check_once() {
@@ -46,8 +53,17 @@ check_once() {
   grep -q '"@type":"BlogPosting"' "$html" && ok "BlogPosting JSON-LD present" || bad "BlogPosting JSON-LD missing"
   grep -q 'name="description"' "$html" && ok "meta description present" || bad "meta description missing"
   if grep -q 'data-signup="post-end"' "$html" || grep -q 'GET THE NEXT POSTMORTEM' "$html"; then ok "newsletter signup present"; else bad "no newsletter signup on the article"; fi
-  curl -sS --max-time 30 "$BASE/sitemap.xml" 2>/dev/null | grep -q "<loc>$URL</loc>" && ok "listed in sitemap.xml" || bad "not in sitemap.xml"
-  curl -sS --max-time 30 "$BASE/writing/rss.xml" 2>/dev/null | grep -q "/writing/$SLUG" && ok "listed in /writing/rss.xml" || bad "not in /writing/rss.xml"
+  # The sitemap and both feeds go through the retrying fetch(): a transport reset has to read as
+  # "could not fetch", never as "not listed" (3 of 6 runs on 2026-10-06 failed one check that way).
+  listed() { # <path> <needle>
+    local code; code="$(fetch "$TMP/list.txt" "$BASE$1?cb=$(date +%s)")"
+    if [ "$code" != "200" ]; then bad "could not fetch $1 (HTTP $code), so the listing is unchecked"
+    elif grep -q "$2" "$TMP/list.txt"; then ok "listed in $1"
+    else bad "not in $1"; fi
+  }
+  listed /sitemap.xml "<loc>$URL</loc>"
+  listed /writing/rss.xml "/writing/$SLUG"
+  listed /aitldr/rss.xml "/writing/$SLUG"
   echo "  body sha256 $(sha256sum "$html" | cut -d' ' -f1)"
   if [ "$fails" -eq 0 ]; then echo "RESULT: LIVE AND VERIFIED"; return 0; fi
   echo "RESULT: REACHABLE BUT $fails CHECK(S) FAILED"; return 1
