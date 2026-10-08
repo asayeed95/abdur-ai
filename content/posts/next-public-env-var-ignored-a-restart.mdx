@@ -1,0 +1,122 @@
+---
+slug: next-public-env-var-ignored-a-restart
+title: "Why my NEXT_PUBLIC_ env var ignored a restart"
+seo_title: "Why a NEXT_PUBLIC_ env var ignores a restart"
+subtitle: "A fault test that swapped an env var, restarted the server, and wrote to production anyway"
+description: "A fault test changed NEXT_PUBLIC_SUPABASE_URL and restarted Next.js. The server kept writing to production: the value was baked into the build."
+dek: "To test what happens when the database is down, an agent pointed the site's Supabase URL somewhere broken and restarted the server. The rows that should not have persisted landed in production. Next.js had copied the old URL into the server bundle at build time, so the restart never read the new one."
+tldr: "On 2026-09-04, while finishing the Supabase-backed ingest routes on this site, an agent ran a 'Supabase down' fault test by editing .env.local and restarting the server. The test rows were supposed to fail. They landed in the production table, because NEXT_PUBLIC_SUPABASE_URL is inlined into the build, including the server bundle, and the restarted server was still running the old build. A lazy process.env getter in lib/supabase.ts made the value look like it was read at runtime. It wasn't. The verifier caught it only by re-querying the real table. I reproduced it on 2026-10-03 against Next.js 15.5.19: built with one fake host, started with another, and the server tried to reach the build-time host. The rule now: before an env-swap fault test, grep the build output for the value, and treat any test write path as live until you've proved it isn't."
+date: 2026-10-03T19:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+register: reported
+series: "Mistakes TLDR"
+flagship: false
+pinned: false
+featured: false
+tags:
+  - nextjs
+  - environment-variables
+  - supabase
+  - testing
+  - verification
+  - postmortem
+receipts:
+  - path: "RETRO.md"
+    sha: "dd7d2b2"
+    note: "2026-09-04 entry: the 'Supabase down' fault test edited .env.local and restarted; NEXT_PUBLIC_SUPABASE_URL was inlined into the server bundle at build time, the restarted server kept writing to production Supabase, and the test rows persisted. Caught because the verifier re-queried the real table."
+  - path: "lib/supabase.ts"
+    sha: "dd7d2b2"
+    note: "W-1 (AGE-1578, merged as #40). BASE = () => process.env.NEXT_PUBLIC_SUPABASE_URL, a getter that looks runtime-resolved. The doc comment records that changing the URL needs a rebuild, not a restart."
+  - path: "lib/supabase.ts"
+    sha: "c7bc07f"
+    note: "Reproduced 2026-10-03 on main with Next.js 15.5.19: next build with NEXT_PUBLIC_SUPABASE_URL=https://build-time.invalid, next start with https://runtime.invalid. The compiled route contains fetch(`https://build-time.invalid/rest/v1${a}`), and a POST to /api/ingest/now failed with getaddrinfo ENOTFOUND build-time.invalid."
+citation_preferred: "Sayeed, Abdur Rahman. 'Why my NEXT_PUBLIC_ env var ignored a restart.' abdur.ai, 3 October 2026."
+related:
+  - the-analytics-call-that-couldnt-fail
+  - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
+---
+
+**Short answer:** in a production Next.js build, `process.env.NEXT_PUBLIC_ANYTHING` is not a runtime lookup. `next build` replaces it with the value it saw at build time, and it does that in server code too, not only in what ships to the browser. Change the variable and restart, and the server keeps using the old value until you rebuild.
+
+I found that out by writing test data into production.
+
+## What happened
+
+On September 4 I was finishing the webhooks that feed this site's homepage panels: two API routes that write to Supabase (`W-1`, commit `dd7d2b2`). Before calling it done, the agent working the task ran a fault test: what does the site do when Supabase is down? The routes should reject the write with a 502 and the homepage should fall back to its seed content.
+
+The test was staged the obvious way. Edit `.env.local` so `NEXT_PUBLIC_SUPABASE_URL` points somewhere that doesn't work, restart the server, send the webhook, confirm nothing persists.
+
+The rows persisted. In the production table.
+
+The restarted server never saw the new URL. It was still running a build made with the real one, and the real one was compiled into it. We caught it only because the verifier went back and queried the actual table afterward.
+
+## Why the restart didn't matter
+
+The Supabase helper reads the URL through a function:
+
+```ts
+const BASE = () => process.env.NEXT_PUBLIC_SUPABASE_URL;
+```
+
+That reads like "look it up each time it's called." Next.js doesn't see it that way. During `next build`, every literal `process.env.NEXT_PUBLIC_...` expression is replaced with its value, wherever it appears. The getter still exists, but its body is now a string.
+
+The [Next.js docs](https://nextjs.org/docs/app/guides/environment-variables) say `NEXT_PUBLIC_` values are inlined "into the JavaScript bundle" at build time and are then "frozen". Most of that page is about the browser. What caught us is that the server bundle gets the same treatment. Variables without the prefix, like the service key in the same file, stay real `process.env` lookups and are read when the code runs. The prefix changes the timing, not just the visibility.
+
+## The reproduction
+
+I re-ran it on October 3 against `main` (Next.js 15.5.19), with fake `.invalid` hosts so nothing could reach a real database:
+
+1. `next build` with `NEXT_PUBLIC_SUPABASE_URL=https://build-time.invalid`.
+2. `next start` with `NEXT_PUBLIC_SUPABASE_URL=https://runtime.invalid`.
+3. POST to `/api/ingest/now` with a valid token.
+
+The route returned `persist_failed`, and the log said why: `getaddrinfo ENOTFOUND build-time.invalid`. The server ignored the URL it was started with. The compiled route file has the build-time host written straight into it:
+
+```js
+fetch(`https://build-time.invalid/rest/v1${a}`, { ... })
+```
+
+The string `runtime.invalid` appears nowhere in the build output. `process.env.SUPABASE_SERVICE_ROLE_KEY` and `process.env.AGENT_TOKEN`, the variables without the prefix, are still there as runtime lookups.
+
+## Who this bites
+
+Anyone who does any of these with a `NEXT_PUBLIC_` value:
+
+- **Fault tests by env swap.** Point the database URL at nothing, restart, see what breaks. On a built server, nothing changes.
+- **One build, many environments.** Build once, promote the same artifact to staging and production with different variables. The docs warn about this one directly: every `NEXT_PUBLIC_` value is whatever it was at build time.
+- **Server-only config with a public prefix.** The URL here is only used in server code, but it carries the public prefix, so it gets build-time treatment it never needed.
+
+## What I changed
+
+1. **Wrote it down where the next person will read it.** The comment above `BASE` in `lib/supabase.ts` says the URL is inlined at build time and that changing it needs a rebuild, not a restart.
+2. **Added a rule to `RETRO.md`.** An env-swap fault test is only valid after you prove which value the running process actually reads. Grep the build output for the value before you trust the swap. Treat any write path a test touches as live until you've proved it isn't.
+
+What I haven't changed: the variable still has the `NEXT_PUBLIC_` prefix. Renaming it to a server-only name would make it a real runtime lookup, and it means changing the variable in the Vercel project too. Until that happens, the comment and the rule are what stand between the next fault test and the production table.
+
+## How to check your own app
+
+1. **Grep the build, not the source.** After `next build`, search `.next/server` for the value you think you're overriding. If the old value is in there as a string, a restart won't change it.
+2. **Run fault tests against fake hosts.** Use a `.invalid` domain (reserved, so it never resolves) for both the "real" and the "broken" value. If the error names the wrong host, you know which one the process is using.
+3. **Check the side effect, not the response.** Query the place the write would land. A route can return what you expect while the data goes somewhere you didn't.
+4. **Drop the prefix on anything the browser doesn't need.** A server-only variable without `NEXT_PUBLIC_` isn't inlined, so it stays a real lookup. It reads the current value on each request only on a dynamically rendered server path. A page Next.js renders statically at build time reads it during the build and serves that result.
+
+## FAQ
+
+### Why does my NEXT_PUBLIC_ environment variable not change after a restart?
+
+Because `next build` already replaced it with a fixed value. In the production build, `process.env.NEXT_PUBLIC_X` is no longer a lookup. It's the string that was in the environment at build time. Restarting `next start` runs the same build. To change it, rebuild. On Vercel, that means a new deployment.
+
+### Are NEXT_PUBLIC_ variables inlined in server code too?
+
+In this app on Next.js 15.5.19, yes. The compiled API route contained the build-time host as a literal. The docs focus on the browser bundle, but don't assume server code is exempt. Grep the build output to see what your version does.
+
+### How do I read an environment variable at runtime in Next.js?
+
+Use a name without the `NEXT_PUBLIC_` prefix and read it in server code that renders dynamically. In the same build, the unprefixed variables stayed as `process.env` lookups. That alone isn't enough on a statically rendered page: Next.js renders it at build time, so the lookup runs once, during the build. The docs' example calls `await connection()` before reading the variable, which opts the page into dynamic rendering, and cookies, headers and the other Dynamic APIs do the same. The docs also say dynamic lookups such as `process.env[name]` are not inlined. I haven't tested that one here.
+
+### Is a lazy getter enough to defer the read?
+
+No. Wrapping `process.env.NEXT_PUBLIC_X` in a function changes when the function runs, not what's inside it. The build replaces the expression inside the function body.
+
+The broader lesson is the same one as [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail): a test is only as good as your proof that it touched the thing you meant. This one restarted the right server and tested the wrong build.
