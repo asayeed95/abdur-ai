@@ -11,6 +11,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
 import { COMPONENTS } from "./components.mjs";
 
 const write = (p, s) => {
@@ -21,6 +22,7 @@ const write = (p, s) => {
 export function toArtifactCss(s) {
   return s
     .replace(/rgb\(var\(--c-([a-z0-9-]+)\)\s*\/\s*([0-9.]+)\)/g, (_, n, a) => `color-mix(in srgb, var(--${n}) ${+(parseFloat(a) * 100).toFixed(1)}%, transparent)`)
+    .replace(/rgb\(var\(--c-([a-z0-9-]+)\)\s*\/\s*var\(--tw-[a-z-]+-opacity,\s*1\)\)/g, (_, n) => `var(--${n})`)
     .replace(/rgb\(var\(--c-([a-z0-9-]+)\)\)/g, (_, n) => `var(--${n})`);
 }
 
@@ -41,8 +43,10 @@ const COLOR_USAGE = {
   "good-3": "status-flight pill border; NowPanel running fill (30%).",
 };
 
-export function exportArtifact({ out, DS, color, tokensJson, rows, risks, C, templates, VERSION, UPDATED, liveTokens }) {
+export function exportArtifact({ out, DS, color, visuals = [], tokensJson, rows, risks, C, templates, VERSION, UPDATED, liveTokens }) {
   const P = (...p) => path.join(out, "project", ...p);
+  let SHA = "unknown";
+  try { SHA = execSync("git rev-parse --short HEAD", { cwd: DS }).toString().trim(); } catch {}
   const read = (p) => fs.readFileSync(path.join(DS, p), "utf8");
   const files = [];
   const put = (rel, s) => { write(P(rel), s); files.push(`project/${rel}`); };
@@ -79,7 +83,7 @@ export function exportArtifact({ out, DS, color, tokensJson, rows, risks, C, tem
     meta: {
       source: "github",
       repo: "asayeed95/abdur-ai",
-      ref: "main@4e7891a",
+      ref: `main@${SHA}`,
       paths: { tokens: ["app/globals.css", "tailwind.config.ts"], fonts: ["app/layout.tsx"], docs: ["design-system/DESIGN-SYSTEM.md"] },
       synced: UPDATED,
       note: `Design System ${VERSION}. Mirrors design-system/tokens/*.css in the repo.`,
@@ -146,6 +150,7 @@ export function exportArtifact({ out, DS, color, tokensJson, rows, risks, C, tem
     read("tokens/motion.css"),
     read("components/components.css"),
     read("assets/preview.css"),
+    read("assets/post-visuals.css"),
     ".ds-pad { padding: var(--space-6); }",
   ].map(toArtifactCss).join("\n\n");
   put("components/bundle.css", bundle);
@@ -163,6 +168,13 @@ ${body}
   for (const c of COMPONENTS) {
     put(`components/${c.name}/preview.html`, doc(`<!-- @dsCard group="${c.group}" height=${c.height} -->`, `${c.name} — preview`, `<div class="ds-pad">${toArtifactCss(c.html())}</div>`));
     put(`components/${c.name}/README.md`, `# ${c.name}\n\n${c.summary}\n\nSource: \`${c.source}\`. Local preview with both themes side by side: \`design-system/components/${c.slug}.html\`.\n\n${c.guide.map((g) => `- ${g}`).join("\n")}\n`);
+  }
+  // Post visuals: Figure, diagrams and the interactive blocks, server-rendered
+  // from the real components by post-visuals.mjs. Static markup: the no-JS
+  // state and a snapshot of the enhanced state, no hydration in the card.
+  for (const v of visuals) {
+    put(`components/${v.name}/preview.html`, doc(`<!-- @dsCard group="Post visuals" height=${v.name === "Quiz" || v.name === "StepThrough" ? 900 : 480} -->`, `${v.name} — preview`, `<div class="ds-pad" style="max-width:var(--prose-max)">${toArtifactCss(v.html())}</div>`));
+    put(`components/${v.name}/README.md`, `# ${v.name}\n\n${v.summary}\n\nSource: \`${v.source}\`. The card is a static render (server HTML, no hydration); the local preview \`design-system/components/${v.slug}.html\` shows both themes. Usage in MDX: \`design-system/DESIGN-SYSTEM.md\`.\n\n${v.guide.map((g) => `- ${g}`).join("\n")}\n`);
   }
   for (const t of templates) {
     const name = `Template${t.slug[0].toUpperCase()}${t.slug.slice(1)}`;
@@ -283,7 +295,7 @@ The \`ThemeToggle\` cycles Auto → Light → Dark. Auto follows the visitor's c
     assetGroups: {},
     blobs: {},
     docs: { readme: "project/README.md", sections: [] },
-    lastChange: { by: "Abdur", at: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"), via: "Claude Code · asayeed95/abdur-ai@4e7891a", note: `Design System ${VERSION} extracted from app/globals.css + tailwind.config.ts.` },
+    lastChange: { by: "Abdur", at: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"), via: `Claude Code · asayeed95/abdur-ai@${SHA}`, note: `Design System ${VERSION} extracted from app/globals.css + tailwind.config.ts.` },
   };
   write(P("design-system.json"), JSON.stringify(index, null, 2) + "\n");
   write(path.join(out, "files.json"), JSON.stringify(files, null, 2));

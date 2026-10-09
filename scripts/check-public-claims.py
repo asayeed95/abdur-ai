@@ -39,6 +39,9 @@ PUBLIC_SOURCES = (
     "app/hire/page.tsx",
     "app/about/page.tsx",
     "app/llms.txt/route.ts",
+    # Agent brand briefs (AGE-3169): content bots copy these rules verbatim.
+    "public/brand/agent-brief.md",
+    "public/brand/northsun-agent-brief.md",
 )
 # northsun.ai DNS is not live yet (verified 2026-08-22), so product CTAs must
 # point at owned surfaces: the on-site waitlist form backed by the real
