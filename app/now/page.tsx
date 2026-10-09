@@ -52,8 +52,10 @@ export default function NowPage() {
             <ul className="list-disc list-outside ml-6 space-y-2">
               <li>The flagship postmortem: <em>The night the doctrine failed.</em> Four patterns committed to MOLL.</li>
               <li>Caller memory on the Northsun warm path, designed for sub-300ms voice recall (Cloudflare edge → Upstash Redis).</li>
-              <li>heycli pushing prompts to Claude Code, Codex, and Aider from one source-of-truth.</li>
             </ul>
+            <p className="text-sm text-meta mt-4">
+              Correction, October 5, 2026: this list used to include a line saying HeyCLI was pushing prompts to Claude Code, Codex, and Aider. HeyCLI is in engineering and that line overstated it, so it has been removed.
+            </p>
           </section>
 
           <p className="text-meta pt-8 border-t border-border">

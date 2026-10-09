@@ -5,7 +5,7 @@ type Tool = {
   name: string;
   desc: string;
   status: "Live" | "Near-launch" | "TestFlight" | "Building";
-  href: string;
+  href?: string;
   icon: React.ReactNode;
 };
 
@@ -37,8 +37,7 @@ const TOOLS: Tool[] = [
   {
     name: "HeyCLI",
     desc: "Voice and natural-language control for your terminal. An iOS companion plus a local daemon, talking over Tailscale.",
-    status: "TestFlight",
-    href: "/tools/heycli",
+    status: "Building",
     icon: (
       <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden>
         <rect x="5" y="7" width="26" height="22" rx="2" fill="none" stroke="#D97757" strokeWidth="2.5" />
@@ -85,24 +84,37 @@ export function ToolsGrid() {
       </p>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {TOOLS.map((t) => (
-          <Link
-            key={t.name}
-            href={t.href}
-            className={`group bg-surface border border-border rounded-lg p-6 hover:border-clay transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_40px_-20px_rgba(217,119,87,0.5)] ${
-              t.status === "Building" ? "opacity-80" : ""
-            }`}
-          >
-            <div className="flex items-start justify-between mb-5">
-              <div>{t.icon}</div>
-              <span className={STATUS_CLASS[t.status]}>{t.status}</span>
+        {TOOLS.map((t) => {
+          const body = (
+            <>
+              <div className="flex items-start justify-between mb-5">
+                <div>{t.icon}</div>
+                <span className={STATUS_CLASS[t.status]}>{t.status}</span>
+              </div>
+              <h3 className="font-display text-xl text-text group-hover:text-clay transition-colors mb-2">
+                {t.name}
+              </h3>
+              <p className="text-sm text-meta leading-relaxed">{t.desc}</p>
+            </>
+          );
+          const base = `group bg-surface border border-border rounded-lg p-6 ${
+            t.status === "Building" ? "opacity-80" : ""
+          }`;
+          // A card with no page yet is not a link: /tools/heycli returned 404 (AGE-2893).
+          return t.href ? (
+            <Link
+              key={t.name}
+              href={t.href}
+              className={`${base} hover:border-clay transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_40px_-20px_rgba(217,119,87,0.5)]`}
+            >
+              {body}
+            </Link>
+          ) : (
+            <div key={t.name} className={base}>
+              {body}
             </div>
-            <h3 className="font-display text-xl text-text group-hover:text-clay transition-colors mb-2">
-              {t.name}
-            </h3>
-            <p className="text-sm text-meta leading-relaxed">{t.desc}</p>
-          </Link>
-        ))}
+          );
+        })}
       </div>
     </Reveal>
   );
