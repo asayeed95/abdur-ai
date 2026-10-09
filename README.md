@@ -17,7 +17,7 @@ npm run dev
 - Tailwind CSS v3 (Clay design system)
 - MDX for posts
 - Resend (email — wire in `app/api/subscribe/route.ts`)
-- Supabase (Phase 2 — agent webhooks for Now panel + Ship log)
+- Supabase (Phase 2 — agent webhooks for Ship log)
 - Vercel (deploy)
 
 ## Routes
@@ -35,7 +35,7 @@ npm run dev
 | `/llms.txt` | AI-readable site summary with post index |
 | `/aitldr/rss.xml` | RSS feed |
 | `/api/subscribe` | Newsletter signup (POST `{email, list?}`) |
-| `/api/ingest/now` | Agent webhook for Now panel (Bearer auth) |
+| `/api/ingest/now` | Agent webhook that writes `now_state` (Bearer auth); no page reads it since the homepage Now panel was removed |
 | `/api/ingest/ship` | Agent webhook for Ship log (Bearer auth) |
 
 ## Adding a post
