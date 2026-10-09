@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI updates, put to work. · design prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0A08;
+  --surface:#161310;
+  --text:#F2EDE6;
+  --muted:#C9C0B2;
+  --accent:#D97757;
+  --border:#2C2620;
+  --field:rgba(201,192,178,.5);
+  --accent-soft:rgba(217,119,87,.14);
+  --display:"Playfair Display",Georgia,"Times New Roman",serif;
+  --sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --banner-h:44px;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:60px}
+html.lock,html.lock body{overflow:hidden}
+body{margin:0;background:var(--bg);color:var(--text);font:400 1rem/1.6 var(--sans);overflow-x:hidden}
+h1,h2,h3,h4{margin:0;font-family:var(--display);font-weight:700;line-height:1.15;overflow-wrap:break-word}
+p{margin:0 0 .8rem}
+a{color:var(--accent);text-underline-offset:3px}
+a:hover{color:var(--text)}
+ul,ol{margin:0;padding:0;list-style:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
+.mono{font-family:var(--mono);font-size:.78rem;letter-spacing:.03em;color:var(--muted)}
+.eyebrow{font:500 .78rem/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 .6rem}
+.lede{color:var(--muted);max-width:62ch}
+
+/* banner */
+.banner{position:sticky;top:0;z-index:100;background:var(--accent);color:var(--bg);font:500 .78rem/1.35 var(--mono);letter-spacing:.04em;padding:.6rem 1rem;text-align:center;border-bottom:1px solid var(--bg)}
+.banner strong{font-weight:500}
+
+/* header + nav */
+.site-header{padding:clamp(1.4rem,4vw,2.6rem) 0 1.1rem;border-bottom:1px solid var(--border)}
+.site-header h1{font-size:clamp(2.1rem,7.5vw,3.7rem);letter-spacing:-.01em;max-width:16ch}
+.intro{max-width:60ch;color:var(--muted);font-size:1.05rem;margin:.9rem 0 1.2rem}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;max-width:520px}
+.nav button{min-height:46px}
+.btn{appearance:none;font:600 .95rem/1.2 var(--sans);min-height:44px;padding:.65rem 1rem;border-radius:3px;border:1px solid var(--field);background:transparent;color:var(--text);cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--accent);background:var(--accent-soft)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn-primary:hover{background:var(--text);border-color:var(--text);color:var(--bg)}
+.btn-ghost{border-color:var(--accent);color:var(--accent)}
+.btn-ghost:hover{color:var(--text)}
+.nav button[aria-current="page"]{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn[aria-pressed="true"]{background:var(--text);color:var(--bg);border-color:var(--text)}
+main{padding:clamp(1.4rem,4vw,2.4rem) 0 3rem}
+.view-head{margin-bottom:1.2rem}
+.view-head h2{font-size:clamp(1.5rem,4.5vw,2.1rem)}
+
+/* chips */
+.chip{display:inline-block;font:500 .72rem/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:.28rem .5rem;border:1px solid var(--field);border-radius:2px;color:var(--muted);background:transparent}
+.chip-vendor{border:1px solid var(--accent);color:var(--accent)}
+.chip-proposed{border:1px dashed var(--accent);color:var(--accent)}
+.chip-demo{border:2px solid var(--text);color:var(--text)}
+.chip-sample{border:1px dotted var(--muted);color:var(--muted)}
+.chip-local{background:var(--text);color:var(--bg);border-color:var(--text)}
+.chip-kind{border-color:var(--border);background:var(--bg);color:var(--text)}
+.chip-none{border:1px solid var(--field)}
+.chip-illus{border:1px dotted var(--accent);color:var(--accent)}
+.meta-row{display:flex;flex-wrap:wrap;gap:.5rem .7rem;align-items:center;margin-bottom:.8rem}
+
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.2rem}
+.updates-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:1.5rem}
+@media(min-width:900px){.updates-layout{grid-template-columns:290px minmax(0,1fr);gap:2.2rem}}
+.entries{display:grid;gap:.6rem;align-content:start}
+.entry{appearance:none;width:100%;text-align:left;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--border);border-radius:3px;padding:.8rem .9rem;cursor:pointer;display:block}
+.entry:hover{border-color:var(--field);border-left-color:var(--field)}
+.entry[aria-current="true"]{border-left-color:var(--accent);background:var(--bg);border-color:var(--field);border-left-color:var(--accent)}
+.entry .tool{display:block;font:500 .74rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:.25rem}
+.entry .etitle{display:block;font:600 .98rem/1.35 var(--sans);margin-bottom:.45rem;overflow-wrap:anywhere}
+.entry .chip{margin:.1rem .3rem .1rem 0}
+.list-note{font-size:.88rem;color:var(--muted);margin-top:.4rem}
+
+/* article */
+.article{min-width:0}
+.article-title{font-size:clamp(1.7rem,5.6vw,2.6rem);margin-bottom:.9rem;letter-spacing:-.005em}
+.revbar{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:.7rem 0;margin:0 0 1.2rem}
+.revbar p{margin:0;font-size:.9rem;color:var(--muted);flex:1 1 220px}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--border);border-radius:4px;background:var(--surface);margin-bottom:1rem}
+.step{appearance:none;background:transparent;color:var(--muted);border:0;border-top:3px solid var(--border);border-right:1px solid var(--border);padding:.85rem .9rem;text-align:left;cursor:pointer;display:flex;gap:.65rem;align-items:flex-start;font:inherit;min-height:44px}
+.step:last-child{border-right:0}
+.step:hover{background:var(--accent-soft)}
+.step[aria-selected="true"]{color:var(--text);border-top-color:var(--accent);background:var(--bg)}
+.step:focus-visible{outline-offset:-4px}
+.step-n{font:500 .85rem var(--mono);color:var(--accent);padding-top:.1rem}
+.step-label{display:block;font-weight:600;font-size:.95rem;line-height:1.3}
+.step-state{display:block;font:400 .72rem/1.3 var(--mono);letter-spacing:.04em;text-transform:uppercase;margin-top:.25rem;color:var(--muted)}
+@media(max-width:600px){
+  .strip{grid-template-columns:1fr}
+  .step{border-top:0;border-right:0;border-left:3px solid var(--border)}
+  .step+.step{border-top:1px solid var(--border)}
+  .step[aria-selected="true"]{border-left-color:var(--accent)}
+}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:clamp(1rem,3vw,1.5rem);margin-bottom:1.5rem}
+.passage{border-left:3px solid var(--accent);padding:.2rem 0 .2rem 1rem;margin:.4rem 0 1rem}
+.passage-text{font:400 clamp(1.08rem,3.4vw,1.3rem)/1.55 Georgia,"Times New Roman",serif;margin:0;overflow-wrap:break-word}
+.note{font-size:.9rem;color:var(--muted)}
+.section{margin-top:1.8rem;padding-top:1.2rem;border-top:1px solid var(--border)}
+.section h4{font-size:1.2rem;margin-bottom:.7rem}
+.sources li{margin-bottom:.8rem}
+.sources .url{display:block;font:400 .78rem var(--mono);color:var(--muted);overflow-wrap:anywhere}
+.legend{display:grid;gap:.5rem;margin:0}
+.legend div{display:grid;grid-template-columns:minmax(0,1fr);gap:.2rem;font-size:.9rem}
+.legend dt{margin:0}
+.legend dd{margin:0;color:var(--muted)}
+@media(min-width:640px){.legend div{grid-template-columns:200px minmax(0,1fr);gap:.8rem;align-items:start}}
+
+/* contributions */
+.thread{display:grid;gap:.8rem}
+.contrib{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:.9rem 1rem}
+.contrib.is-local{border-color:var(--field);border-left:3px solid var(--text)}
+.contrib.is-sample{border-style:dotted;border-color:var(--field)}
+.contrib-head{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem}
+.anchor{font:400 .76rem var(--mono);color:var(--muted);margin:0 0 .4rem;letter-spacing:.02em}
+.anchor-note{font-size:.88rem;color:var(--accent);margin:0 0 .5rem}
+.old-quote{margin:0 0 .6rem;padding:.4rem .8rem;border-left:2px dashed var(--muted);color:var(--muted);font:italic .92rem/1.5 Georgia,serif;overflow-wrap:break-word}
+.fields{margin:0}
+.fields dt{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-top:.5rem}
+.fields dd{margin:.1rem 0 0;overflow-wrap:anywhere}
+.local-note{font:500 .76rem var(--mono);letter-spacing:.04em;margin:.6rem 0 0;color:var(--text)}
+.contrib p.body{margin:0;overflow-wrap:anywhere}
+.empty{border:1px dashed var(--field);border-radius:4px;padding:1rem;color:var(--muted);font-size:.95rem}
+
+/* newsletter */
+.news{margin-top:2rem;border:1px dashed var(--accent);border-radius:4px;padding:1rem 1.1rem;background:var(--surface)}
+.news h4{font-size:1.15rem;margin-bottom:.5rem}
+.news-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.4rem}
+
+/* drawer */
+.backdrop{position:fixed;inset:0;background:rgba(11,10,8,.75);z-index:60}
+.drawer{position:fixed;z-index:70;left:0;right:0;bottom:0;display:flex;flex-direction:column;background:var(--surface);color:var(--text);border:1px solid var(--field);border-bottom:0;border-radius:12px 12px 0 0;max-height:calc(100vh - var(--banner-h) - 12px);max-height:calc(100dvh - var(--banner-h) - 12px)}
+.drawer-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;padding:1rem 1.1rem .8rem;border-bottom:1px solid var(--border)}
+.drawer-head h2{font-size:1.4rem}
+.drawer-body{overflow-y:auto;padding:1rem 1.1rem 1.6rem;overscroll-behavior:contain}
+@media(min-width:900px){
+  .drawer{left:auto;right:0;top:var(--banner-h);bottom:0;width:min(470px,100%);max-height:none;border-radius:0;border-width:0 0 0 1px}
+}
+@media(prefers-reduced-motion:no-preference){
+  .drawer{animation:up .22s ease-out}
+  @keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+  @media(min-width:900px){.drawer{animation:in .22s ease-out}@keyframes in{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}}
+}
+.quote{margin:0 0 1rem;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:.8rem .9rem}
+.quote figcaption{font:500 .72rem/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:.4rem}
+.quote blockquote{margin:0;font:400 1rem/1.55 Georgia,serif;overflow-wrap:break-word}
+.kinds{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.kinds .btn{flex:1 1 auto;padding:.55rem .7rem}
+.form-title{font-size:1.15rem;margin-bottom:.3rem}
+.field{margin-bottom:.9rem}
+.field label{display:block;font-weight:600;font-size:.92rem;margin-bottom:.3rem}
+.field .req{font:400 .72rem var(--mono);color:var(--muted);margin-left:.4rem;letter-spacing:.04em}
+.field input,.field textarea{width:100%;font:400 1rem/1.5 var(--sans);background:var(--bg);color:var(--text);border:1px solid var(--field);border-radius:3px;padding:.65rem .75rem;min-height:44px}
+.field textarea{resize:vertical;min-height:96px}
+.field input[aria-invalid="true"],.field textarea[aria-invalid="true"]{border-color:var(--accent);border-width:2px}
+.hint{font-size:.84rem;color:var(--muted);margin:.3rem 0 0}
+.err{font-size:.86rem;color:var(--accent);font-weight:600;margin:.3rem 0 0}
+.local-banner{border:1px solid var(--border);background:var(--bg);border-radius:3px;padding:.6rem .8rem;font-size:.88rem;color:var(--muted);margin:0 0 1rem}
+.local-banner strong{color:var(--text)}
+.result{border:2px solid var(--text);border-radius:4px;padding:.7rem .9rem;margin:1rem 0;background:var(--bg)}
+.result strong{display:block}
+.drawer-thread-wrap{margin-top:1.4rem;padding-top:1rem;border-top:1px solid var(--border)}
+.drawer-thread-wrap h3{font-size:1.1rem;margin-bottom:.4rem}
+
+/* studio */
+.pipeline{display:grid;grid-template-columns:1fr;gap:.5rem;margin:0 0 1.5rem}
+@media(min-width:720px){.pipeline{grid-template-columns:repeat(4,1fr)}}
+.pipeline li{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--border);border-radius:3px;padding:.7rem .8rem;display:grid;grid-template-columns:auto 1fr;gap:.1rem .6rem;align-items:start}
+.pipeline li[data-mark="done"]{border-top-color:var(--text)}
+.pipeline li[data-mark="current"]{border-top-color:var(--accent);background:var(--bg)}
+.pipeline li[data-mark="fail"]{border-top:3px dashed var(--accent)}
+.pl-mark{font:500 .95rem var(--mono);color:var(--accent);grid-row:span 2}
+.pl-name{font:500 .78rem var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.pl-state{font-size:.9rem;color:var(--muted)}
+.studio-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1.4rem}
+@media(min-width:960px){.studio-grid{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:1.8rem}}
+.col{display:grid;gap:1.2rem;align-content:start;min-width:0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:clamp(1rem,3vw,1.3rem)}
+.card h3{font-size:1.2rem;margin-bottom:.7rem}
+.dl{display:grid;gap:.55rem;margin:0}
+.dl div{display:grid;grid-template-columns:minmax(0,1fr);gap:.1rem}
+.dl dt{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.dl dd{margin:0;overflow-wrap:anywhere}
+.actions{display:flex;flex-wrap:wrap;gap:.6rem}
+.actions .btn{flex:1 1 200px}
+.msg{border-left:3px solid var(--accent);background:var(--bg);padding:.7rem .9rem;margin:1rem 0 0;font-size:.95rem;overflow-wrap:break-word}
+.checks{display:grid;gap:.4rem}
+.check{display:flex;gap:.7rem;align-items:flex-start;padding:.5rem .6rem;border:1px solid var(--border);border-radius:3px;background:var(--bg);cursor:pointer;min-height:44px}
+.check input{width:20px;height:20px;margin:.15rem 0 0;accent-color:var(--accent);flex:none}
+.check span{font-size:.93rem}
+.empty-signal{border:1px dashed var(--field);border-radius:3px;padding:.9rem;font-weight:600}
+
+/* architecture */
+.arch{display:grid;gap:.6rem;margin:1rem 0 1.2rem}
+@media(min-width:900px){.arch{grid-template-columns:minmax(0,1.1fr) auto minmax(0,1fr) auto minmax(0,1fr);align-items:stretch;gap:.8rem}}
+.zone{border:1px solid var(--border);border-radius:4px;padding:.9rem;background:var(--surface);display:grid;gap:.6rem;align-content:start}
+.zone.outside{border-style:dashed;border-color:var(--field)}
+.zone-label{font:500 .72rem/1.35 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+.node{appearance:none;font:inherit;text-align:left;color:var(--text);background:var(--bg);border:1px solid var(--field);border-radius:3px;padding:.7rem .85rem;cursor:pointer;min-height:44px;width:100%}
+.node:hover{border-color:var(--accent)}
+.node[aria-pressed="true"]{border:2px solid var(--accent);background:var(--accent-soft);padding:calc(.7rem - 1px) calc(.85rem - 1px)}
+.node b{display:block;font-weight:600}
+.node small{display:block;font:400 .72rem var(--mono);color:var(--muted);letter-spacing:.04em;margin-top:.1rem}
+.flow-arrow{text-align:center;color:var(--accent);font:500 1.1rem var(--mono);line-height:1}
+.boundary{display:flex;align-items:center;justify-content:center;gap:.7rem;color:var(--accent);font:500 .74rem var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.boundary::before,.boundary::after{content:"";flex:1;border-top:2px dashed var(--accent)}
+@media(min-width:900px){
+  .boundary{flex-direction:column}
+  .boundary::before,.boundary::after{border-top:0;border-left:2px dashed var(--accent);min-height:20px}
+  .boundary span{writing-mode:vertical-rl}
+  .hflow{align-self:center}
+}
+.around{margin-top:.6rem}
+.around-row{display:grid;gap:.6rem}
+@media(min-width:640px){.around-row{grid-template-columns:repeat(3,1fr)}}
+.detail{background:var(--surface);border:1px solid var(--accent);border-radius:4px;padding:clamp(1rem,3vw,1.4rem);margin-bottom:1.5rem}
+.detail h3{font-size:1.5rem;margin-bottom:.8rem}
+.callout{border-left:3px solid var(--accent);padding:.5rem 0 .5rem 1rem;margin:1rem 0;max-width:70ch}
+.callout p{margin:0 0 .4rem}
+.tbl{width:100%;border-collapse:collapse;font-size:.95rem;table-layout:fixed}
+.tbl caption{text-align:left;font:500 .78rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding-bottom:.6rem}
+.tbl th,.tbl td{text-align:left;vertical-align:top;padding:.65rem .6rem;border-top:1px solid var(--border);overflow-wrap:anywhere}
+.tbl th{font-weight:600}
+.tbl thead th{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lane{display:grid;gap:.5rem;counter-reset:lane}
+@media(min-width:720px){.lane{grid-template-columns:repeat(4,1fr)}}
+.lane li{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--field);border-radius:3px;padding:.8rem;counter-increment:lane}
+.lane li::before{content:"0" counter(lane);font:500 .78rem var(--mono);color:var(--accent);display:block;margin-bottom:.3rem}
+.lane b{display:block;font-weight:600}
+.lane .chip{margin-top:.5rem}
+.notes{display:grid;gap:.8rem}
+@media(min-width:820px){.notes{grid-template-columns:repeat(3,1fr)}}
+.notes .card{display:grid;gap:.5rem;align-content:start}
+.notes h3{font-size:1.25rem}
+.notes p{margin:0;color:var(--muted)}
+.sep-two{display:grid;gap:.6rem;margin-top:.6rem}
+@media(min-width:640px){.sep-two{grid-template-columns:1fr 1fr}}
+.sep-two div{border:1px solid var(--border);border-radius:3px;padding:.7rem .8rem;background:var(--bg)}
+.sep-two b{display:block;font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:.2rem}
+.block{margin-top:2.4rem}
+.block>h3{font-size:clamp(1.3rem,4vw,1.7rem);margin-bottom:.7rem}
+footer{border-top:1px solid var(--border);padding:1.2rem 0 2rem;color:var(--muted);font-size:.88rem}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+}
+</style>
+</head>
+<body>
+
+<div class="banner" id="banner" role="note"><strong>Design prototype · demonstration content · nothing is published</strong></div>
+
+<div id="app">
+  <header class="site-header">
+    <div class="wrap">
+      <p class="eyebrow">/// Abdur's AI community · concept</p>
+      <h1>AI updates, put to work.</h1>
+      <p class="intro">I read AI release notes as a founder who has to ship. Here, each update goes from what changed, to how I would use it, to what happened when someone tried it. Where nothing has been tried, I say so.</p>
+      <nav class="nav" aria-label="Prototype views">
+        <button type="button" class="btn" id="nav-updates" aria-current="page">Updates</button>
+        <button type="button" class="btn" id="nav-studio">Studio</button>
+        <button type="button" class="btn" id="nav-architecture">Architecture</button>
+      </nav>
+      <noscript><p class="note">This prototype needs JavaScript to switch views and open panels.</p></noscript>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="wrap">
+
+      <!-- UPDATES -->
+      <section id="view-updates" aria-labelledby="updates-h">
+        <div class="view-head">
+          <p class="eyebrow">/// Updates</p>
+          <h2 id="updates-h">Updates</h2>
+          <p class="lede">Demonstration entries only. Each one is labeled; none is a real post.</p>
+        </div>
+        <div class="filters" role="group" aria-label="Filter updates by tool">
+          <button type="button" class="btn" id="flt-all" data-filter="all" aria-pressed="true">All</button>
+          <button type="button" class="btn" id="flt-claude" data-filter="claude" aria-pressed="false">Claude Code</button>
+          <button type="button" class="btn" id="flt-chatgpt" data-filter="chatgpt" aria-pressed="false">ChatGPT</button>
+          <button type="button" class="btn" id="flt-others" data-filter="others" aria-pressed="false">Others</button>
+        </div>
+        <div class="updates-layout">
+          <nav aria-label="Update entries"><ul class="entries" id="entry-list"></ul></nav>
+          <article class="article" id="article" aria-label="Selected update"></article>
+        </div>
+        <div id="newsletter"></div>
+      </section>
+
+      <!-- STUDIO -->
+      <section id="view-studio" aria-labelledby="studio-h" hidden>
+        <div class="view-head">
+          <p class="eyebrow">/// Studio</p>
+          <h2 id="studio-h">Studio: from source to release</h2>
+          <p class="lede">Everything here is local to this tab. Edits are not saved, and nothing is sent or published.</p>
+        </div>
+        <ol class="pipeline" id="pipeline" aria-label="Publishing states: source, draft, review, release"></ol>
+        <div class="studio-grid">
+          <div class="col">
+            <section class="card" aria-labelledby="ed-h">
+              <h3 id="ed-h">Draft</h3>
+              <div class="field">
+                <label for="st-title">Title</label>
+                <input type="text" id="st-title" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="st-app">Proposed application <span class="req">edit freely</span></label>
+                <textarea id="st-app" rows="6" aria-describedby="st-app-hint"></textarea>
+                <p class="hint" id="st-app-hint">Shown to readers with the label <span class="chip chip-proposed">Proposed application</span>. Do not write results that were not observed.</p>
+              </div>
+            </section>
+            <section class="card" aria-labelledby="act-h">
+              <h3 id="act-h">Review and release</h3>
+              <div class="actions">
+                <button type="button" class="btn btn-primary" id="btn-review">Request review</button>
+                <button type="button" class="btn btn-primary" id="btn-approve">Approve this revision</button>
+              </div>
+              <p class="hint">Approval is a person's decision on one revision and permission to disclose its release snapshot in public Git before the article goes live. A source or model cannot approve a release.</p>
+              <div class="actions" style="margin-top:.8rem">
+                <button type="button" class="btn" id="btn-fail">Simulate publish failure</button>
+                <button type="button" class="btn" id="btn-ok">Simulate successful release</button>
+              </div>
+              <p class="msg" id="studio-msg"></p>
+              <div class="actions" style="margin-top:1rem">
+                <button type="button" class="btn" id="btn-reset">Reset Studio demo</button>
+              </div>
+            </section>
+            <section class="card" aria-labelledby="rel-h">
+              <h3 id="rel-h">Release result</h3>
+              <div id="release-panel"></div>
+            </section>
+          </div>
+          <div class="col">
+            <section class="card" aria-labelledby="rv-h">
+              <h3 id="rv-h">Revision status</h3>
+              <dl class="dl">
+                <div><dt>Draft revision</dt><dd id="rv-rev"></dd></div>
+                <div><dt>Status</dt><dd id="rv-status"></dd></div>
+                <div><dt>Approval</dt><dd id="rv-approval"></dd></div>
+                <div><dt>Public revision (demonstration)</dt><dd id="rv-public"></dd></div>
+                <div><dt>Release</dt><dd id="rv-release"></dd></div>
+              </dl>
+            </section>
+            <section class="card" aria-labelledby="src-h">
+              <h3 id="src-h">Source evidence</h3>
+              <p><span class="chip chip-vendor">Vendor-reported</span></p>
+              <p>Claude Code 2.1.295 adds blocking behavior for a hook that cannot run or times out. <span class="mono">(paraphrase)</span></p>
+              <p><a href="https://code.claude.com/docs/en/changelog#2-1-295" target="_blank" rel="noopener noreferrer">Claude Code changelog, 2.1.295</a></p>
+              <dl class="dl">
+                <div><dt>Independent test</dt><dd>None. The workflow has not been tested.</dd></div>
+              </dl>
+            </section>
+            <section class="card" aria-labelledby="aud-h">
+              <h3 id="aud-h">Audience interest</h3>
+              <p class="empty-signal">No measured trend data connected</p>
+              <p class="hint">Nothing is estimated here. A real signal would be connected and labeled before it appears.</p>
+            </section>
+            <section class="card" aria-labelledby="chk-h">
+              <h3 id="chk-h">Review checklist</h3>
+              <div class="checks" id="checks"></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- ARCHITECTURE -->
+      <section id="view-architecture" aria-labelledby="arch-h" hidden>
+        <div class="view-head">
+          <p class="eyebrow">/// Architecture</p>
+          <h2 id="arch-h">How an update becomes a discussion</h2>
+          <p class="lede">Select a component to read what it is responsible for. This is a concept diagram, not a map of deployed systems.</p>
+        </div>
+
+        <div class="arch" role="group" aria-label="Component diagram. Flow runs from Sources and Evidence, across the trust boundary to the Editorial service, then to the Published article, which Community, Learning and Distribution all share.">
+          <div class="zone outside">
+            <p class="zone-label">Outside the trust boundary · may suggest, never approve</p>
+            <button type="button" class="node" data-node="sources" aria-pressed="true"><b>Sources</b><small>vendor changelogs</small></button>
+            <div class="flow-arrow" aria-hidden="true">↓</div>
+            <button type="button" class="node" data-node="evidence" aria-pressed="false"><b>Evidence</b><small>claims + evidence state</small></button>
+          </div>
+          <div class="boundary"><span>Trust boundary</span></div>
+          <div class="zone">
+            <p class="zone-label">Inside · a person approves</p>
+            <button type="button" class="node" data-node="editorial" aria-pressed="false"><b>Editorial service</b><small>drafts, review, approval</small></button>
+          </div>
+          <div class="flow-arrow hflow" aria-hidden="true">→</div>
+          <div class="zone">
+            <p class="zone-label">Public · one article ID</p>
+            <button type="button" class="node" data-node="published" aria-pressed="false"><b>Published article</b><small>MDX canonical first</small></button>
+          </div>
+        </div>
+
+        <div class="zone around">
+          <p class="zone-label">Around the same article ID and the same thread · Updates feed and topic entrances open the one article, not copies</p>
+          <div class="around-row">
+            <button type="button" class="node" data-node="community" aria-pressed="false"><b>Community</b><small>question · I tried this · correction</small></button>
+            <button type="button" class="node" data-node="learning" aria-pressed="false"><b>Learning</b><small>topic entrances</small></button>
+            <button type="button" class="node" data-node="distribution" aria-pressed="false"><b>Distribution</b><small>newsletter, outward</small></button>
+          </div>
+        </div>
+
+        <div class="detail" id="arch-detail" role="region" aria-labelledby="arch-detail-h" style="margin-top:1rem">
+          <h3 id="arch-detail-h"></h3>
+          <dl class="dl" id="arch-detail-body"></dl>
+        </div>
+
+        <div class="callout">
+          <p><strong>Trust boundary.</strong> Source and model outputs are inputs. They can suggest wording or an evidence state, but they cannot approve a release. Only a recorded human approval on a specific revision lets a release proceed, and an edit after approval cancels it.</p>
+        </div>
+        <div class="sep-two">
+          <div><b>Sign-in (auth)</b>Lets a person post in the community thread.</div>
+          <div><b>Newsletter consent</b>A separate choice. Having an account never implies it.</div>
+        </div>
+
+        <div class="block">
+          <h3>Current and future boundaries</h3>
+          <table class="tbl">
+            <caption>What exists, what is proposed</caption>
+            <thead><tr><th scope="col">Piece</th><th scope="col">Status</th><th scope="col">Meaning</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Published content as MDX</th><td>Canonical first</td><td>The published article lives as MDX. Everything else reads from it.</td></tr>
+              <tr><th scope="row">Private draft store</th><td>Proposed</td><td>Would hold drafts and approvals. Not built.</td></tr>
+              <tr><th scope="row">Existing #70–73</th><td>Open, not deployed</td><td>These items are open. None of it is deployed.</td></tr>
+              <tr><th scope="row">This prototype</th><td>Concept</td><td>Local state only. No network writes.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="block">
+          <h3>Delivery lane</h3>
+          <p class="note"><strong>Requested roles, not actual active sessions.</strong> Nothing here shows who is working right now.</p>
+          <ol class="lane">
+            <li><b>Opus + founder</b><span class="chip chip-none">Requested role</span></li>
+            <li><b>Sonnet + GLM</b><span class="chip chip-none">Requested role</span></li>
+            <li><b>Devin</b><span class="mono">integration</span><br><span class="chip chip-none">Requested role</span></li>
+            <li><b>Fable 5.1</b><span class="mono">verification</span><br><span class="chip chip-none">Requested role</span></li>
+          </ol>
+        </div>
+
+        <div class="block">
+          <h3>Design notes</h3>
+          <div class="notes">
+            <div class="card"><span class="chip chip-demo">Recommended</span><h3>Modular monolith</h3><p>One deployable with clear modules keeps one article ID and one thread, with no sync between services to get wrong.</p></div>
+            <div class="card"><span class="chip chip-proposed">Later alternative</span><h3>Full CMS migration</h3><p>Worth revisiting later if editing needs outgrow MDX and a private draft store. Not needed to prove this flow.</p></div>
+            <div class="card"><span class="chip chip-sample">Not recommended</span><h3>Standalone aggregator</h3><p>A separate aggregator would split discussion away from the article and duplicate the sources. Build the article first.</p></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">Design prototype. Demonstration content. Nothing is published, saved or sent.</div>
+  </footer>
+</div>
+
+<div class="backdrop" id="backdrop" hidden></div>
+
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+  <div class="drawer-head">
+    <div>
+      <p class="eyebrow">/// Discuss</p>
+      <h2 id="drawer-title" tabindex="-1">Discuss this example</h2>
+    </div>
+    <button type="button" class="btn" id="drawer-close">Close</button>
+  </div>
+  <div class="drawer-body" id="drawer-body">
+    <figure class="quote">
+      <figcaption id="drawer-quote-label"></figcaption>
+      <blockquote id="drawer-quote"></blockquote>
+    </figure>
+    <div class="kinds" role="group" aria-label="Type of contribution" id="kinds"></div>
+    <p class="local-banner"><strong>Local-only form.</strong> Nothing is sent or saved. Reloading this page clears everything you add.</p>
+    <form id="contrib-form" novalidate>
+      <h3 class="form-title" id="form-title"></h3>
+      <p class="hint" id="form-hint"></p>
+      <div id="form-fields"></div>
+      <button type="submit" class="btn btn-primary" id="form-submit">Add</button>
+    </form>
+    <div class="result" id="form-result" tabindex="-1" hidden></div>
+    <div class="drawer-thread-wrap">
+      <h3>Discussion on this passage</h3>
+      <p class="note">Sample items are placeholder text. Local items exist only in this tab.</p>
+      <ul class="thread" id="drawer-thread"></ul>
+    </div>
+  </div>
+</aside>
+
+<div class="sr-only" id="live" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- helpers ---------- */
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+function h(tag,o,kids){
+  var e=document.createElement(tag);
+  if(o){Object.keys(o).forEach(function(k){
+    var v=o[k];
+    if(k==='class')e.className=v;
+    else if(k==='text')e.textContent=v;
+    else if(k.indexOf('on')===0)e.addEventListener(k.slice(2),v);
+    else if(v===true)e.setAttribute(k,'');
+    else if(v!==false&&v!=null)e.setAttribute(k,v);
+  });}
+  (kids||[]).forEach(function(c){if(c==null||c===false)return;e.append(c);});
+  return e;
+}
+function chip(text,variant){return h('span',{class:'chip chip-'+variant,text:text});}
+function announce(msg){
+  var l=$('#live');l.textContent='';
+  setTimeout(function(){l.textContent=msg;},40);
+}
+function keepFocus(container,fn){
+  var a=document.activeElement;
+  var id=(a&&a.id&&container.contains(a))?a.id:'';
+  fn();
+  if(id){var n=document.getElementById(id);if(n)n.focus({preventScroll:true});}
+}
+
+/* ---------- content ---------- */
+var CC={
+  title:'A failed check should stop my publishing run',
+  source:'https://code.claude.com/docs/en/changelog#2-1-295'
+};
+var CHANGED='Claude Code 2.1.295 adds blocking behavior for a hook that cannot run or times out.';
+var USAGE={
+  1:'I would use this at the publishing gate. If the claim check cannot run, I would keep the article in review and retry after fixing the check. I have not tested that workflow yet.',
+  2:'I would use this at the publishing gate. If the claim check cannot run or times out, I would keep the article in review, note which check failed, and retry after fixing the check. I have not tested that workflow yet.'
+};
+var PASSAGE_LABEL={changed:'What changed · vendor-reported excerpt',usage:"How I'd use it · proposed application"};
+var KIND={question:'Question',tried:'I tried this',correction:'Correction'};
+function passageText(id,rev){return id==='changed'?CHANGED:USAGE[rev];}
+
+var ENTRIES=[
+  {id:'cc',tool:'Claude Code',filter:'claude',title:CC.title,tag:['Demonstration entry','demo'],state:'Vendor-reported · proposed application'},
+  {id:'gpt',tool:'ChatGPT',filter:'chatgpt',title:'Placeholder: a ChatGPT release will be selected',tag:['Illustrative content','illus'],state:'Awaiting selected release'},
+  {id:'oth',tool:'Others',filter:'others',title:'Other tools: coverage planned',tag:['Coverage planned','illus'],state:'Sources being verified'}
+];
+
+var state={
+  view:'updates',filter:'all',entry:'cc',step:0,rev:1,newsletterDismissed:false,
+  contribs:[
+    {id:'s1',kind:'question',passage:'usage',anchorRev:1,quote:USAGE[1],local:false,fields:{question:'Sample question: if the claim check times out, should the run wait or stop straight away?'}},
+    {id:'s2',kind:'correction',passage:'changed',anchorRev:1,quote:CHANGED,local:false,fields:{change:'Sample correction: please put the exact version link next to the paraphrase so readers can check it.',why:'Sample reason: easier to verify.'}}
+  ],
+  drawer:{open:false,passage:'usage',kind:'question',openerId:null,drafts:{question:{},tried:{},correction:{}}},
+  studio:null
+};
+var cid=100;
+
+/* ---------- view switching ---------- */
+var VIEWS=['updates','studio','architecture'];
+function setView(v){
+  state.view=v;
+  VIEWS.forEach(function(n){
+    $('#view-'+n).hidden=(n!==v);
+    var b=$('#nav-'+n);
+    if(n===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+  });
+  if(v==='studio')renderStudio();
+  announce('Showing '+v+' view.');
+}
+VIEWS.forEach(function(n){$('#nav-'+n).addEventListener('click',function(){setView(n);});});
+
+/* ---------- updates ---------- */
+function visibleEntries(){return ENTRIES.filter(function(e){return state.filter==='all'||e.filter===state.filter;});}
+
+$$('[data-filter]').forEach(function(b){
+  b.addEventListener('click',function(){
+    state.filter=b.getAttribute('data-filter');
+    var vis=visibleEntries();
+    if(!vis.some(function(e){return e.id===state.entry;})){state.entry=vis[0].id;state.step=0;}
+    keepFocus($('#view-updates'),renderUpdates);
+    announce('Filter: '+b.textContent+'. Showing '+vis.length+' of '+ENTRIES.length+' demonstration entries.');
+  });
+});
+
+function renderUpdates(){
+  $$('[data-filter]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-filter')===state.filter));});
+  renderEntryList();renderArticle();renderNewsletter();
+}
+
+function renderEntryList(){
+  var ul=$('#entry-list');ul.replaceChildren();
+  visibleEntries().forEach(function(e){
+    var b=h('button',{type:'button',class:'entry',id:'entry-'+e.id,onclick:function(){
+      state.entry=e.id;state.step=0;
+      keepFocus($('#view-updates'),renderUpdates);
+      announce('Showing: '+e.title);
+    }},[
+      h('span',{class:'tool',text:e.tool}),
+      h('span',{class:'etitle',text:e.title}),
+      chip(e.tag[0],e.tag[1]),
+      h('span',{class:'mono',text:e.state})
+    ]);
+    if(e.id===state.entry)b.setAttribute('aria-current','true');
+    ul.append(h('li',null,[b]));
+  });
+}
+
+function renderArticle(){
+  var box=$('#article');box.replaceChildren();
+  if(state.entry==='cc')ccArticle(box);
+  else if(state.entry==='gpt')gptArticle(box);
+  else othArticle(box);
+}
+
+function stripAndPanels(box,steps){
+  var tl=h('div',{class:'strip',role:'tablist','aria-label':'Three steps: what changed, how I would use it, what happened when tried'});
+  steps.forEach(function(s,i){
+    var sel=(i===state.step);
+    tl.append(h('button',{type:'button',role:'tab',id:'tab-'+i,class:'step','aria-selected':String(sel),'aria-controls':'panel-'+i,tabindex:sel?'0':'-1',onclick:function(){setStep(i,false);},onkeydown:stepKey},[
+      h('span',{class:'step-n',text:String(i+1)}),
+      h('span',null,[h('span',{class:'step-label',text:s.label}),h('span',{class:'step-state',text:s.state})])
+    ]));
+  });
+  box.append(tl);
+  steps.forEach(function(s,i){
+    box.append(h('div',{class:'panel',role:'tabpanel',id:'panel-'+i,'aria-labelledby':'tab-'+i,hidden:i!==state.step,tabindex:'-1'},s.body));
+  });
+}
+function setStep(i,focus){
+  state.step=i;
+  keepFocus($('#article'),renderArticle);
+  if(focus){$('#tab-'+i).focus();}
+  announce('Step '+(i+1)+' of 3.');
+}
+function stepKey(ev){
+  var k=ev.key,i=state.step;
+  if(k==='ArrowRight')i=(i+1)%3;
+  else if(k==='ArrowLeft')i=(i+2)%3;
+  else if(k==='Home')i=0;
+  else if(k==='End')i=2;
+  else return;
+  ev.preventDefault();setStep(i,true);
+}
+
+function discussBtn(passage,labelSuffix){
+  var id='disc-'+passage;
+  return h('button',{type:'button',class:'btn btn-ghost',id:id,'aria-label':'Discuss this example: '+labelSuffix,onclick:function(){openDrawer(passage,'question',id);},text:'Discuss this example'});
+}
+function passageBlock(id){
+  return h('div',{class:'passage'},[h('p',{class:'passage-text',text:passageText(id,state.rev)})]);
+}
+
+function ccArticle(box){
+  var tried=state.contribs.filter(function(c){return c.local&&c.kind==='tried';});
+  box.append(h('div',{class:'meta-row'},[chip('Demonstration entry','demo'),h('span',{class:'mono',text:'Claude Code · 2.1.295'})]));
+  box.append(h('h3',{class:'article-title',id:'article-title',tabindex:'-1',text:CC.title}));
+
+  var rb=h('div',{class:'revbar'},[
+    h('p',{text:state.rev===1
+      ?'Viewing revision 1. A demonstration revision 2 exists to show how comments behave when text changes.'
+      :'Viewing revision 2. It rewords the "How I\'d use it" paragraph. Comments written on revision 1 stay on revision 1; they are not moved for you.'}),
+    h('button',{type:'button',class:'btn',id:'rev-toggle',text:state.rev===1?'Show revised article':'Show revision 1',onclick:function(){
+      state.rev=state.rev===1?2:1;
+      keepFocus($('#view-updates'),renderUpdates);
+      announce('Now viewing revision '+state.rev+'. Existing comments keep their original revision.');
+    }})
+  ]);
+  box.append(rb);
+
+  stripAndPanels(box,[
+    {label:'What changed',state:'Vendor-reported',body:[
+      h('div',{class:'meta-row'},[chip('Vendor-reported','vendor'),h('span',{class:'mono',text:'Official changelog · paraphrased'})]),
+      passageBlock('changed'),
+      h('p',{class:'note',text:'Paraphrased from the vendor changelog, not a verbatim quote. I have not independently checked it.'}),
+      discussBtn('changed','what changed')
+    ]},
+    {label:"How I'd use it",state:'Proposed · untested',body:[
+      h('div',{class:'meta-row'},[chip('Proposed application','proposed'),h('span',{class:'mono',text:'My idea · revision '+state.rev})]),
+      passageBlock('usage'),
+      h('p',{class:'note',text:'This is a plan, not a result.'}),
+      discussBtn('usage',"how I'd use it")
+    ]},
+    {label:'What happened when tried',state:tried.length?tried.length+' local demo report'+(tried.length>1?'s':''):'No trial reported',body:
+      [h('div',{class:'meta-row'},[chip(tried.length?'Local demo reports':'No trial reported',tried.length?'local':'none')]),
+       h('p',{text:tried.length?'These reports exist only in this tab. They are demonstration input, not evidence.':'Nothing has been tried, so there is no result to show. I will not fill this in until someone has run it.'}),
+       h('button',{type:'button',class:'btn btn-ghost',id:'tried-btn',onclick:function(){openDrawer('usage','tried','tried-btn');},text:'I tried this'})
+      ].concat(tried.length?[h('ul',{class:'thread',style:'margin-top:1rem'},tried.map(contribItem))]:[])
+    }
+  ]);
+
+  var src=h('section',{class:'section sources','aria-labelledby':'src-sec'},[
+    h('h4',{id:'src-sec',text:'Sources'}),
+    h('ul',null,[h('li',null,[
+      h('a',{href:CC.source,target:'_blank',rel:'noopener noreferrer',text:'Claude Code changelog, 2.1.295'}),
+      h('span',{class:'url',text:CC.source}),
+      chip('Vendor-reported','vendor')
+    ])]),
+    h('h4',{style:'margin-top:1.2rem',text:'What the labels mean'}),
+    h('dl',{class:'legend'},[
+      h('div',null,[h('dt',null,[chip('Vendor-reported','vendor')]),h('dd',{text:'Stated by the vendor. I have not checked it myself.'})]),
+      h('div',null,[h('dt',null,[chip('Proposed application','proposed')]),h('dd',{text:'My idea for using it. Untested.'})]),
+      h('div',null,[h('dt',null,[chip('I tried this','kind')]),h('dd',{text:'Someone reports running it. Here, only as a local demo.'})])
+    ])
+  ]);
+  box.append(src);
+
+  var th=h('ul',{class:'thread',id:'article-thread'});
+  state.contribs.forEach(function(c){th.append(contribItem(c));});
+  box.append(h('section',{class:'section','aria-labelledby':'disc-sec'},[
+    h('h4',{id:'disc-sec',text:'Discussion on this article'}),
+    h('p',{class:'note',text:'Sample items are placeholder text. Local items exist only in this tab. Each comment names the revision it was written on.'}),
+    th
+  ]));
+}
+
+function gptArticle(box){
+  box.append(h('div',{class:'meta-row'},[chip('Illustrative content','illus'),chip('Awaiting selected release','none')]));
+  box.append(h('h3',{class:'article-title',id:'article-title',tabindex:'-1',text:'Placeholder: a ChatGPT release will be selected'}));
+  box.append(h('p',{class:'note',text:'Generic placeholder text. No ChatGPT feature, release or date has been chosen, so nothing here describes a real change.'}));
+  stripAndPanels(box,[
+    {label:'What changed',state:'Awaiting release',body:[
+      h('p',{text:'The vendor-reported change will be paraphrased here with a link to the official source once a release is selected.'})]},
+    {label:"How I'd use it",state:'Not written',body:[
+      h('p',{text:'My proposed use will be written in the first person and labeled as a proposed application.'})]},
+    {label:'What happened when tried',state:'No trial reported',body:[
+      h('p',{text:'No trial reported. Results appear only if someone has actually tried it.'})]}
+  ]);
+  box.append(h('section',{class:'section'},[
+    h('h4',{text:'Sources'}),
+    h('p',{class:'note',text:'No source selected yet. Discussion opens once a real passage exists.'})
+  ]));
+}
+
+function othArticle(box){
+  box.append(h('div',{class:'meta-row'},[chip('Coverage planned','illus'),chip('Sources being verified','none')]));
+  box.append(h('h3',{class:'article-title',id:'article-title',tabindex:'-1',text:'Other tools: coverage planned'}));
+  box.append(h('div',{class:'panel'},[
+    h('p',{text:'I plan to cover releases from other AI tools here. Their sources are being verified first, so no entries are listed yet.'}),
+    h('p',{class:'note',text:'Nothing is linked until a source has been checked.'})
+  ]));
+  box.append(h('section',{class:'section'},[h('h4',{text:'Sources'}),h('p',{class:'note',text:'Being verified.'})]));
+}
+
+/* contribution rendering */
+function contribItem(c){
+  var li=h('li',{class:'contrib '+(c.local?'is-local':'is-sample')});
+  li.append(h('div',{class:'contrib-head'},[
+    chip(KIND[c.kind],'kind'),
+    c.local?chip('Local demo contribution','local'):chip('Sample · placeholder text','sample')
+  ]));
+  li.append(h('p',{class:'anchor',text:'Anchored to revision '+c.anchorRev+' · '+PASSAGE_LABEL[c.passage]}));
+  if(c.anchorRev!==state.rev){
+    var same=c.quote===passageText(c.passage,state.rev);
+    li.append(h('p',{class:'anchor-note',text:same
+      ?'Written on revision '+c.anchorRev+'. This passage is unchanged in revision '+state.rev+'.'
+      :'Written on revision '+c.anchorRev+'. This passage reads differently in revision '+state.rev+', and the comment has not moved.'}));
+    if(!same)li.append(h('blockquote',{class:'old-quote',text:c.quote}));
+  }
+  var f=c.fields;
+  if(c.kind==='question'){
+    li.append(h('p',{class:'body',text:f.question}));
+  }else if(c.kind==='tried'){
+    var dl=h('dl',{class:'fields'});
+    [['Environment',f.environment],['Steps',f.steps],['Result',f.result]].forEach(function(p){dl.append(h('dt',{text:p[0]}));dl.append(h('dd',{text:p[1]}));});
+    if(f.evidence){
+      dl.append(h('dt',{text:'Evidence URL'}));
+      var dd=h('dd');
+      var a=h('a',{target:'_blank',rel:'noopener noreferrer nofollow'});
+      a.href=f.evidence;a.textContent=f.evidence;dd.append(a);dl.append(dd);
+    }
+    li.append(dl);
+  }else{
+    var d2=h('dl',{class:'fields'});
+    d2.append(h('dt',{text:'Suggested change'}));d2.append(h('dd',{text:f.change}));
+    if(f.why){d2.append(h('dt',{text:'Why'}));d2.append(h('dd',{text:f.why}));}
+    li.append(d2);
+  }
+  li.append(h('p',{class:'local-note',text:c.local?'Added to this prototype only.':'Sample text for the prototype. Not a real contribution.'}));
+  return li;
+}
+function renderThread(ul,filterFn){
+  ul.replaceChildren();
+  var items=state.contribs.filter(filterFn);
+  if(!items.length){ul.append(h('li',{class:'empty',text:'No discussion on this passage yet.'}));return;}
+  items.forEach(function(c){ul.append(contribItem(c));});
+}
+
+/* newsletter concept */
+function renderNewsletter(){
+  var box=$('#newsletter');box.replaceChildren();
+  if(state.newsletterDismissed){
+    box.append(h('div',{class:'news-actions',style:'margin-top:1.5rem'},[
+      h('button',{type:'button',class:'btn',id:'news-show',text:'Show the newsletter concept again',onclick:function(){state.newsletterDismissed=false;renderNewsletter();var d=$('#news-dismiss');if(d)d.focus();announce('Newsletter concept shown.');}})
+    ]));
+    return;
+  }
+  box.append(h('section',{class:'news','aria-labelledby':'news-h'},[
+    chip('Concept only','illus'),
+    h('h4',{id:'news-h',style:'margin-top:.6rem',text:'A newsletter could go here'}),
+    h('p',{text:'One day, a short digest of new updates and community results might be sent by email. This is a design idea only. There is no sign-up form in this prototype, and no email address is collected.'}),
+    h('div',{class:'news-actions'},[
+      h('button',{type:'button',class:'btn',id:'news-dismiss',text:'Dismiss',onclick:function(){
+        state.newsletterDismissed=true;renderNewsletter();
+        var n=$('#news-show');if(n)n.focus();
+        announce('Newsletter concept dismissed.');
+      }})
+    ])
+  ]));
+}
+
+/* ---------- drawer ---------- */
+var FORMS={
+  question:{title:'Ask a question about this passage',hint:'Be specific about what is unclear.',submit:'Add question (local)',fields:[
+    {name:'question',label:'Your question',type:'textarea',required:true}]},
+  tried:{title:'Report what happened when you tried this',hint:'Include failures too. Only report what you observed.',submit:'Add trial report (local)',fields:[
+    {name:'environment',label:'Environment',type:'text',required:true,hint:'Tool version, operating system, how the hook runs.'},
+    {name:'steps',label:'Steps',type:'textarea',required:true,hint:'What you did, in order.'},
+    {name:'result',label:'Result',type:'textarea',required:true,hint:'What you observed.'},
+    {name:'evidence',label:'Evidence URL',type:'url',required:false,hint:'Optional. A link to a log, repository or write-up.'}]},
+  correction:{title:'Suggest a correction',hint:'Say what should change in this passage.',submit:'Add correction (local)',fields:[
+    {name:'change',label:'What should change',type:'textarea',required:true},
+    {name:'why',label:'Why',type:'textarea',required:false,hint:'Optional. A source or reason helps reviewers.'}]}
+};
+
+function renderKinds(){
+  var g=$('#kinds');g.replaceChildren();
+  Object.keys(KIND).forEach(function(k){
+    g.append(h('button',{type:'button',class:'btn',id:'kind-'+k,'aria-pressed':String(state.drawer.kind===k),text:KIND[k],onclick:function(){
+      state.drawer.kind=k;
+      $$('#kinds .btn').forEach(function(b){b.setAttribute('aria-pressed',String(b.id==='kind-'+k));});
+      $('#form-result').hidden=true;
+      renderForm();
+      announce(KIND[k]+' form.');
+    }}));
+  });
+}
+function renderForm(){
+  var d=state.drawer,cfg=FORMS[d.kind],box=$('#form-fields');
+  box.replaceChildren();
+  $('#form-title').textContent=cfg.title;
+  $('#form-hint').textContent=cfg.hint;
+  $('#form-submit').textContent=cfg.submit;
+  cfg.fields.forEach(function(f){
+    var id='f-'+d.kind+'-'+f.name;
+    var el=f.type==='textarea'
+      ?h('textarea',{id:id,rows:'4',autocomplete:'off'})
+      :h('input',{id:id,type:f.type==='url'?'url':'text',autocomplete:'off',inputmode:f.type==='url'?'url':null});
+    el.value=d.drafts[d.kind][f.name]||'';
+    el.addEventListener('input',function(){d.drafts[d.kind][f.name]=el.value;});
+    var desc=[];
+    if(f.hint)desc.push(id+'-hint');
+    desc.push(id+'-err');
+    el.setAttribute('aria-describedby',desc.join(' '));
+    if(f.required)el.setAttribute('aria-required','true');
+    var wrap=h('div',{class:'field'},[
+      h('label',{for:id},[f.label,h('span',{class:'req',text:f.required?'required':'optional'})]),
+      el,
+      f.hint?h('p',{class:'hint',id:id+'-hint',text:f.hint}):null,
+      h('p',{class:'err',id:id+'-err',hidden:true})
+    ]);
+    box.append(wrap);
+  });
+}
+function renderDrawer(){
+  var d=state.drawer;
+  $('#drawer-quote-label').textContent='Quoted from revision '+state.rev+' · '+PASSAGE_LABEL[d.passage];
+  $('#drawer-quote').textContent=passageText(d.passage,state.rev);
+  renderKinds();renderForm();
+  $('#form-result').hidden=true;
+  renderThread($('#drawer-thread'),function(c){return c.passage===d.passage;});
+}
+function openDrawer(passage,kind,openerId){
+  var d=state.drawer;
+  d.open=true;d.passage=passage;d.kind=kind;d.openerId=openerId;
+  renderDrawer();
+  $('#drawer').hidden=false;$('#backdrop').hidden=false;
+  $('#app').setAttribute('inert','');
+  document.documentElement.classList.add('lock');
+  $('#drawer-title').focus();
+  announce('Discussion panel opened. '+PASSAGE_LABEL[passage]+'.');
+}
+function closeDrawer(){
+  var d=state.drawer;if(!d.open)return;
+  d.open=false;
+  $('#drawer').hidden=true;$('#backdrop').hidden=true;
+  $('#app').removeAttribute('inert');
+  document.documentElement.classList.remove('lock');
+  var t=(d.openerId&&document.getElementById(d.openerId))||$('#article-title')||$('#nav-updates');
+  if(t)t.focus();
+  announce('Discussion panel closed.');
+}
+$('#drawer-close').addEventListener('click',closeDrawer);
+$('#backdrop').addEventListener('click',closeDrawer);
+document.addEventListener('keydown',function(ev){
+  var d=state.drawer;if(!d.open)return;
+  if(ev.key==='Escape'){ev.preventDefault();closeDrawer();return;}
+  if(ev.key==='Tab'){
+    var f=$$('#drawer button, #drawer input, #drawer textarea, #drawer a[href], #drawer [tabindex="-1"]#drawer-title').filter(function(n){return !n.disabled&&n.offsetParent!==null;});
+    if(!f.length)return;
+    var first=f[0],last=f[f.length-1];
+    if(ev.shiftKey&&(document.activeElement===first||document.activeElement===$('#drawer-title'))){ev.preventDefault();last.focus();}
+    else if(!ev.shiftKey&&document.activeElement===last){ev.preventDefault();first.focus();}
+  }
+});
+
+$('#contrib-form').addEventListener('submit',function(ev){
+  ev.preventDefault();
+  var d=state.drawer,cfg=FORMS[d.kind],first=null,vals={};
+  cfg.fields.forEach(function(f){
+    var id='f-'+d.kind+'-'+f.name,el=document.getElementById(id),v=el.value.trim(),err='';
+    vals[f.name]=v;
+    if(f.required&&!v)err='This field is required.';
+    else if(f.type==='url'&&v){
+      try{var u=new URL(v);if(u.protocol!=='http:'&&u.protocol!=='https:')err='Use a link starting with http:// or https://, or leave this blank.';}
+      catch(e){err='Enter a full link such as https://example.com, or leave this blank.';}
+    }
+    var er=document.getElementById(id+'-err');
+    er.textContent=err;er.hidden=!err;
+    el.setAttribute('aria-invalid',err?'true':'false');
+    if(err&&!first)first=el;
+  });
+  if(first){first.focus();announce('The form has errors. Fix the marked fields.');return;}
+  state.contribs.push({id:'l'+(cid++),kind:d.kind,passage:d.passage,anchorRev:state.rev,quote:passageText(d.passage,state.rev),local:true,fields:vals});
+  d.drafts[d.kind]={};
+  renderForm();
+  renderThread($('#drawer-thread'),function(c){return c.passage===d.passage;});
+  renderUpdates();
+  var r=$('#form-result');r.replaceChildren();
+  r.append(h('strong',{text:'Added to this prototype only.'}));
+  r.append(h('span',{text:'Your '+KIND[d.kind].toLowerCase()+' is marked as a local demo contribution below. Nothing was sent or saved, and it disappears when this page reloads.'}));
+  r.hidden=false;r.focus();
+  announce('Added to this prototype only.');
+});
+
+/* ---------- studio ---------- */
+var TITLE0=CC.title;
+var CHECKS=[
+  'The source link points to the vendor changelog entry.',
+  'The vendor claim is paraphrased and labeled vendor-reported.',
+  'The proposed application is labeled and not described as a result.',
+  'The text says plainly that the workflow is untested.',
+  'A person, not a source or a model output, is making this approval.'
+];
+function studio0(){return {title:TITLE0,app:USAGE[2],status:'draft',rev:2,publicRev:1,approval:null,release:'none',check:CHECKS.map(function(){return false;}),msg:'Local draft loaded. Nothing here is saved or published.'};}
+state.studio=studio0();
+
+(function buildChecks(){
+  var box=$('#checks');
+  CHECKS.forEach(function(t,i){
+    var cb=h('input',{type:'checkbox',id:'chk-'+i});
+    cb.addEventListener('change',function(){
+      var s=state.studio;s.check[i]=cb.checked;
+      if(s.approval&&!cb.checked){
+        s.approval=null;s.release='none';
+        setMsg('Checklist changed after approval, so the approval was cleared. Approve again once every item is checked.');
+      }else renderStudio();
+    });
+    box.append(h('label',{class:'check'},[cb,h('span',{text:t})]));
+  });
+})();
+
+function setMsg(t){state.studio.msg=t;announce(t);renderStudio();}
+
+function renderStudio(){
+  var s=state.studio;
+  var ti=$('#st-title'),ap=$('#st-app');
+  if(ti.value!==s.title)ti.value=s.title;
+  if(ap.value!==s.app)ap.value=s.app;
+  s.check.forEach(function(v,i){$('#chk-'+i).checked=v;});
+  $('#studio-msg').textContent=s.msg;
+
+  $('#rv-rev').textContent='Draft revision '+s.rev;
+  $('#rv-status').textContent=s.status==='draft'?'Draft':'In review';
+  $('#rv-approval').textContent=s.approval?'Approved for revision '+s.approval.rev+' · recorded locally at '+s.approval.time:'No valid approval';
+  $('#rv-public').textContent='Revision '+s.publicRev+' (demonstration)';
+  $('#rv-release').textContent=s.release==='none'?'Not released':s.release==='failed'?'Publish failed (simulated). Previous public revision kept.':'Verified-state DEMO';
+
+  var steps=[
+    {n:'Source',st:'Attached · vendor-reported',m:'done',mark:'✓'},
+    s.status==='draft'?{n:'Draft',st:'Draft revision '+s.rev,m:'current',mark:'●'}:{n:'Draft',st:'Draft revision '+s.rev,m:'done',mark:'✓'},
+    s.status==='draft'?{n:'Review',st:'Not started',m:'upcoming',mark:'○'}:(s.approval?{n:'Review',st:'Approved (local)',m:'done',mark:'✓'}:{n:'Review',st:'In review',m:'current',mark:'●'}),
+    s.release==='verified'?{n:'Release',st:'Verified (DEMO)',m:'done',mark:'✓'}:s.release==='failed'?{n:'Release',st:'Failed · previous kept',m:'fail',mark:'✕'}:{n:'Release',st:s.approval?'Ready to release':'Not released',m:s.approval?'current':'upcoming',mark:s.approval?'●':'○'}
+  ];
+  var pl=$('#pipeline');pl.replaceChildren();
+  steps.forEach(function(x){
+    var li=h('li',{'data-mark':x.m},[h('span',{class:'pl-mark','aria-hidden':'true',text:x.mark}),h('span',{class:'pl-name',text:x.n}),h('span',{class:'pl-state',text:x.st})]);
+    if(x.m==='current')li.setAttribute('aria-current','step');
+    pl.append(li);
+  });
+
+  var rp=$('#release-panel');rp.replaceChildren();
+  if(s.release==='verified'){
+    rp.append(chip('Verified-state DEMO','demo'));
+    rp.append(h('p',{style:'margin-top:.7rem',text:'Fictional example only. Nothing was published.'}));
+    rp.append(h('dl',{class:'dl'},[
+      h('div',null,[h('dt',{text:'Example path (fictional, not a real URL)'}),h('dd',{class:'mono',text:'/demo-only/example/failed-check-stops-publishing-run'})]),
+      h('div',null,[h('dt',{text:'Public revision in this demonstration'}),h('dd',{text:'Revision '+s.publicRev})])
+    ]));
+  }else if(s.release==='failed'){
+    rp.append(chip('Publish failed (simulated)','proposed'));
+    rp.append(h('p',{style:'margin-top:.7rem',text:'Public revision '+s.publicRev+' is unchanged. Nothing live changed.'}));
+  }else{
+    rp.append(chip('Not released','none'));
+    rp.append(h('p',{style:'margin-top:.7rem',text:'Public revision '+s.publicRev+' (demonstration) is what readers would see.'}));
+  }
+}
+
+function onEdit(){
+  var s=state.studio;
+  s.title=$('#st-title').value;s.app=$('#st-app').value;
+  if(s.approval){
+    var old=s.approval.rev;
+    s.approval=null;s.rev+=1;s.release='none';s.status='draft';s.check=CHECKS.map(function(){return false;});
+    setMsg('Edited after approval: the approval for revision '+old+' is no longer valid. This is now draft revision '+s.rev+' and needs a new approval.');
+  }else renderStudio();
+}
+$('#st-title').addEventListener('input',onEdit);
+$('#st-app').addEventListener('input',onEdit);
+
+$('#btn-review').addEventListener('click',function(){
+  var s=state.studio;
+  if(s.status==='draft'){s.status='review';setMsg('Draft revision '+s.rev+' moved to In review (local). Work through the checklist, then approve.');}
+  else setMsg('Already in review.');
+});
+$('#btn-approve').addEventListener('click',function(){
+  var s=state.studio;
+  if(s.status!=='review'){setMsg('Request review first. Approval is only recorded on a revision that is in review.');return;}
+  if(s.approval){setMsg('Revision '+s.rev+' is already approved locally.');return;}
+  var open=s.check.filter(function(x){return !x;}).length;
+  if(open){setMsg('Approval blocked: '+open+' checklist '+(open===1?'item is':'items are')+' still open.');return;}
+  s.approval={rev:s.rev,time:new Date().toLocaleTimeString()};
+  setMsg('Approval recorded for revision '+s.rev+'. Local to this tab; nothing was sent.');
+});
+function needApproval(){
+  var s=state.studio;
+  if(!s.approval){setMsg('Release blocked: this revision has no valid approval. A source or model output cannot stand in for one.');return false;}
+  return true;
+}
+$('#btn-fail').addEventListener('click',function(){
+  var s=state.studio;if(!needApproval())return;
+  s.release='failed';
+  setMsg('Simulated publish failure. Public revision '+s.publicRev+' is preserved. Nothing live changed.');
+});
+$('#btn-ok').addEventListener('click',function(){
+  var s=state.studio;if(!needApproval())return;
+  s.release='verified';s.publicRev=s.approval.rev;
+  setMsg('Simulated successful release: verified-state DEMO for revision '+s.publicRev+'. Fictional example path only; nothing was published.');
+});
+$('#btn-reset').addEventListener('click',function(){
+  state.studio=studio0();
+  setMsg('Studio demo reset.');
+});
+
+/* ---------- architecture ---------- */
+var NODES={
+  sources:{name:'Sources',zone:'Outside the trust boundary',does:'Supplies vendor changelogs and release notes as links and claims that can be paraphrased. Every claim keeps its source link.',not:'Does not approve, publish or change an evidence state. A source saying something is not the same as it being tested.',status:'Research verified Claude Code and combined ChatGPT/Codex RSS. This prototype does not fetch them; the ChatGPT demonstration awaits a selected story.'},
+  evidence:{name:'Evidence',zone:'Outside the trust boundary until a person reviews it',does:'Holds each claim with its source link and its evidence state: vendor-reported, proposed application, or tried. Records what is untested.',not:'Does not promote a claim to "tried" on its own. Source or model output can suggest an evidence state; a person records it.',status:'Concept. The Studio view shows how the labels would read.'},
+  editorial:{name:'Editorial service',zone:'Inside the trust boundary',does:'Turns evidence into drafts, tracks revisions, runs the review checklist, records a human approval for one revision, cancels that approval when the text changes, and blocks a release without a valid approval.',not:'Does not let a source or a model approve a release. Does not publish from a draft by itself.',status:'Proposed, as a module in a modular monolith. The private draft store it would use is proposed, not built.'},
+  published:{name:'Published article',zone:'Public',does:'Is the canonical article: MDX published content comes first. One article ID. If a release fails, the previous public revision stays in place.',not:'Does not hold private drafts or unapproved text.',status:'MDX published canonical comes first. Existing #70–73 are open, not deployed.'},
+  community:{name:'Community',zone:'Around the article',does:'Attaches questions, "I tried this" reports and corrections to the one article thread, anchored to a passage on a specific revision. Anchors stay on the revision they were written against.',not:'Does not move comments to new wording silently. Sign-in (auth) lets someone post; it is separate from newsletter consent.',status:'Concept. The discussion panel in Updates is a local-only demonstration.'},
+  learning:{name:'Learning',zone:'Around the article',does:'Offers topic entrances that open the same article ID and the same thread, so someone arriving by topic joins the same discussion as someone arriving from the updates feed.',not:'Does not copy articles or fork threads per topic.',status:'Concept.'},
+  distribution:{name:'Distribution',zone:'Around the article',does:'Derives editable X copy and video outlines from a verified published article. Existing newsletter delivery remains a separately controlled action with its own consent.',not:'Does not post or send automatically. Does not treat having an account as newsletter consent. This prototype collects no email.',status:'Concept. Social/video outputs are drafts; the newsletter invitation is design only.'}
+};
+function showNode(key,say){
+  $$('[data-node]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-node')===key));});
+  var n=NODES[key];
+  $('#arch-detail-h').textContent=n.name;
+  var dl=$('#arch-detail-body');dl.replaceChildren();
+  [['Trust zone',n.zone],['Responsible for',n.does],['Not responsible for',n.not],['Status in this concept',n.status]].forEach(function(p){
+    dl.append(h('div',null,[h('dt',{text:p[0]}),h('dd',{text:p[1]})]));
+  });
+  if(say)announce(n.name+': '+n.does);
+}
+$$('[data-node]').forEach(function(b){b.addEventListener('click',function(){showNode(b.getAttribute('data-node'),true);});});
+
+/* ---------- banner height for drawer offset ---------- */
+function setBannerH(){document.documentElement.style.setProperty('--banner-h',$('#banner').offsetHeight+'px');}
+window.addEventListener('resize',setBannerH);
+setBannerH();
+
+/* ---------- init ---------- */
+renderUpdates();
+renderStudio();
+showNode('sources',false);
+})();
+</script>
+</body>
+</html>
