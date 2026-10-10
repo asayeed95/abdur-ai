@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — post visuals
+
+### Added
+- `Figure` (`components/post/Figure.tsx`): a captioned in-post figure. The caption is required, and a figure without one fails the build.
+- Diagrams in `components/diagrams/`: `AppendOnlyMemoryDiagram` and `VerificationLoopDiagram`, built from shared SVG parts with token classes only.
+- Interactive blocks in `components/interactive/`: `StepThrough`/`Step`, `Tabs`/`Tab`, `Checklist`/`Check` and `Quiz`/`Choice`/`Answer`. All four are no-JS first and keyboard accessible, with no new dependencies.
+- All of them registered for post MDX in `components/post/mdx-components.ts`.
+- `scripts/post-visuals.mjs`: preview pages rendered from the real components, plus the generated `assets/post-visuals.css`.
+- DESIGN-SYSTEM.md: "Visuals in posts" and "Interactive blocks".
+
 ## 1.1.0 — 2026-10-02
 
 All eight contrast fixes proposed in 1.0.0 are applied in the app (AGE-2844, approved by Abdur in a live session). No existing token value changed: the fixes add three aliases that point at existing values.

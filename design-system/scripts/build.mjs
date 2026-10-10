@@ -195,6 +195,29 @@ for (const c of COMPONENTS) {
 `);
 }
 
+// Post visuals (Figure, diagrams, interactive blocks): rendered from the real
+// components, styled by a generated assets/post-visuals.css. See post-visuals.mjs.
+const { buildPostVisuals } = await import("./post-visuals.mjs");
+const VISUALS = await buildPostVisuals({ REPO, DS });
+for (const c of VISUALS) {
+  const body = c.html();
+  write(path.join(DS, "components", `${c.slug}.html`), `${head(c.name, 1).replace("</head>", '<link rel="stylesheet" href="../assets/post-visuals.css">\n</head>')}
+<body>
+<div class="ds-shell">
+  <div class="ds-head">
+    <div>${crumbs(1)}<h1>${c.name}</h1><p>${md(c.summary)}</p><p class="ds-src">Source: ${c.source} · rendered from the component by scripts/post-visuals.mjs</p></div>
+  </div>
+  <div class="ds-panels">
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div style="max-width:var(--prose-max)">${body}</div></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div style="max-width:var(--prose-max)">${body}</div></section>
+  </div>
+  <ul class="ds-guide">${c.guide.map((g) => `<li>${md(g)}</li>`).join("")}</ul>
+</div>
+</body>
+</html>
+`);
+}
+
 const postCount = fs.readdirSync(path.join(REPO, "content", "posts")).filter((f) => f.endsWith(".mdx")).length;
 const templates = TEMPLATES({ postCount });
 for (const t of templates) {
@@ -216,6 +239,8 @@ write(path.join(DS, "index.html"), `${head("Index", 0)}
   <li><a class="card" href="tests/contrast.test.html"><h3 class="card-title">Contrast test</h3><p class="card-body">Every text-on-surface pair, both themes, plus the known risks.</p></a></li></ul>
   <p class="eyebrow" style="margin:var(--space-12) 0 var(--space-4)">/// Components</p>
   <ul class="ds-index">${COMPONENTS.map((c) => `<li><a class="card" href="components/${c.slug}.html"><h3 class="card-title">${c.name}</h3><p class="card-body">${md(c.summary)}</p></a></li>`).join("")}</ul>
+  <p class="eyebrow" style="margin:var(--space-12) 0 var(--space-4)">/// Post visuals</p>
+  <ul class="ds-index">${VISUALS.map((c) => `<li><a class="card" href="components/${c.slug}.html"><h3 class="card-title">${c.name}</h3><p class="card-body">${md(c.summary)}</p></a></li>`).join("")}</ul>
   <p class="eyebrow" style="margin:var(--space-12) 0 var(--space-4)">/// Templates</p>
   <ul class="ds-index">${templates.map((t) => `<li><a class="card" href="templates/${t.slug}.html"><h3 class="card-title">${t.name}</h3><p class="card-body"><code class="code-inline">${t.route}</code> · ${t.source}</p></a></li>`).join("")}</ul>
 </div>
@@ -339,4 +364,4 @@ if (errors.length) {
   console.error(`\n${errors.length} error(s):\n  ` + errors.join("\n  "));
   process.exit(1);
 }
-console.log(`\nOK — tokens.json, ${COMPONENTS.length} component previews, ${templates.length} templates, index.html. No drift, no stray hex.`);
+console.log(`\nOK — tokens.json, ${COMPONENTS.length} component previews, ${VISUALS.length} post-visual previews, ${templates.length} templates, index.html. No drift, no stray hex.`);
