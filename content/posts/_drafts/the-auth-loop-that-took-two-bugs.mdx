@@ -1,0 +1,203 @@
+---
+slug: the-auth-loop-that-took-two-bugs
+title: "The auth loop that took two bugs"
+seo_title: "Why a WebSocket client loops on a rejected token"
+subtitle: "One bug made every restart invalidate every token. A second made the client retry forever. Neither showed up in a test."
+description: "Restarting my bridge server sent the app into an endless 'Invalid or expired token' loop. It took two bugs, and the tests were green for both."
+dek: "A restart should cost a reconnect. Mine cost a re-pair, and then the app kept retrying a token the server had already rejected. Two small bugs reinforced each other, and every test I had was looking somewhere else."
+tldr: "During an end-to-end walkthrough on 2026-04-07, killing and restarting the bridge server for my iOS project (then called RemoteCLI, now HeyCLI) put the app into an endless 'Invalid or expired token' loop. Two bugs caused it. First, the server's JWT manager fell back to randomBytes(32) whenever no secret was configured, so every restart invalidated every token ever issued. Second, the WebSocket client scheduled a reconnect on every close, including close code 4001, the code the server uses to reject auth, so it retried a dead token forever. The server-side test passed because it closed its client before restarting the server. The fix persisted the secret to a 0600 file, made 4001 a terminal state that emits authFailed and routes back to pairing, and added a test for that branch. The lesson: a retry loop needs a way to learn that the failure is permanent."
+date: 2026-10-06T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+register: reported
+series: "Mistakes TLDR"
+draft: true
+flagship: false
+pinned: false
+featured: false
+tags:
+  - websocket
+  - jwt
+  - authentication
+  - reconnect
+  - testing
+  - postmortem
+receipts:
+  - path: "server/src/auth/jwt.ts"
+    sha: "5215874"
+    note: "Before: this.secret = secret || randomBytes(32).toString('hex'). After: loadOrCreatePersistentSecret() reads or creates ~/.remotecli/jwt-secret (mode 0600). Fix commit, 2026-04-07. The repo is private, so the excerpts in this post are verbatim from this commit."
+  - path: "app/src/ws/client.ts"
+    sha: "5215874"
+    note: "onclose now branches on close code 4001: cancelReconnect(), setStatus('closed'), emit('authFailed'). Before the fix, every non-user-initiated close called scheduleReconnect()."
+  - path: "app/src/ws/client.test.ts"
+    sha: "5215874"
+    note: "New test: emits authFailed and stops reconnecting on close code 4001. Advances 60 seconds of fake timers and asserts exactly one socket was ever created."
+  - path: "app/src/store/connection.ts"
+    sha: "5215874"
+    note: "The store handles authFailed by clearing identity and setting lastError to 'Session expired — please pair again'."
+  - path: "docs/SUB-PROJECT-1-REVIEW.md"
+    sha: "af186b3"
+    note: "Written the next day. Says the server bug was not caught in server-only testing because the test closed its client before restarting the server."
+citation_preferred: "Sayeed, Abdur Rahman. 'The auth loop that took two bugs.' abdur.ai, 6 October 2026."
+related:
+  - the-analytics-call-that-couldnt-fail
+  - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
+---
+
+**Short answer:** I killed and restarted my bridge server, and my iOS app went into an endless "Invalid or expired token" loop. It took two bugs, and they fed each other. The server generated a fresh signing secret on every start, so every restart invalidated every token. The client treated "the server rejected my token" the same as "the network dropped", so it kept reconnecting with a token that could never work again. The first bug alone would have cost a re-pair after every restart. The second alone would have sat quietly until some other rejection arrived, a token reaching day 30, say. Together they made a loop.
+
+*Context: this is from HeyCLI, which was called RemoteCLI when I wrote this code. It's a project I'm building: an iOS app that talks to a small Node bridge server on my own machine over an authenticated WebSocket. The repo is private, so every excerpt below is verbatim from the fix commit, `5215874`, and the commit is the audit trail. None of the receipts at the end is something you can open yourself. What you can check is the code in this post: the excerpts show both bugs on their own. How I found them (an end-to-end walkthrough) and the test counts come from the private commit message and review doc, so treat those as my word.*
+
+## What did the app do when I restarted the server?
+
+It was criterion 6 of an end-to-end walkthrough: kill the bridge, bring it back, and confirm the app reconnects on its own. The app did not reconnect. The debug stream filled with "Invalid or expired token", over and over, and it never stopped.
+
+The token was nowhere near expired. Tokens from this server are valid for 30 days, and the project's review doc says the TTL "hadn't come close". "Expired" was the nearest error message to the real problem, which was that the new server process couldn't verify a signature made by the old one.
+
+## Why did a restart invalidate every token?
+
+Because of one line in the server's JWT manager:
+
+```ts
+// Generate a random secret per server instance if not provided.
+// In production, this should be persisted so tokens survive restarts.
+this.secret = secret || randomBytes(32).toString("hex");
+```
+
+The comment is the tell. It says what should happen in production, and the next line does something else. With no secret in the environment, every process start generated a new one. A token signed by the previous instance fails verification against the new instance's secret, so one restart rejects every token the server has ever issued.
+
+The fix was to persist the secret:
+
+```ts
+function loadOrCreatePersistentSecret(): string {
+  const dir = join(homedir(), ".remotecli");
+  const file = join(dir, "jwt-secret");
+  try {
+    return readFileSync(file, "utf8").trim();
+  } catch {
+    // not found — generate and persist
+  }
+  const fresh = randomBytes(32).toString("hex");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(file, fresh, { mode: 0o600 });
+  try {
+    chmodSync(file, 0o600);
+  } catch {
+    // best-effort
+  }
+  return fresh;
+}
+```
+
+A secret passed to the constructor still wins. Otherwise it reads `~/.remotecli/jwt-secret`, or creates that file on the first start with mode `0600`. That trade is worth naming: a signing key that survives restarts is also a signing key that can be copied off the disk. Mode `0600` is the only protection this code gives the file.
+
+## Why did the client keep retrying?
+
+Fixing the server alone would have left the second bug waiting for the next time a token went bad. The client's close handler did this on every close that wasn't user-initiated:
+
+```ts
+sock.onclose = () => {
+  this.stopHeartbeat();
+  this.socket = null;
+  if (this._status === 'closed') return; // user-initiated terminal state
+  this.setStatus('disconnected');
+  this.scheduleReconnect();
+};
+```
+
+Apart from the user-initiated case, there is one path, and it means "try again". The server uses WebSocket close code 4001 to say "I rejected your token". The client never looked at the code, so a permanent failure and a flaky network got identical treatment. After the server rejected the token, the client reconnected, got rejected, scheduled another reconnect, and so on.
+
+The fix teaches the client that some closes are final:
+
+```ts
+/** WebSocket close code the server uses for auth rejection. */
+const AUTH_FAILED_CLOSE_CODE = 4001;
+
+sock.onclose = (ev?: { code?: number }) => {
+  this.stopHeartbeat();
+  this.socket = null;
+  if (this._status === 'closed') return; // user-initiated terminal state
+
+  // Auth failure: server rejected our JWT. Do NOT reconnect — instead
+  // emit authFailed so the store can wipe identity and send the user
+  // back to /pair.
+  if (ev?.code === AUTH_FAILED_CLOSE_CODE) {
+    this.cancelReconnect();
+    this.setStatus('closed');
+    this.emit('authFailed');
+    return;
+  }
+
+  this.setStatus('disconnected');
+  this.scheduleReconnect();
+};
+```
+
+The store listens for `authFailed`, clears the stored identity, and sets the error "Session expired — please pair again". The Call screen subscribes to the token and host, so when they become null mid-session it navigates to the pairing screen. After the fix, the path for a rejected token ends at one error message and one screen instead of a loop.
+
+## Why were the tests green?
+
+Two reasons, and neither is exotic.
+
+The server bug wasn't caught because the server-side test closed its client before it restarted the server. The project's review doc, committed the next day, says exactly that. A test that disconnects first never asks the question a restart asks: *will a client that was connected before the restart still be accepted after it?*
+
+The client bug wasn't caught because no test ever made the server say no. Every close the reconnect tests simulated used code `1006`, abnormal closure: the socket dropped and the client came back. None used a rejection code. So the one retry path in `onclose` only ever saw a dropped connection, and that's the one case where retrying is right.
+
+The commit added a test for the missing case. It opens a fake socket, closes it with `4001`, and then advances 60 seconds of fake timers:
+
+```ts
+it('emits authFailed and stops reconnecting on close code 4001', () => {
+  const { client, fakes } = makeClient();
+  const authFailedSpy = jest.fn();
+  client.on('authFailed', authFailedSpy);
+
+  client.connect();
+  fakes[0]!.triggerOpen();
+  fakes[0]!.triggerClose(4001, 'Unauthorized');
+
+  expect(authFailedSpy).toHaveBeenCalledTimes(1);
+  expect(client.status).toBe<WSStatus>('closed');
+
+  // No reconnect should be scheduled
+  jest.advanceTimersByTime(60_000);
+  expect(fakes).toHaveLength(1);
+});
+```
+
+The last assertion is the useful one. It doesn't check that an event fired. It checks that something *didn't* happen over a minute of fake time: exactly one socket was ever created. The commit message records the suite at 61 of 61 passing, with 26 client tests.
+
+## What would I check next time?
+
+1. **Restart the server with a client still connected.** Not "start, test, stop". The restart is where signing keys, session maps and in-memory state quietly change.
+2. **For every retry loop, write down which failures are permanent.** If the answer is "none", the loop has no exit. Backoff slows a loop down; it doesn't end one.
+3. **Make the server's rejection distinguishable.** A dedicated close code or status gives the client something to branch on. "Connection closed" alone can't carry that.
+4. **Test what shouldn't happen.** Advance the clock and assert on what was *not* created. A quiet failure needs a test that listens for silence.
+5. **Read comments like bug reports.** "In production, this should be persisted" sat one line above the bug and described it precisely. A comment that says what the next line should do differently is a known defect with a label on it.
+
+<ReceiptsBlock />
+
+## FAQ
+
+### How should a WebSocket client handle an authentication rejection?
+
+Treat it as terminal. Stop reconnecting, discard the credential that was rejected, and send the user back to wherever they get a new one. Retrying a rejected credential can't succeed, and each attempt adds load and noise. Keep retrying for transient failures such as a dropped network, a server restart, or a timeout.
+
+### What close code should a server use for an auth failure?
+
+It depends on what your clients can branch on. RFC 6455 reserves 4000–4999 for private use, so an application can define its own code, as this server does with 4001. The protocol also defines 1008 for a policy violation. The important part is that the client and server agree, and that the client has a test that uses the code.
+
+### Should a JWT signing secret survive a server restart?
+
+If you want tokens issued before a restart to keep working, yes. The alternatives are short-lived tokens with a refresh path, or accepting that a restart forces every client to re-authenticate. Persisting the secret makes a long-lived key a long-lived secret, so the file's permissions and the token lifetime matter more.
+
+### Why does a retry loop hide a bug?
+
+Because from the outside it looks like activity. Something is clearly trying. A loop that retries a permanent failure produces steady, plausible-looking errors instead of one loud one, so it can pass for a network problem until someone reads the actual error.
+
+### How do I test a reconnect loop?
+
+Use a fake socket and fake timers. Drive the close with the specific code you care about, advance the clock well past your longest retry delay, and assert how many sockets were created. Asserting on a count of zero extra attempts catches the case where nothing visibly fails.
+
+The same shape turned up in [the analytics call that couldn't fail](/writing/the-analytics-call-that-couldnt-fail) and in [the CI gate nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran): the check that would have caught it was never pointed at the case that mattered. Here it was a restart, and a server saying no.
+
+<NewsletterCTA />
