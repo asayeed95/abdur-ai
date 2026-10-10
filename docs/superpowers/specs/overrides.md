@@ -281,6 +281,30 @@ every article's h1 and body prose are untouched.
   design-token-override: tailwind.config.ts
   reason: registers the three aliases above as Tailwind colours (meta, good-text, band). No existing colour changes.
   approved-by: Abdur / live session ("apply all 8 fixes") / 2026-10-02 18:29 EDT
+- task-id: AGE-2844
+  content-publish-override: content/posts/the-dashboard-query-rls-wouldnt-let-through.mdx
+  content-publish-override: content/posts/the-health-check-that-became-a-retry-storm.mdx
+  content-publish-override: content/posts/the-meter-that-counted-cache-hits-as-cash.mdx
+  content-publish-override: content/posts/29-review-rounds-hardened-a-ci-gate-that-nothing-ran.mdx
+  content-publish-override: content/posts/the-analytics-call-that-couldnt-fail.mdx
+  scope: additive visuals only; no existing copy changed
+  reason: post-visuals retrofit, group B. Scope: additive visuals only; no existing copy changed. Each post gains one on-system diagram (RlsDashboardQueryDiagram, RetryStormDiagram, CacheHitMeterDiagram, NothingRanGateDiagram, SilentAnalyticsDiagram) and one interactive block, inserted between existing paragraphs: a <StepThrough> walking the incident over the diagram on four posts; a captioned <Figure> plus a <Quiz> on the analytics post; frontmatter gains only `updated: 2026-10-03`. Every caption, step, label and quiz line restates the post or its receipts; no new facts, numbers, customers, benchmarks, prices or integrations.
+  approved-by: Abdur / Slack 2026-10-03 'implement artifacts and interactive HTML blocks within the blogs and visual diagrams to all our previous writings'
+- task-id: AGE-2844
+  content-publish-override: content/posts/your-pager-is-not-your-customer.mdx
+  content-publish-override: content/posts/the-number-is-not-the-person.mdx
+  content-publish-override: content/posts/cross-video-retention-pattern-detection.mdx
+  content-publish-override: content/posts/meta-description-length-truncated-snippets.mdx
+  scope: additive visuals only; no existing copy changed
+  reason: post-visuals retrofit, group C. Each post gains one captioned diagram (PagerIsNotCustomerDiagram, NumberIsNotThePersonDiagram, CrossVideoRetentionDiagram, MetaDescriptionTruncationDiagram) and one interactive block (Quiz, Tabs, StepThrough, Checklist), inserted between existing paragraphs. Captions, step bodies, quiz, tab and checklist text restate the post; the only numbers used are ones the post already states (100ms / 2000ms; 271, 141 to 152, ~155). cross-video stays register designed and every stage is labelled "Design, not shipped". Frontmatter: only `updated: 2026-10-03` added.
+  approved-by: Abdur / Slack 2026-10-03 'implement artifacts and interactive HTML blocks within the blogs and visual diagrams to all our previous writings'
+- task-id: AGE-2844
+  content-publish-override: content/posts/the-night-the-doctrine-failed.mdx
+  content-publish-override: content/posts/what-is-an-agent-memory-layer.mdx
+  content-publish-override: content/posts/voice-ai-memory-latency-is-a-dead-argument.mdx
+  content-publish-override: content/posts/who-owns-the-architecture-when-ai-writes-the-code.mdx
+  reason: post-visuals retrofit, group A. Scope: additive visuals only; no existing copy changed. Inserts on-system diagrams (DoctrineFailureDiagram, DoctrineSharedInputDiagram, MemoryLayerDiagram, VoiceMemoryLatencyDiagram, ArchitectureOwnershipDiagram) and interactive blocks (StepThrough, Figure, Tabs, Quiz) between existing paragraphs. Captions, steps, tab and quiz text restate what each post already says; no new facts, numbers, customers, benchmarks, prices or integrations. Only frontmatter change: updated: 2026-10-03.
+  approved-by: Abdur / Slack 2026-10-03 'implement artifacts and interactive HTML blocks within the blogs and visual diagrams to all our previous writings'
 - task-id: AGE-2884
   content-publish-override: content/posts/newsletter-signup-200-proves-less-than-you-think.mdx
   reason: publish the 2026-10-03 Builder Log on signup-journey observability (reported; receipts c7bc07f, bf42386, d28ad56 and ab38e15 re-verified against git history; the pre-audit behaviours reproduced with scripts/repro-prefix-signup.sh; Resend send-email, custom-headers, unsubscribe-for-transactional and test-email docs and Vercel custom-events docs re-read 2026-10-03). Independent fresh-context agent review completed 2026-10-03 (verdict: approve with fixes; 2 blockers, 9 fixes, 5 nits). Blockers and fixes applied, including a real defect the review found (the existing-contact backfill call had no timeout; now bounded, with its own scenario and mutant). No price, benchmark, customer or integration claim. Nothing is claimed about the real Resend API: provider acceptance, delivery, inbox receipt and the real subscriber count are stated as not observed.
