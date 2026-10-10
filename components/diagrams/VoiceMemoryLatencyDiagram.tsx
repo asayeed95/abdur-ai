@@ -12,6 +12,7 @@ import { Box, Diagram, Down, NODE_STATE, NODE_STROKE } from "./parts";
  * synth, transport.
  */
 
+/** The memory-lookup box: dashed clay outline, a title and a mono sublabel. */
 function Lookup({ x, y, w, h, sub }: { x: number; y: number; w: number; h: number; sub: string }) {
   const cx = x + w / 2;
   return (
@@ -36,6 +37,7 @@ function Lookup({ x, y, w, h, sub }: { x: number; y: number; w: number; h: numbe
   );
 }
 
+/** One voice turn, drawn as the `objection` or the `design` variant described above. */
 export function VoiceMemoryLatencyDiagram({ variant = "design" }: { variant?: string }) {
   if (variant === "objection") {
     return (

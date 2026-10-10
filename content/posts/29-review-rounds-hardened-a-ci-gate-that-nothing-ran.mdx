@@ -115,8 +115,8 @@ The gate runs as its own job with its own required status context, not a step in
 <Step title="The bypass with no edit" highlight="bypass">
 A job-level `if: github.event_name == 'pull_request'` turned a manual `workflow_dispatch` on the PR's branch into a skipped job. A skipped job satisfies a required status check.
 </Step>
-<Step title="Decide inside the step" highlight="noif step decide no refuse to-red red">
-No job-level `if:`. The step reads the event and refuses anything that is not a pull request: `VERDICT: refuse reason=not-a-pull-request`.
+<Step title="Decide inside the step" highlight="noif step decide yes run push skip to-pass pass no refuse to-red red">
+No job-level `if:`. The step reads the event. A pull request runs the gate. A push to `main` prints a named skip, `VERDICT: skip reason=not-a-pull-request event=push`, and exits 0. Any other event, such as a manual `workflow_dispatch`, fails the check instead of skipping it.
 </Step>
 <Step title="A judge the PR can't edit" highlight="decide yes run to-verdict verdict">
 The gate and the verifier are materialized from `origin/main` at run time. All the gate does with the verifier is read its exit code.

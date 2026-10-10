@@ -200,7 +200,9 @@ for (const c of COMPONENTS) {
 const { buildPostVisuals } = await import("./post-visuals.mjs");
 const VISUALS = await buildPostVisuals({ REPO, DS });
 for (const c of VISUALS) {
-  const body = c.html();
+  // One render per panel, each with its own id prefix: pasting one render into
+  // both panels would duplicate every useId()-derived id on the page.
+  const dark = c.html("dark-"), light = c.html("light-");
   write(path.join(DS, "components", `${c.slug}.html`), `${head(c.name, 1).replace("</head>", '<link rel="stylesheet" href="../assets/post-visuals.css">\n</head>')}
 <body>
 <div class="ds-shell">
@@ -208,8 +210,8 @@ for (const c of VISUALS) {
     <div>${crumbs(1)}<h1>${c.name}</h1><p>${md(c.summary)}</p><p class="ds-src">Source: ${c.source} · rendered from the component by scripts/post-visuals.mjs</p></div>
   </div>
   <div class="ds-panels">
-    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div style="max-width:var(--prose-max)">${body}</div></section>
-    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div style="max-width:var(--prose-max)">${body}</div></section>
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div style="max-width:var(--prose-max)">${dark}</div></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div style="max-width:var(--prose-max)">${light}</div></section>
   </div>
   <ul class="ds-guide">${c.guide.map((g) => `<li>${md(g)}</li>`).join("")}</ul>
 </div>

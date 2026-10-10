@@ -33,6 +33,7 @@ function Up({ x, y1, y2, label, node }: { x: number; y1: number; y2: number; lab
   );
 }
 
+/** The memory-layer diagram described in the header comment above. */
 export function MemoryLayerDiagram() {
   return (
     <Diagram

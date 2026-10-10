@@ -15,6 +15,7 @@ const AXIS_X0 = 44;
 const AXIS_X1 = 276;
 const ABORT_X = AXIS_X0 + Math.round((AXIS_X1 - AXIS_X0) * (100 / 2000));
 
+/** The pager-versus-customer diagram described in the header comment above. */
 export function PagerIsNotCustomerDiagram() {
   return (
     <Diagram

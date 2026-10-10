@@ -13,8 +13,10 @@ import { Diagram, NODE_STATE, NODE_STROKE } from "./parts";
 const X0 = 20;
 const SPAN = 280;
 const MAX = 271;
+/** The x coordinate for a description `chars` characters long, on the 0..MAX scale. */
 const at = (chars: number) => X0 + Math.round((SPAN * chars) / MAX);
 
+/** The truncated-snippet and description-length diagram described in the header comment above. */
 export function MetaDescriptionTruncationDiagram() {
   const budget = at(155);
   return (
