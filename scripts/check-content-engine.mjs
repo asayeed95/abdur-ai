@@ -53,7 +53,7 @@ function loadTS(file, cwd = root) {
       if (id === 'rehype-slug') return rehypeSlug;
       if (id.startsWith('@/') || id.startsWith('.')) {
         const base = id.startsWith('@/') ? path.join(root, id.slice(2)) : path.resolve(path.dirname(absolute), id);
-        const target = [base, `${base}.ts`, `${base}.tsx`].find(p => fs.existsSync(p) && fs.statSync(p).isFile());
+        const target = [base, `${base}.ts`, `${base}.tsx`, path.join(base, 'index.ts'), path.join(base, 'index.tsx')].find(p => fs.existsSync(p) && fs.statSync(p).isFile());
         assert.ok(target, `Cannot resolve ${id}`);
         return loadTS(target, cwd);
       }
