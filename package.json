@@ -14,7 +14,8 @@
     "check:robots": "node --test scripts/check-robots.test.mjs && node scripts/check-robots.mjs",
     "subscribers:sources": "node scripts/subscriber-sources.mjs",
     "test:subscribe": "node scripts/test-subscribe-journey.mjs",
-    "test:subscribe:mutants": "node scripts/test-subscribe-mutants.mjs"
+    "test:subscribe:mutants": "node scripts/test-subscribe-mutants.mjs",
+    "check:content-engine": "node scripts/check-content-engine.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "3.1.0",
