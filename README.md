@@ -131,6 +131,14 @@ from `lib/analytics.ts`, then add a row to the table above. Never call
 
 Eyebrow style: `class="eyebrow"` — mono, tracking-widest, clay color, uppercase.
 
+## Pull request review bridge
+
+Agent-authored pull requests use the repository workflow in
+`.github/workflows/coderabbit-agent-bridge.yml`. The bridge accepts CodeRabbit
+and Codex evidence only when it names the pull request's current head commit;
+`Review rate limited` is not treated as a completed review. Claude runs last as
+the repair pass, while the protected `Quality gate` remains the merge authority.
+
 ## Hand-off
 
 See `CLAUDE.md` for the next steps. The scaffold is ~85% complete; remaining
