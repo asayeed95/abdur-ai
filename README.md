@@ -89,6 +89,10 @@ the `ANALYTICS_EVENTS` const — a name outside it is a type error).
 | `cta:newsletter:from-post` | Click on the newsletter CTA | `components/post/LeadMagnets.tsx` (`NewsletterCTA`) |
 | `subscribe:tldr` | Successful TLDR email capture (`/api/subscribe` 2xx) | `components/Subscribe.tsx` |
 | `subscribe:asec-waitlist` | Successful ASEC waitlist signup (`/api/subscribe` 2xx) | `components/post/LeadMagnets.tsx` |
+| `cta:kit:from-post` | Click on the in-post Agent Reliability Kit CTA | `components/post/KitCTA.tsx` (`KitCTA`) |
+| `kit:view` | `/kit` landing page rendered in a browser with JS | `components/KitSignupForm.tsx` |
+| `kit:signup` | Successful kit signup on `/kit` (`/api/subscribe` 2xx; `subscribe:tldr` fires alongside it) | `components/KitSignupForm.tsx` |
+| `kit:download` | Click on a kit download link (`file` prop: which file) | `components/KitDownloads.tsx` |
 
 `subscribe:*` events fire **only after a 2xx response** — they count real
 conversions, not attempts. `cta:asec:from-post` fires on submit attempt, so

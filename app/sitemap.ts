@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE.url}/about`, priority: 0.7, changeFrequency: "monthly" as const },
     { url: `${SITE.url}/now`, priority: 0.6, changeFrequency: "weekly" as const },
     { url: `${SITE.url}/hire`, priority: 0.8, changeFrequency: "monthly" as const },
+    { url: `${SITE.url}/kit`, priority: 0.8, changeFrequency: "monthly" as const },
   ];
 
   const postPages = posts.map((p) => ({

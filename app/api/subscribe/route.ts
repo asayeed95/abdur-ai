@@ -39,6 +39,20 @@ type AttributionKey = (typeof ATTRIBUTION_KEYS)[number];
 
 const MIN_FILL_MS = 1500;
 
+/**
+ * Where a native (no-JS) form post is sent back to, chosen by the form's
+ * optional `return_to` field. Allowlisted: any other value, or none, keeps the
+ * original /subscribe target, so existing forms behave exactly as before and
+ * the field can never become an open redirect. `return_to` is read only on
+ * the native path and is not a contact property.
+ */
+type NativeTarget = { ok: string; error: string };
+const NATIVE_DEFAULT: NativeTarget = { ok: "/subscribe", error: "/subscribe" };
+const NATIVE_RETURN: Record<string, NativeTarget> = {
+  // /kit (AGE-2391): success lands on the page with the kit's download links.
+  "/kit": { ok: "/kit/thanks", error: "/kit" },
+};
+
 /** Bound every provider call: a hung Resend request must not hold a signup open. */
 const CONTACT_TIMEOUT_MS = 8000;
 const WELCOME_TIMEOUT_MS = 5000;
@@ -86,16 +100,18 @@ export async function POST(req: Request) {
 
   /**
    * One place that shapes every outcome. JS clients get JSON. A native form
-   * post (JS off) is navigated, so it gets a 303 back to /subscribe with a
-   * status the page renders — never a raw JSON document in the address bar.
+   * post (JS off) is navigated, so it gets a 303 back to /subscribe (or an
+   * allowlisted `return_to` target) with a status the page renders — never a
+   * raw JSON document in the address bar.
    */
+  let nativeTarget = NATIVE_DEFAULT;
   const reply = (
     outcome: "ok" | "invalid" | "unavailable",
     json: Record<string, unknown>,
     status: number,
   ) => {
     if (isNativeForm) {
-      const to = new URL("/subscribe", req.url);
+      const to = new URL(outcome === "ok" ? nativeTarget.ok : nativeTarget.error, req.url);
       to.searchParams.set(outcome === "ok" ? "subscribed" : "error", outcome === "ok" ? "1" : outcome);
       return NextResponse.redirect(to, 303);
     }
@@ -112,6 +128,13 @@ export async function POST(req: Request) {
     }
   } catch {
     return reply("invalid", { error: "Invalid request body" }, 400);
+  }
+
+  if (isNativeForm && body && typeof body === "object") {
+    const returnTo = (body as Record<string, unknown>).return_to;
+    if (typeof returnTo === "string" && Object.hasOwn(NATIVE_RETURN, returnTo)) {
+      nativeTarget = NATIVE_RETURN[returnTo];
+    }
   }
 
   const parsed = schema.safeParse(body);
