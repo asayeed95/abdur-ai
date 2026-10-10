@@ -3,6 +3,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import { MnemixCTA, AsecWaitlistCTA, NewsletterCTA } from "@/components/post/LeadMagnets";
+import { KitCTA } from "@/components/post/KitCTA";
 import { PostSubscribe } from "@/components/post/PostSubscribe";
 import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
@@ -114,6 +115,7 @@ export function PostArticle({
             MnemixCTA,
             AsecWaitlistCTA,
             NewsletterCTA,
+            KitCTA,
             ReceiptsBlock: () =>
               post.receipts ? <ReceiptsBlock items={post.receipts} /> : null,
             PatternsBlock: () =>
