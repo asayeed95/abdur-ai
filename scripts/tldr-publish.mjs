@@ -145,16 +145,25 @@ console.log("Next (you): git add content/posts/" + slug + ".mdx && commit && pus
 if (process.env.MNEMIX_RECEIPT_EMIT === "0") {
   console.warn("Receipt emit disabled (MNEMIX_RECEIPT_EMIT=0) — no content_publish receipt written.");
 } else {
-  const receiptScript = (process.env.MNEMIX_RECEIPT_SCRIPT || "~/Projects/Mnemix/scripts/ops/receipt.mjs")
+  const configuredScript = (process.env.MNEMIX_RECEIPT_SCRIPT || "~/Projects/Mnemix/scripts/ops/receipt.mjs")
     .replace(/^~(?=$|\/)/, os.homedir());
+  // Relative paths resolve against the repo root, and the same absolute path
+  // feeds both the existence check and the spawn (no cwd mismatch).
+  const receiptScript = path.resolve(root, configuredScript);
   const idempotencyKey = `abdurai:content_publish:writing:${slug}`;
+  const summary = `Published /writing/${slug}: ${String(data.title).replace(/\s+/g, " ").slice(0, 120)}`;
+  const manualCmd =
+    `node ${receiptScript} --kind content_publish --status success --key "${idempotencyKey}" ` +
+    `--summary ${JSON.stringify(summary)} --channel manual --agent tldr-publish.mjs`;
   if (!fs.existsSync(receiptScript)) {
     console.error(`RECEIPT NOT EMITTED: receipt script not found at ${receiptScript} (set MNEMIX_RECEIPT_SCRIPT). The post IS published on disk.`);
+    console.error("Once the script is available, emit manually (MNEMIX_OPS_INGEST_KEY must be set):");
+    console.error(`  ${manualCmd}`);
     process.exit(1);
   }
   if (!process.env.MNEMIX_OPS_INGEST_KEY) {
     console.error("RECEIPT NOT EMITTED: MNEMIX_OPS_INGEST_KEY is not set. The post IS published on disk — emit manually with:");
-    console.error(`  node ${receiptScript} --kind content_publish --status success --key "${idempotencyKey}" --summary "Published /writing/${slug}" --channel manual`);
+    console.error(`  ${manualCmd}`);
     process.exit(1);
   }
   const emit = spawnSync(
@@ -164,7 +173,7 @@ if (process.env.MNEMIX_RECEIPT_EMIT === "0") {
       "--kind", "content_publish",
       "--status", "success",
       "--key", idempotencyKey,
-      "--summary", `Published /writing/${slug}: ${String(data.title).replace(/\s+/g, " ").slice(0, 120)}`,
+      "--summary", summary,
       "--channel", "manual",
       "--agent", "tldr-publish.mjs",
       "--refs", JSON.stringify({ slug, url: `https://abdur.ai/writing/${slug}`, register: data.register }),
@@ -172,9 +181,16 @@ if (process.env.MNEMIX_RECEIPT_EMIT === "0") {
     { cwd: root, encoding: "utf8", env: process.env },
   );
   if (emit.stdout) process.stdout.write(emit.stdout);
+  if (emit.status === 4) {
+    // Receipt script exit 4 = the idempotency key already exists: the ledger row is there.
+    console.error(`RECEIPT NOT EMITTED (receipt script exit 4): ${(emit.stderr || "").trim()}`);
+    console.error("The ledger already holds a content_publish receipt for this key, and the post IS published on disk. No re-emit needed.");
+    process.exit(1);
+  }
   if (emit.status !== 0) {
     console.error(`RECEIPT NOT EMITTED (receipt script exit ${emit.status}): ${(emit.stderr || "").trim()}`);
-    console.error("The post IS published on disk — the ledger is missing its content_publish receipt. Re-emit with the command above.");
+    console.error("The post IS published on disk — the ledger is missing its content_publish receipt. Re-emit with:");
+    console.error(`  ${manualCmd}`);
     process.exit(1);
   }
   console.log(`Receipt emitted: ${idempotencyKey}`);
