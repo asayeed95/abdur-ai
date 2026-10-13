@@ -146,6 +146,15 @@ else
   tail -30 $TMPD/build.out | sed 's/^/      /'
 fi
 
+# ---------- Signup journey (needs the build above) ----------
+echo "==> Signup journey (stand-in provider; AGE-2884)"
+if npm run test:subscribe >$TMPD/subscribe.out 2>&1; then
+  pass "npm run test:subscribe"
+else
+  fail "npm run test:subscribe FAILED — see $TMPD/subscribe.out"
+  grep -E '^FAIL|↳' $TMPD/subscribe.out | sed 's/^/      /'
+fi
+
 # ---------- RETRO hygiene (nudge only, not a gate) ----------
 if [ -f "RETRO.md" ]; then
   ENTRIES=$(grep -cE '^\- \[[0-9]{4}-[0-9]{2}-[0-9]{2}\]' RETRO.md 2>/dev/null || echo 0)

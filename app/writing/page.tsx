@@ -27,7 +27,7 @@ export default function WritingIndexPage() {
         <h1 className="font-display text-5xl md:text-7xl tracking-tight text-text mb-4">
           Writing.
         </h1>
-        <p className="text-muted text-lg max-w-[640px] mb-8">
+        <p className="text-meta text-lg max-w-[640px] mb-8">
           {posts.length} {posts.length === 1 ? "piece" : "pieces"} · every one
           declares what kind of claim it is making ·{" "}
           <Link href="/writing/rss.xml" className="hover:text-clay underline underline-offset-4">
@@ -41,7 +41,7 @@ export default function WritingIndexPage() {
               <dt>
                 <RegisterBadge register={r} />
               </dt>
-              <dd className="font-mono text-[11px] text-muted-3">
+              <dd className="font-mono text-[11px] text-meta">
                 {REGISTER_SPEC[r].claim}
               </dd>
             </div>
@@ -51,14 +51,14 @@ export default function WritingIndexPage() {
         {flagship && (
           <Link
             href={postPath(flagship.slug)}
-            className="group block bg-bg-2 border border-clay rounded-lg p-8 md:p-10 mb-16 hover:bg-surface transition-colors"
+            className="group block bg-band border border-clay rounded-lg p-8 md:p-10 mb-16 hover:bg-surface transition-colors"
           >
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <span className="font-mono text-[10px] tracking-widest uppercase text-bg bg-clay px-2 py-1 rounded-sm">
                 FLAGSHIP
               </span>
               <RegisterBadge register={flagship.register} />
-              <span className="font-mono text-xs text-muted">
+              <span className="font-mono text-xs text-meta">
                 {flagship.dateDisplay} · {flagship.readingTime} MIN
               </span>
             </div>
@@ -66,7 +66,7 @@ export default function WritingIndexPage() {
               {flagship.title}
             </h2>
             {flagship.dek && (
-              <p className="text-lg text-muted leading-relaxed max-w-[68ch] mb-5">
+              <p className="text-lg text-meta leading-relaxed max-w-[68ch] mb-5">
                 {flagship.dek}
               </p>
             )}
@@ -74,7 +74,7 @@ export default function WritingIndexPage() {
               {flagship.tags?.slice(0, 5).map((t) => (
                 <span
                   key={t}
-                  className="font-mono text-[10px] tracking-wider uppercase text-muted-2"
+                  className="font-mono text-[10px] tracking-wider uppercase text-meta"
                 >
                   #{t}
                 </span>
@@ -98,7 +98,7 @@ export default function WritingIndexPage() {
                     <div className="flex flex-wrap items-center gap-3 mb-2">
                       <RegisterBadge register={p.register} />
                       {p.statusNote && (
-                        <span className="font-mono text-[10px] text-muted-3">
+                        <span className="font-mono text-[10px] text-meta">
                           {p.statusNote}
                         </span>
                       )}
@@ -107,7 +107,7 @@ export default function WritingIndexPage() {
                       {p.title}
                     </h3>
                     {p.dek && (
-                      <p className="text-base text-muted leading-relaxed mt-2 max-w-[60ch]">
+                      <p className="text-base text-meta leading-relaxed mt-2 max-w-[60ch]">
                         {p.dek}
                       </p>
                     )}
@@ -116,7 +116,7 @@ export default function WritingIndexPage() {
                         {p.tags.map((t) => (
                           <span
                             key={t}
-                            className="font-mono text-[10px] tracking-wider uppercase text-muted-2"
+                            className="font-mono text-[10px] tracking-wider uppercase text-meta"
                           >
                             #{t}
                           </span>
@@ -124,7 +124,7 @@ export default function WritingIndexPage() {
                       </div>
                     )}
                   </div>
-                  <span className="justify-self-end font-mono text-[10px] tracking-wider text-muted-3 pt-2">
+                  <span className="justify-self-end font-mono text-[10px] tracking-wider text-meta pt-2">
                     {p.readingTime} MIN
                   </span>
                 </div>

@@ -137,7 +137,8 @@ export default function RootLayout({
                   "@id": `${SITE.url}/#abdur`,
                   name: SITE.author,
                   url: SITE.url,
-                  image: `${SITE.url}/abdur.jpg`,
+                  // No `image`: /abdur.jpg does not exist (HTTP 404 on production,
+                  // 2026-10-03). Add the property back when the headshot is in public/.
                   jobTitle: "AI-Native Software Builder & Engineer",
                   description: SITE.description,
                   homeLocation: {

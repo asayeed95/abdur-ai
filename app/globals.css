@@ -27,6 +27,18 @@
   --c-clay: 217 119 87;              /* #D97757 */
   --c-gold: 245 196 81;              /* #F5C451 */
 
+  /* Semantic aliases (design system 1.1, AGE-2844). They point at existing
+     values per theme and change none, so small text and banded sections
+     hold 4.5:1 in both themes:
+       meta      — all secondary/meta text. Dark: muted. Light: text-soft.
+       good-text — success text. Dark: good. Light: good-3.
+       band      — alternating section and aside ground. Dark: bg-2. Light: surface.
+     The muted ramp (muted … muted-4) stays for borders, rules and dots only:
+     no muted step reaches 4.5:1 for small text in both themes. */
+  --c-meta: var(--c-muted);
+  --c-good-text: 111 207 151;        /* = good #6FCF97 */
+  --c-band: var(--c-bg-2);
+
   color-scheme: dark;
 }
 
@@ -49,6 +61,10 @@
   --c-clay: 174 83 56;               /* #AE5338 — 4.56:1 on the cream ground; #B4563A was 4.31, under AA for 11px chrome */
   --c-gold: 143 106 0;               /* #8F6A00 */
 
+  --c-meta: var(--c-text-soft);
+  --c-good-text: 38 53 43;           /* = good-3 #26352B */
+  --c-band: var(--c-surface);
+
   color-scheme: light;
 }
 
@@ -56,7 +72,11 @@
    attribute is always written by the pre-paint script, so state it plainly. */
 :root[data-theme="dark"] {
   color-scheme: dark;
+}
 
+/* Theme-independent layout tokens. Previously nested in the dark block above,
+   which left them undefined in light (AGE-2844). */
+:root {
   /* ------------------------------------------------------------
      AITLDR-LAYOUT-001 demo tokens — UNLOCKED, not part of the Clay
      design lock. Tune freely; Revenue owns reader accept. Other
@@ -142,7 +162,10 @@ body {
 .prose-clay p {
   @apply text-lg leading-relaxed mb-5;
 }
-.prose-clay a {
+/* Links inside a .not-prose block (in-post CTAs, callouts) keep their own
+   colours: without the :not(), this rule's specificity (0,1,1) beat the
+   button's text-bg and rendered clay text on a clay fill (1.00:1). */
+.prose-clay a:not(.not-prose *) {
   @apply text-clay underline underline-offset-4 decoration-clay/40 hover:decoration-clay transition-colors;
 }
 .prose-clay strong {
@@ -170,7 +193,7 @@ body {
   @apply w-full my-8 border-collapse;
 }
 .prose-clay th {
-  @apply text-left font-mono text-xs uppercase tracking-wider text-muted py-3 px-4 border-b border-border;
+  @apply text-left font-mono text-xs uppercase tracking-wider text-meta py-3 px-4 border-b border-border;
 }
 .prose-clay td {
   @apply py-3 px-4 border-b border-border text-base;
@@ -184,7 +207,7 @@ body {
   @apply font-mono text-xs tracking-widest text-clay uppercase;
 }
 .eyebrow-muted {
-  @apply font-mono text-xs tracking-widest text-muted uppercase;
+  @apply font-mono text-xs tracking-widest text-meta uppercase;
 }
 
 /* Status pill */
@@ -194,12 +217,13 @@ body {
 .status-live {
   @apply bg-clay text-bg border-clay;
 }
+/* Gold text only ever sits on surface (light: 4.88:1). */
 .status-near {
-  @apply text-gold border-border-2;
+  @apply text-gold border-border-2 bg-surface;
 }
 .status-flight {
-  @apply text-good border-good-3;
+  @apply text-good-text border-good-3;
 }
 .status-building {
-  @apply text-muted border-border;
+  @apply text-meta border-border;
 }

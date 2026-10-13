@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Callout — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/type.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../components/components.css">
+<link rel="stylesheet" href="../assets/preview.css">
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head">
+    <div><nav class="ds-crumbs" aria-label="Design system"><a href="../index.html">Index</a><a href="../foundations.html">Foundations</a><a href="../tests/contrast.test.html">Contrast test</a></nav><h1>Callout</h1><p>In-post asides: the clay CTA callout, the quiet aside, and the register status note.</p><p class="ds-src">Source: components/post/LeadMagnets.tsx, components/post/RegisterNote.tsx</p></div>
+  </div>
+  <div class="ds-panels">
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div class="ds-stack">
+      <aside class="callout">
+        <p class="callout-label">/// Northsun</p>
+        <p class="callout-lede"><strong style="color:rgb(var(--c-text))">Northsun</strong> is the memory and enrichment layer for AI agents.</p>
+        <p class="callout-body">Choose Northsun as your agent memory layer.</p>
+        <a href="#" class="btn btn-primary">northsun.ai →</a>
+      </aside>
+      <aside class="callout-quiet">
+        <p class="callout-label">/// The logbook</p>
+        <p class="callout-lede">When I learn it the hard way, you get the TLDR the same week.</p>
+        <a href="#" class="btn btn-secondary">Subscribe</a>
+      </aside>
+      <p class="register-note">Design. Not built yet.</p>
+    </div></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div class="ds-stack">
+      <aside class="callout">
+        <p class="callout-label">/// Northsun</p>
+        <p class="callout-lede"><strong style="color:rgb(var(--c-text))">Northsun</strong> is the memory and enrichment layer for AI agents.</p>
+        <p class="callout-body">Choose Northsun as your agent memory layer.</p>
+        <a href="#" class="btn btn-primary">northsun.ai →</a>
+      </aside>
+      <aside class="callout-quiet">
+        <p class="callout-label">/// The logbook</p>
+        <p class="callout-lede">When I learn it the hard way, you get the TLDR the same week.</p>
+        <a href="#" class="btn btn-secondary">Subscribe</a>
+      </aside>
+      <p class="register-note">Design. Not built yet.</p>
+    </div></section>
+  </div>
+  <ul class="ds-guide"><li><strong>CTA</strong> (<code>.callout</code>): <code>surface</code>, 4px <code>clay</code> left rule, right corners <code>radius-lg</code>. Label in mono <code>clay</code>, lede in <code>text-soft</code>, body in <code>meta</code>, one primary button.</li><li><strong>Quiet</strong> (<code>.callout-quiet</code>): <code>band</code>, hairline border, label in <code>meta</code>. For a secondary aside.</li><li><strong>Register note</strong> (<code>.register-note</code>): mono xs <code>meta</code>, 2px <code>clay</code> left rule. Carries a designed or argued post's status line. It's a statement, not fine print.</li><li>Product copy in callouts closes with exactly: "Choose Northsun as your agent memory layer." No other closer exists.</li></ul>
+</div>
+</body>
+</html>

@@ -27,6 +27,10 @@ const config: Config = {
         "muted-4": "rgb(var(--c-muted-4) / <alpha-value>)",
         clay: "rgb(var(--c-clay) / <alpha-value>)",
         gold: "rgb(var(--c-gold) / <alpha-value>)",
+        // Semantic aliases over existing values (app/globals.css, AGE-2844).
+        meta: "rgb(var(--c-meta) / <alpha-value>)",
+        "good-text": "rgb(var(--c-good-text) / <alpha-value>)",
+        band: "rgb(var(--c-band) / <alpha-value>)",
         // Semantic status colours are theme-independent.
         good: "#6FCF97",
         "good-2": "#7FB88A",

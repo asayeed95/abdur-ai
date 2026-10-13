@@ -17,11 +17,11 @@ type Agent = {
 };
 
 const STATE_COLOR: Record<Agent["state"], string> = {
-  running: "text-good border-good-3 bg-good-3/30",
-  queued: "text-gold border-border-2 bg-border-2/30",
-  idle: "text-muted border-border bg-surface",
-  done: "text-muted-3 border-border bg-surface",
-  blocked: "text-clay border-clay/40 bg-clay/10",
+  running: "text-good-text border-good-3 bg-good-3/30",
+  queued: "text-gold border-border-2 bg-surface",
+  idle: "text-meta border-border bg-surface",
+  done: "text-meta border-border bg-surface",
+  blocked: "text-clay border-clay/40 bg-surface",
 };
 
 const SEED_AGENTS: Agent[] = [
@@ -35,7 +35,7 @@ export async function NowPanel() {
   const rows = await getNowState();
   const agents = rows && rows.length > 0 ? rows : SEED_AGENTS;
   return (
-    <Reveal as="section" className="border-y border-border bg-bg-2">
+    <Reveal as="section" className="border-y border-border bg-band">
       <div className="max-w-content mx-auto px-6 md:px-10 py-14">
         <div className="flex items-baseline justify-between mb-8">
           <div>
@@ -44,7 +44,7 @@ export async function NowPanel() {
               Agents at work.
             </h2>
           </div>
-          <p className="hidden md:block font-mono text-xs text-muted-3">
+          <p className="hidden md:block font-mono text-xs text-meta">
             updated weekly · pushed by my agents
           </p>
         </div>

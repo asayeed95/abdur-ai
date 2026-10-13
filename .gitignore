@@ -37,3 +37,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python bytecode (scripts/check-public-claims.py imports content/workflows/claims_policy.py)
+__pycache__/
+*.pyc

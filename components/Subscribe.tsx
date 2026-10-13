@@ -51,11 +51,11 @@ export function Subscribe() {
     <Reveal
       as="section"
       id="subscribe"
-      className="border-t border-border bg-bg-2"
+      className="border-t border-border bg-band"
     >
       <div className="max-w-content mx-auto px-6 md:px-10 py-24 md:py-32">
         <p className="eyebrow mb-4">/// The logbook, not the pitch.</p>
-        <p className="text-muted text-lg leading-relaxed max-w-[640px] mb-10">
+        <p className="text-meta text-lg leading-relaxed max-w-[640px] mb-10">
           When I learn it the hard way, you get the TLDR the same week. Pager
           is not the customer. The number is not the person. More of that as
           I write it. Not a product tour. Not a waitlist for a platform that
@@ -77,7 +77,7 @@ export function Subscribe() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="flex-1 bg-surface border border-border text-text px-4 py-3 rounded-sm font-mono text-sm placeholder:text-muted-3 focus:border-clay focus:outline-none transition-colors"
+            className="flex-1 bg-surface border border-muted text-text px-4 py-3 rounded-sm font-mono text-sm placeholder:text-meta focus:border-clay focus:outline-none transition-colors"
             disabled={status === "loading"}
           />
           {/* Honeypot + render timestamp for bot filtering. Visually hidden,
@@ -103,7 +103,7 @@ export function Subscribe() {
         {msg && (
           <p
             className={`mt-4 font-mono text-xs ${
-              status === "ok" ? "text-good" : status === "err" ? "text-clay" : "text-muted"
+              status === "ok" ? "text-good-text" : status === "err" ? "text-clay" : "text-meta"
             }`}
           >
             {msg}

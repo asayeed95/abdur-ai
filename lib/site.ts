@@ -16,7 +16,7 @@ export const SITE = {
   metaDescription:
     "Solo AI founder. Vertical AI products on one memory spine, Northsun. The logbook: what shipped, what broke, what I learned.",
   url: "https://abdur.ai",
-  location: "West New York, NJ · NYC metro",
+  location: "Prospect Park, NJ · NYC metro",
   email: "hello@abdur.ai",
   /** Direct line on /hire. Deliberately the personal address, not the site
       alias — a hiring conversation should land in the inbox Abdur reads. */

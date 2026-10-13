@@ -30,7 +30,7 @@ ${SITE.description}
   extraction. Episodic ledger + pattern library + discipline versions.
 - dockerfile.ai: Dockerfiles that build, sandbox-verified before ship.
 - Cuéntame: Spanish tutor that calls you. Voice-first habit product.
-- HeyCLI: voice and natural-language terminal control.
+- HeyCLI (in engineering): voice-driven, multi-session orchestration for coding agents; an iOS client and a Node.js/TypeScript bridge over an authenticated WebSocket.
 - ASEC (https://asec.co, coming): studio umbrella. Eventually the
   community surface for AI builders to publish their own postmortems.
 

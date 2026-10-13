@@ -159,7 +159,7 @@ export function HireActions() {
                   <span className="block font-mono text-[11px] tracking-wider uppercase text-text">
                     {r.label}
                   </span>
-                  <span className="block text-xs text-muted mt-1">{r.note}</span>
+                  <span className="block text-xs text-meta mt-1">{r.note}</span>
                 </a>
               ))}
             </div>
@@ -203,7 +203,7 @@ export function HireActions() {
                 >
                   The fastest way in is a direct message.
                 </h3>
-                <p className="text-sm leading-relaxed text-muted mt-2.5">
+                <p className="text-sm leading-relaxed text-meta mt-2.5">
                   I respond to everything. One line is enough — I&apos;ll take it from there.
                 </p>
               </div>
@@ -211,7 +211,7 @@ export function HireActions() {
                 type="button"
                 onClick={() => setModalOpen(false)}
                 aria-label="Close"
-                className="font-mono text-sm text-muted hover:text-text cursor-pointer px-2 py-1 flex-none bg-transparent border-0 transition-colors"
+                className="font-mono text-sm text-meta hover:text-text cursor-pointer px-2 py-1 flex-none bg-transparent border-0 transition-colors"
               >
                 ✕
               </button>
@@ -229,7 +229,7 @@ export function HireActions() {
                       onClick={() => pickTopic(t.key)}
                       style={{ background: on ? "rgb(var(--c-clay) / 0.12)" : "transparent" }}
                       className={`font-mono text-[11px] tracking-wider uppercase px-3 py-2 rounded-sm cursor-pointer border transition-colors ${
-                        on ? "border-clay text-clay" : "border-border text-muted"
+                        on ? "border-clay text-clay" : "border-border text-meta"
                       }`}
                     >
                       {t.chip}
@@ -241,7 +241,7 @@ export function HireActions() {
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="hire-msg"
-                  className="font-mono text-[10px] tracking-widest uppercase text-muted-3"
+                  className="font-mono text-[10px] tracking-widest uppercase text-meta"
                 >
                   Your message — pick a starter above, edit freely
                 </label>
@@ -252,14 +252,14 @@ export function HireActions() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="We're hiring for an Applied AI role — here's the JD…"
-                  className="bg-bg-2 border border-border rounded px-3.5 py-3 font-body text-sm leading-snug text-text resize-y outline-none focus:border-clay transition-colors"
+                  className="bg-bg-2 border border-muted rounded px-3.5 py-3 font-body text-sm leading-snug text-text resize-y outline-none focus:border-clay transition-colors"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="hire-email"
-                  className="font-mono text-[10px] tracking-widest uppercase text-muted-3"
+                  className="font-mono text-[10px] tracking-widest uppercase text-meta"
                 >
                   Your email — so the reply finds you
                 </label>
@@ -269,7 +269,7 @@ export function HireActions() {
                   value={replyTo}
                   onChange={(e) => setReplyTo(e.target.value)}
                   placeholder="you@company.com"
-                  className="bg-bg-2 border border-border rounded px-3.5 py-3 font-mono text-[13px] text-text outline-none focus:border-clay transition-colors"
+                  className="bg-bg-2 border border-muted rounded px-3.5 py-3 font-mono text-[13px] text-text outline-none focus:border-clay transition-colors"
                 />
               </div>
 
@@ -285,16 +285,16 @@ export function HireActions() {
                   type="button"
                   onClick={copy}
                   aria-live="polite"
-                  className="font-mono text-[11px] tracking-wider uppercase text-muted bg-transparent border border-border px-4 py-3 rounded-sm cursor-pointer hover:border-clay hover:text-clay transition-colors"
+                  className="font-mono text-[11px] tracking-wider uppercase text-meta bg-transparent border border-border px-4 py-3 rounded-sm cursor-pointer hover:border-clay hover:text-clay transition-colors"
                 >
                   {copied ? "Copied ✓" : `Copy ${SITE.hireEmail}`}
                 </button>
               </div>
 
-              <p className="text-xs leading-relaxed text-muted-3">
+              <p className="text-xs leading-relaxed text-meta">
                 Send opens your mail app with everything pre-filled — nothing is stored here.
                 Prefer LinkedIn?{" "}
-                <span className="text-muted">linkedin.com/in/asayeed95</span>
+                <span className="text-meta">linkedin.com/in/asayeed95</span>
               </p>
             </div>
           </div>

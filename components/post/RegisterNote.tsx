@@ -18,7 +18,7 @@ export function RegisterBadge({
   const tone =
     register === "reported"
       ? "text-clay border-clay/40"
-      : "text-muted-2 border-border";
+      : "text-meta border-border";
   return (
     <span
       title={spec.claim}
@@ -46,7 +46,7 @@ export function RegisterNote({
   if (!note) return null;
   return (
     <p
-      className="not-prose font-mono text-xs tracking-wide text-muted border-l-2 border-clay pl-4 py-1 my-8"
+      className="not-prose font-mono text-xs tracking-wide text-meta border-l-2 border-clay pl-4 py-1 my-8"
       data-register={register}
     >
       {note}

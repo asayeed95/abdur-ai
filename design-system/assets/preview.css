@@ -1,0 +1,46 @@
+/* abdur.ai Design System 1.0 — preview chrome (not part of the product UI).
+   Lays out state matrices and the side-by-side dark / light panels. Tokens only. */
+
+.ds-shell { max-width: 1440px; margin: 0 auto; padding: var(--space-12) var(--gutter-md) var(--space-16); }
+.ds-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-8); }
+.ds-head h1 { font-family: var(--font-display); font-weight: 400; font-size: var(--text-5xl); line-height: var(--leading-5xl); letter-spacing: var(--tracking-tight); margin: var(--space-3) 0 var(--space-3); }
+.ds-head p { color: rgb(var(--c-meta)); margin: 0; max-width: 70ch; line-height: var(--leading-relaxed); }
+.ds-crumbs { display: flex; gap: var(--space-4); font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-widest); text-transform: uppercase; }
+.ds-crumbs a { color: rgb(var(--c-meta)); text-decoration: none; }
+.ds-crumbs a:hover { color: rgb(var(--c-clay)); }
+.ds-src { font-family: var(--font-mono); font-size: var(--text-xs); color: rgb(var(--c-meta)); margin-top: var(--space-2); }
+
+.ds-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid rgb(var(--c-border)); border-radius: var(--radius-lg); overflow: hidden; }
+.ds-panels.stacked { grid-template-columns: 1fr; }
+.ds-panel { padding: var(--space-8); min-width: 0; overflow-x: auto; }
+.ds-panel + .ds-panel { border-left: 1px solid rgb(var(--c-border)); }
+.ds-panels.stacked .ds-panel + .ds-panel { border-left: 0; border-top: 1px solid rgb(var(--c-border)); }
+.ds-panel-label { display: block; margin-bottom: var(--space-6); }
+
+.ds-guide { margin-top: var(--space-8); max-width: 80ch; color: rgb(var(--c-text-soft)); line-height: var(--leading-relaxed); }
+.ds-guide li + li { margin-top: var(--space-2); }
+.ds-guide code { font-family: var(--font-mono); font-size: 0.9em; color: rgb(var(--c-text)); }
+
+.ds-matrix { display: grid; grid-template-columns: 110px repeat(var(--cols), minmax(max-content, 1fr)); gap: var(--space-4) var(--space-6); align-items: center; }
+.ds-col, .ds-row, .ds-state {
+  font-family: var(--font-mono); font-size: var(--text-10); letter-spacing: var(--tracking-widest);
+  text-transform: uppercase; color: rgb(var(--c-meta));
+}
+.ds-cell { min-width: 0; }
+.ds-na { color: rgb(var(--c-meta)); font-family: var(--font-mono); }
+.ds-stack { display: grid; gap: var(--space-3); }
+.ds-stack > .ds-state { margin-top: var(--space-3); }
+.ds-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.ds-line > .ds-state { min-width: 80px; }
+.ds-p { margin: 0; color: rgb(var(--c-text-soft)); font-size: var(--text-base); line-height: var(--leading-relaxed); }
+.ds-index { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-4); list-style: none; padding: 0; margin: 0; }
+
+@media (max-width: 1100px) {
+  .ds-panels { grid-template-columns: 1fr; }
+  .ds-panel + .ds-panel { border-left: 0; border-top: 1px solid rgb(var(--c-border)); }
+}
+@media (max-width: 767px) {
+  .ds-shell { padding-left: var(--gutter); padding-right: var(--gutter); }
+  .ds-panel { padding: var(--space-4); }
+  .ds-head h1 { font-size: var(--text-4xl); line-height: var(--leading-4xl); }
+}

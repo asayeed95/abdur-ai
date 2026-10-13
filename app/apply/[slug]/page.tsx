@@ -52,7 +52,7 @@ export default async function ApplyPage({
         <h1 className="font-display text-4xl md:text-6xl tracking-tight text-text mb-6 max-w-[20ch]">
           {app.hero.headline}
         </h1>
-        <p className="text-muted text-xl leading-relaxed max-w-[640px] mb-4">
+        <p className="text-meta text-xl leading-relaxed max-w-[640px] mb-4">
           {app.hero.subline}
         </p>
         {app.brand.tagline ? (
@@ -73,7 +73,7 @@ export default async function ApplyPage({
           <h2 className="font-display text-3xl text-text pt-2 mb-2">
             Your job description, already running.
           </h2>
-          <p className="text-muted mb-8">
+          <p className="text-meta mb-8">
             Each row pairs a line from the role with something I already ship —
             not something I plan to learn.
           </p>

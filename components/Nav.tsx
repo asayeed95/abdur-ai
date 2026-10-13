@@ -48,7 +48,7 @@ export function Nav() {
                   href={item.href}
                   aria-current={current ? "page" : undefined}
                   className={`font-mono text-[11px] tracking-widest uppercase transition-colors ${
-                    current ? "text-clay" : "text-muted hover:text-text"
+                    current ? "text-clay" : "text-meta hover:text-text"
                   }`}
                 >
                   {item.label}

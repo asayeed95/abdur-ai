@@ -1,0 +1,214 @@
+---
+slug: a-ci-time-limit-cancelled-a-job-whose-steps-had-passed
+title: "A CI time limit cancelled a job whose steps had all passed."
+seo_title: "A CI time limit cancelled a job whose steps all passed"
+subtitle: "A job's time limit, what a cancelled run means to the deploy workflow, and a script that shows why a list of passing runs leaves the slow ones out."
+description: "A CI time limit sat just above a job's slowest passing runs. A slower run was cancelled after every step passed, and the deploy workflow read it as not green."
+dek: "Northsun's records show a CI job whose time limit sat just above its slowest passing runs. A slower run was cancelled after every step had passed, and the deploy workflow read the run as not green."
+tldr: "A CI job had a time limit that sat just above the slowest runs in which the job passed. On 9 October 2026 the limit cancelled the job on more than one run, including one for a commit on main. For that commit the job records show every step, including the step that runs the verification, concluding success, and the note GitHub attaches to the job says it exceeded its maximum execution time. The deploy workflow reads a cancelled CI run as not green: its runs for that commit concluded failure, with the deploy job skipped in each, and the re-run was cancelled too. Northsun's change raised the limit and kept that rule. A list of passing runs cannot show how many runs were stopped. The change is merged, and a deploy workflow run after it concluded success; I did not check what is served. A stand-in script with invented numbers shows the missing runs, where a limit can sit, what a gate can and cannot tell from cancelled, and when a re-run tells you something."
+date: 2026-10-11T02:57:00+00:00
+author: Abdur Rahman Sayeed
+section: "Builder Logs"
+register: reported
+tags:
+  - northsun
+  - ci
+  - deployment
+  - nodejs
+  - testing
+receipts:
+  - path: ".github/workflows/ci.yml"
+    sha: "9d5c74b7"
+    note: "The merge commit of PR #1702, merged 9 October 2026. One job's time limit raised, with a comment above it that records the step's measured times and the job's setup on the runs it cites in which the job passed, and which runs the limit cancelled. The comment's figures are internal and this post leaves them out. The workflow also has a setting that lets a newer push cancel a run that is in progress. Private repository."
+  - path: "The deployment log entry for the same change, named by commit and not by file name"
+    sha: "9d5c74b7"
+    note: "States the cause chain (the limit cancels the job and the CI run, and the deploy workflow then refuses the commit), the decisions (the deploy rule that a cancelled run is not green stands; the limit moves instead of the step being made faster first) and what was deferred (why the step takes as long as it does, and whether the job should be a required check). Added in commits that carry an AI co-author trailer; I did not check its statements beyond the records named here."
+  - path: ".github/workflows/cd.yml (the header comment)"
+    sha: "9d5c74b7"
+    note: "The deploy workflow's own account of its gate: a red, cancelled or timed-out completion is not green; a cancelled required workflow fails the gate while main still points at the commit, and is called superseded once main has moved past it; a success conclusion can also mean nothing was deployed."
+  - path: "docs/superpowers/specs/build-plan/tasks/AGE-3276.md"
+    sha: "9d5c74b7"
+    note: "The task row. Carries a provenance line, added by the earlier PR #1697, naming an AI session as the author and saying the work was not written by the account owner. Records another job whose limit was exceeded after its typecheck step had passed, and the landing tool reading the cancelled job as red."
+  - path: "The description of PR #1702, read through the GitHub API"
+    sha: "9d5c74b7"
+    note: "Carries an authorship statement that names an AI session as the author and says the change was not written by the account owner, and a summary written by an automated reviewer. Its measurements are internal and this post leaves them out."
+  - path: "The non-merge commits of PR #1702, named by commit"
+    sha: "231e0187"
+    note: "The first of three commits, and the two after it. Authored under the account owner's name, each with an AI co-author trailer. One commit subject credits review findings to automated reviewers. I did not read the pull request's review threads."
+  - path: ".github/workflows/ci.yml (the other job, in a different pull request)"
+    sha: "06236fb1"
+    note: "The merge commit of PR #1697, merged 9 October 2026. Raised the other job's limit, with a comment recording what was observed: typecheck passed and the test steps timed out. The same pull request changed a test database setting."
+  - path: "The decision record that came with PR #1697, named by commit"
+    sha: "06236fb1"
+    note: "Gives the longer run that test database setting causes as a second reason for the larger limit. This post does not cover that setting."
+  - path: "GitHub run, job and annotation records for the main commit whose CI runs were cancelled, read through its API"
+    sha: "c889a22c"
+    note: "The merge commit of PR #1652. CI on that commit, second attempt: cancelled. In both attempts the verification job is the only job not recorded as success, every step in it is recorded as success, and its annotation says it exceeded its maximum execution time; the annotations of the pull-request jobs I read say the same. The deploy-workflow runs I saw for that commit: failure, the deploy job skipped in each. This is not a check of production."
+  - path: "GitHub run records for the merge commit of PR #1702, read through its API"
+    sha: "9d5c74b7"
+    note: "CI on main for that commit, the direct successor of c889a22c on main: success. The deploy-workflow run triggered by it: success. This is not a check of production or of what any deploy run shipped."
+  - path: "The log of one pull-request job that the limit cancelled, read through the GitHub API"
+    sha: "e45d6e06"
+    note: "The head commit of PR #1652, whose merge is c889a22c. The verification step printed its passing message before the job ended."
+  - path: "The listing in this post (cap.mjs)"
+    note: "Run on Node 22.22.0 on Linux. A stand-in with invented numbers, not Northsun code and not a model of anyone's runs."
+citation_preferred: "Sayeed, Abdur Rahman. 'A CI time limit cancelled a job whose steps had all passed.' abdur.ai, 11 October 2026."
+related:
+  - four-more-ways-a-check-passes-by-not-running
+  - load-test-that-never-saw-its-own-burst
+  - testing-linear-time-without-a-flaky-clock
+---
+**Short answer:** my reading is that a time limit on a CI job is a claim about how long the job can take, and the job's own history is the evidence for it. If the limit sits just above the slowest runs in which the job passed, a slower run can trip it, and a job that has done all its work can still be recorded as cancelled. Anything downstream that reads cancelled as not green then turns that into a deploy workflow run that does not deploy. My reading is that a limit belongs above the slowest run you can measure, with margin, and with the measurement written next to the number. Northsun's records describe this happening on 9 October 2026. They record a change that raised the limit and kept the deploy workflow's rule that a cancelled run is not green.
+
+**Terms, as this post uses them.** A *time limit* is the longest a CI job may run before the CI service stops it; GitHub's setting for it is called `timeout-minutes`. *Cancelled* is the conclusion a job or run gets when it is stopped, whether by its time limit or by a newer push. A *run* is one execution of a workflow for a commit, and an *attempt* is one try of that run, so a re-run is a second attempt. The *deploy workflow* is the workflow that runs after CI and decides whether a commit is deployed, and its *gate* is the job that makes that decision. *Green* means the run concluded success. A *required workflow* is a workflow whose completed run the deploy workflow waits for. An *annotation* is the note GitHub attaches to a job's record, here saying why the job ended. A *task row* is the documentation file that tracks one task in the repository's build plan.
+
+**Status of what this describes:** a change to a CI configuration file, with three documentation files (among them the task row and the deployment log entry), in Northsun's private repository, PR #1702, merged to its main branch on 9 October 2026. GitHub's run records show that the CI run on main for the merge commit concluded success, and that the deploy-workflow run triggered by that CI run concluded success. That workflow can also conclude success when it deliberately deploys nothing, and I did not check production, so this post says merged, and that a deploy workflow concluded success, and nothing about what is served. I read the repository's history, the description of PR #1702, a task row, a deployment log entry, a decision record from the other pull request, the deploy workflow's header, and GitHub's run, job and annotation records through its API, including one job log. I did not run the job. Nothing here is a claim about product behaviour.
+
+**Who did the work:** not me, as far as I can show. The merge commit carries my account name, and the three non-merge commits behind it are authored under my name, each with an AI co-author trailer. A provenance line in the task row, added by an earlier pull request (#1697), says the task's work was not written by me and names an AI session as the author. The description of PR #1702, which I read through the GitHub API, carries a statement of the same kind: it names an AI session as the author and says the change was not written by me. One commit subject credits review findings to automated reviewers; I did not read the pull request's review threads, so I cannot say whether a person reviewed it. Where this post says "I read", it means the AI session that drafts these write-ups. That session did the reads of the repository and of GitHub's records, wrote the script and ran it, and it was neither me, the byline's owner, nor whoever wrote the change. Where this post says "my reading", it labels an opinion of the write-up's own, published under the byline, that the records do not state. Where it says "Northsun", it means the company and the agents that work in its repository.
+
+## What happened
+
+**The job and its limit.** Northsun's CI workflow has a job that runs a verification script. I leave out what it verifies. The job had a time limit, set in the workflow file. The comment that the fix adds says that the job's main step alone took most of that limit on each of the runs it cites in which the job passed, on top of the job's setup. Adding the two puts those runs at most of the limit, the slowest of them at nearly all of it; that sum is my arithmetic from the comment's figures, which I leave out. So the limit sat only just above how long the job took on the passing runs the comment cites, and a slightly slower run would exceed it.
+
+**The day.** On 9 October 2026 the limit cancelled that job on more than one run: pull-request runs, and the first attempt of CI on a commit on main, the merge of PR #1652. The log entry says the re-run on that commit tripped the limit too, and GitHub's record shows that the CI run's second attempt concluded `cancelled`.
+
+**What the records show about the cause.** A newer push can also cancel a CI run, so I read below the run level. The annotation on each cancelled verification job I read says the job exceeded its maximum execution time. In the job records for both attempts on main (the second attempt repeats the first attempt's records for the other jobs), that job is the only one not recorded as success, and every step in it, including the verification step, is recorded as success. I also read the log of one of the pull-request jobs, and the verification step in it printed its passing message before the job ended. So for this job the limit did not cut the verification off part way through. The steps had passed, and the job was recorded as cancelled all the same.
+
+**What a cancelled run meant downstream.** A cancelled job made the CI run cancelled, as the conclusion of the run for that commit shows. The deploy workflow starts when the run of either of the two required workflows completes, and its header says what it does with each result. A red, cancelled or timed-out completion runs a job that reports a required check was not green. The gate fails when a required workflow was cancelled while main still points at that commit, and it calls a cancelled run superseded, which is not a failure, once main has moved past the commit. Nothing had moved past this commit: the merge of #1702 is its direct successor on main, and it landed after the runs described here. The log entry quotes the deploy workflow's message: "CI was cancelled … nothing superseded this commit, and nothing will deploy it. Re-run CI …". The deploy-workflow runs I saw for that commit all concluded `failure`, and GitHub's job records show the deploy job skipped in each. Those started by the CI run's attempts failed in the job that reports a required check was not green. One was started by the completion of the other required workflow: its gate job succeeded while CI was still running, and its watcher job, which waits for the commit to be deployed, failed after CI concluded cancelled. The log entry says that, as of when it was written, the commit stayed merged and not deployed. I did not check production.
+
+**The fix.** One line raised the job's time limit, and a comment above it records the measurement and the cancellations. The log entry says what the change did not do. It left the deploy workflow alone, so a cancelled run is still not green, and the entry says that rule stands. It moved the limit to where the measured step fits with margin, instead of making the step faster first. It defers two questions: why the verification step takes as long as it does, and whether the job should be a required check. After the merge, GitHub's records show the CI run on main for the merge commit concluded success, and the deploy-workflow run triggered by that CI run concluded success. The commit whose CI runs were cancelled, c889a22c, is an ancestor of that merge commit in git history; I make no claim about what any deploy run shipped. I have not looked at enough runs after the change to say whether the new limit is enough.
+
+**Another limit, earlier the same day.** The task row records another job in the same file whose limit was exceeded after its typecheck step had passed. The comment beside the raised limit says the test steps timed out, so that job was stopped while its tests were running. The task row says the tool that lands pull requests read the cancelled job as red and stopped. That limit was raised in a different pull request, #1697, merged earlier that day. I read that change's diff for the limit and its comment. The same pull request changed a test database setting, and its decision record gives the longer run that setting causes as a second reason for the larger limit; this post covers neither. The two cancelled jobs differ: the verification job had finished its steps, and the other was cut off while its work was running. A cancelled conclusion looks the same for both.
+
+**Why a list of passing runs leaves the slow ones out.** A job with a limit can only pass if it finishes inside the limit, so a list of its passing runs holds only the runs that fit. The runs that were stopped are not on it, and a stopped run's recorded duration is about the limit itself, which says only that the run was slower. The script below shows that effect with invented numbers.
+
+## The script
+
+It uses only Node built-ins and was run on Node 22.22.0 on Linux. It invents a job: a fixed setup time plus a main step whose speed varies from run to run, with about 12% of runs slow ones in sections 1 to 3. Its limit sits just above the slowest ordinary run and below the slow ones. Section 4 uses a different toy with no slow mode. Every number in it is made up, and the 12% and the 0.8 are assumptions, not measurements of anything. It does not model any real CI service. Its deploy rules are a simplified version of some of the outcomes the deploy workflow's header describes.
+
+```js
+// cap.mjs: a CI time limit set just above a job's passing runs.
+// A stand-in, not Northsun code. Every number here is invented. Run: node cap.mjs   (Node built-ins only)
+
+function rng(seed) {                       // a small seeded generator, so every run prints the same thing
+  return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+const SETUP = 12, WORK = 70;                // seconds: job setup, and the main step at its usual speed
+const ordinary = (r) => 0.92 + 0.2 * r();                                  // an ordinary run: 0.92 to 1.12 times the usual speed
+const runFactor = (r) => ordinary(r) * (r() < 0.12 ? 1.45 : 1);             // and 12% of runs are slow ones, 1.45 times slower
+const runtime = (f) => SETUP + WORK * f;
+const pct = (xs, p) => xs.slice().sort((a, b) => a - b)[Math.min(xs.length - 1, Math.floor(p * xs.length))];
+const fmt = (x) => x.toFixed(1);
+
+const r = rng(7);
+const history = Array.from({ length: 2000 }, () => runtime(runFactor(r)));   // what the job would take with no limit at all
+
+console.log("1. what a limit hides. The same job, 2000 runs, no limit: median " + fmt(pct(history, 0.5)) + " s, slowest " + fmt(Math.max(...history)) + " s.");
+const CAP0 = 91;
+const green = history.filter((t) => t <= CAP0);
+console.log(`   With a ${CAP0} s limit, ${green.length} runs pass and ${history.length - green.length} are cancelled. A list of the passing runs shows:`);
+console.log(`   median ${fmt(pct(green, 0.5))} s, slowest ${fmt(Math.max(...green))} s, ${Math.round(100 * green.filter((t) => t > 0.9 * CAP0).length / green.length)}% of them above 90% of the limit.`);
+console.log("   The cancelled runs are not in that list, so the list looks like a job that fits.");
+
+console.log("\n2. cancelled share by where the limit sits (the same 2000 runs):");
+for (const [why, cap] of [["at the typical time", pct(history, 0.5)], ["just above the ordinary runs", CAP0], ["1.5 x the slowest run ever seen", 1.5 * Math.max(...history)]]) {
+  const cancelled = history.filter((t) => t > cap).length;
+  console.log(`   limit ${fmt(cap).padStart(6)} s (${why.padEnd(34)}) cancels ${String(cancelled).padStart(4)} of ${history.length}`);
+}
+
+console.log("\n3. what 'cancelled' means to the deploy step. The conclusion is the same whether the job's steps had finished or not:");
+const gate = (conclusion, mainStillHere, policy) => conclusion === "success" ? "deploy"
+  : conclusion === "cancelled" ? (policy === "loosened" ? "deploy" : mainStillHere ? "refuse (not green)" : "superseded (the newer commit's own runs decide)") : "refuse";
+console.log("   " + "run ended".padEnd(48) + "gate: cancelled is not green".padEnd(50) + "gate: cancelled counts as done");
+for (const [label, c, here, finished] of [["success", "success", true, true], ["cancelled, newest commit, steps unfinished", "cancelled", true, false],
+  ["cancelled, newest commit, steps had finished", "cancelled", true, true], ["cancelled, main moved on", "cancelled", false, false]]) {
+  const note = c === "cancelled" && here ? (finished ? "   <- strict refuses a commit whose steps had passed" : "   <- loose ships a commit whose steps never finished") : "";
+  console.log("   " + label.padEnd(48) + gate(c, here, "strict").padEnd(50) + gate(c, here, "loosened") + note);
+}
+
+console.log("\n4. does a re-run help? A different toy: no slow mode, run times spread evenly from 76 s to 90 s, and a limit of 86 s inside that spread. Two attempts on a commit whose first attempt tripped it:");
+const CAP4 = 86;
+const trial = (rho) => { const rr = rng(11); let first = 0, both = 0;
+  for (let i = 0; i < 20000; i++) { const a = ordinary(rr); const b = rho * a + (1 - rho) * ordinary(rr);
+    if (runtime(a) > CAP4) { first++; if (runtime(b) > CAP4) both++; } }
+  return `${Math.round(100 * both / first)}% of the second attempts trip too`; };
+console.log("   if each attempt gets independent conditions:       " + trial(0));
+console.log("   if the slowness is shared between attempts (0.8):  " + trial(0.8));
+```
+
+Output:
+
+```text
+1. what a limit hides. The same job, 2000 runs, no limit: median 84.2 s, slowest 125.5 s.
+   With a 91 s limit, 1760 runs pass and 240 are cancelled. A list of the passing runs shows:
+   median 83.3 s, slowest 90.4 s, 60% of them above 90% of the limit.
+   The cancelled runs are not in that list, so the list looks like a job that fits.
+
+2. cancelled share by where the limit sits (the same 2000 runs):
+   limit   84.2 s (at the typical time               ) cancels  999 of 2000
+   limit   91.0 s (just above the ordinary runs      ) cancels  240 of 2000
+   limit  188.3 s (1.5 x the slowest run ever seen   ) cancels    0 of 2000
+
+3. what 'cancelled' means to the deploy step. The conclusion is the same whether the job's steps had finished or not:
+   run ended                                       gate: cancelled is not green                      gate: cancelled counts as done
+   success                                         deploy                                            deploy
+   cancelled, newest commit, steps unfinished      refuse (not green)                                deploy   <- loose ships a commit whose steps never finished
+   cancelled, newest commit, steps had finished    refuse (not green)                                deploy   <- strict refuses a commit whose steps had passed
+   cancelled, main moved on                        superseded (the newer commit's own runs decide)   deploy
+
+4. does a re-run help? A different toy: no slow mode, run times spread evenly from 76 s to 90 s, and a limit of 86 s inside that spread. Two attempts on a commit whose first attempt tripped it:
+   if each attempt gets independent conditions:       32% of the second attempts trip too
+   if the slowness is shared between attempts (0.8):  82% of the second attempts trip too
+```
+
+What it shows, with its limits. Section 1: with a limit just above the ordinary runs, the passing runs are a sample that leaves out the slow ones. Their slowest is 90.4 s against a 91 s limit, and 60% of them sit above 90% of the limit, while the 240 slow runs that were cancelled appear nowhere in that list. My reading: passing runs that end close to the limit are a sign the limit is inside the range; the 90% is only the cut I chose for the toy. Section 2: a limit at the typical time cancels about half the runs, a limit just above the ordinary runs cancels the 240 slow ones, and a limit at 1.5 times the slowest run ever seen cancels none. The 1.5 is only a number I picked for the toy, and not a recommendation. Section 3: the deploy rules cannot tell a run stopped part way from one whose steps had finished. A rule that treats cancelled as done ships the run whose steps never finished, and a rule that treats it as not green refuses the run whose steps had passed. The not-green rule also lets a newer commit supersede an older one. The table is the script's own rules written out, and is not a simulation.
+
+Section 4 is a different toy, with no slow mode: run times spread evenly across a range, and a limit inside it. If each attempt gets independent conditions, 32% of second attempts trip, which is about the base rate. If the slowness is shared between attempts, 82% do. My reading: in this toy a failed re-run is likelier when the slowness is shared, so one failed re-run shifts the odds but does not settle which case you are in. The 0.8 is an assumption, and the toy does not measure how often a real re-run fails.
+
+For the real case, the log entry says the re-run was cancelled too. That fits shared slowness, and it fits a job whose ordinary duration straddles its limit, and it is one case.
+
+## What the change left alone
+
+The deploy workflow did not change. The log entry says a cancelled run is not green and that this rule stands. My reading, since the record gives no reason beyond that the rule stands: section 3 of the script shows what the rule protects against, and the other job above is a real example of a cancelled job that was cut off while its work was running. The re-run advice did not change either: the deploy workflow's own message tells the operator to re-run CI, and the records I read do not discuss whether the slowness was shared between the attempts.
+
+The change did not make the job faster, and the record defers the question of why the verification step takes as long as it does. It did not decide whether the job should be a required check at all, which is the other deferred question. It did not change the deploy workflow or any application code. What the change addressed was the limit, so the limit moved.
+
+## How to check your own jobs
+
+These are rules of thumb, not measurements. List the durations of recent runs of each job that has a limit. A cancelled run's duration is about the limit itself, a lower bound, so to see the real top of the range, record durations without a limit or raise it for a while. Put the slowest you can see next to the limit. If passing runs end close to the limit, the limit is probably inside the range. Set it above the slowest with margin, and write the measurement in a comment above the number, as the fixed file does. Then find everything downstream that reads cancelled: a deploy workflow, a merge queue, a landing tool, a bot. Ask what each one does with it, and whether it can tell a run stopped part way from one whose steps had finished. Last, decide what a re-run means when a limit trips. If the slowness is shared between attempts, a second failure is likely. If each attempt gets different conditions, a second failure comes at about the base rate. One pair of attempts does not settle which applies.
+
+## What this still does not prove
+
+- The script is not Northsun's code and not a model of anyone's runs. Its numbers are invented and its output says nothing about how any real job behaves.
+- This is reported from two diffs of the CI workflow file, the deploy workflow's header, the description of PR #1702, a task row, a deployment log entry added in commits with an AI co-author trailer, a decision record from the other pull request, GitHub's run, job and annotation records, and one job log. I did not run the job.
+- I did not check production. A deploy workflow that concluded success is not a check of what is served, and a run that concluded failure does not by itself show that nothing was served.
+- The cause of the verification job's duration is not in the records I read. The record defers it.
+- It does not say that every limit in the file is wrong, or that limits are a bad idea.
+- I have not looked at enough runs after the change to say whether the new limit is enough.
+
+## FAQ
+
+### Why not treat a cancelled run as success, so the deploy goes ahead?
+
+My reading, not the record's: a cancelled conclusion does not say whether the job's steps had finished. In the verification job they had, and in the other job they had not, and both ended as cancelled. The deploy workflow's header gives cases where a cancelled run is not a failure, such as when a newer commit has superseded it, and then the newer commit's own runs decide. For the newest commit, a rule that accepted cancelled would sometimes ship a commit whose steps were stopped part way through. The log entry gives no reason beyond that the rule stands.
+
+### Why not just re-run it?
+
+You can, and the log entry says it was done and tripped the limit again, which is one case. My reading: if the job lives at its limit and the conditions are shared between attempts, a second failure is likely and a pass is luck, so raise the limit first and look at the job's speed separately. In the script's toy, a failed re-run is likelier under shared slowness (82%) than under independent conditions (32%), so one failed re-run shifts the odds but does not settle which case you are in. Section 4 of the script shows both cases with invented numbers.
+
+### Should a CI job have a time limit at all?
+
+I read nothing that weighs removing limits, so this is my reading and not the records'. A limit stops a hung job from running for hours, and that is worth having. My reading is that the question is where to put it: above the slow end of the job's real range, with the reason written beside it.
+
+### Is it deployed?
+
+A deploy workflow run concluded success after the merge. That workflow can also conclude success when it deliberately deploys nothing, and I did not check production, so I say merged.
+
+## The receipts
+
+The Northsun repository and issue tracker are private, so these are paths and commits for anyone with access to check. The log entry and the workflow comments carry internal figures, which this post leaves out.
+
+<ReceiptsBlock />
+
+For other stories where a check's own behaviour was the problem, read [four more ways a check goes green without running](/writing/four-more-ways-a-check-passes-by-not-running), [a load test that counted its neighbours and never saw its own burst](/writing/load-test-that-never-saw-its-own-burst) and [a flaky timing test that blocked a deploy](/writing/testing-linear-time-without-a-flaky-clock).

@@ -1,0 +1,72 @@
+/* ============================================================
+   abdur.ai Design System 1.0 — motion tokens
+   Exactly three: hero-in, data-reveal, pulse-clay.
+   Source: tailwind.config.ts (animation + keyframes) and
+   app/globals.css ([data-reveal] transition).
+   ============================================================ */
+
+:root {
+  --ease-clay: cubic-bezier(0.2, 0.7, 0.2, 1);  /* hero-in, data-reveal */
+
+  /* hero-in — page h1 entrance, once */
+  --motion-hero-in-duration: 0.6s;
+  --motion-hero-in-distance: 8px;
+
+  /* data-reveal — section entrance on scroll (IntersectionObserver in <Reveal>) */
+  --motion-reveal-duration: 0.6s;
+  --motion-reveal-distance: 12px;
+
+  /* pulse-clay — the live-status dot only */
+  --motion-pulse-duration: 2.4s;
+  --motion-pulse-ease: ease-in-out;
+  --motion-pulse-scale: 1.25;
+  --motion-pulse-opacity: 0.6;
+
+  /* Not motion tokens: the colour/border state changes components write as
+     Tailwind transition-colors / transition-opacity (150ms default). */
+  --transition-state: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes heroIn {
+  0% { opacity: 0; transform: translateY(var(--motion-hero-in-distance)); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseClay {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: var(--motion-pulse-opacity); transform: scale(var(--motion-pulse-scale)); }
+}
+
+.animate-hero-in {
+  animation: heroIn var(--motion-hero-in-duration) var(--ease-clay);
+}
+
+.animate-pulse-clay {
+  animation: pulseClay var(--motion-pulse-duration) var(--motion-pulse-ease) infinite;
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(var(--motion-reveal-distance));
+  transition: opacity var(--motion-reveal-duration) var(--ease-clay),
+              transform var(--motion-reveal-duration) var(--ease-clay);
+}
+[data-reveal].in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* The rule is "honour prefers-reduced-motion everywhere". In the app only
+   data-reveal is guarded (in JS, components/Reveal.tsx); hero-in and
+   pulse-clay are not. The design system guards all three here. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-in,
+  .animate-pulse-clay {
+    animation: none;
+  }
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

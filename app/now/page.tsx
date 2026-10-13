@@ -24,7 +24,7 @@ export default function NowPage() {
         <h1 className="font-display text-5xl md:text-7xl tracking-tight text-text mb-4">
           /now
         </h1>
-        <p className="font-mono text-sm text-muted mb-16">Last updated · {updated}</p>
+        <p className="font-mono text-sm text-meta mb-16">Last updated · {updated}</p>
 
         <div className="max-w-prose space-y-8 text-text-soft text-lg leading-relaxed">
           <section>
@@ -52,11 +52,13 @@ export default function NowPage() {
             <ul className="list-disc list-outside ml-6 space-y-2">
               <li>The flagship postmortem: <em>The night the doctrine failed.</em> Four patterns committed to MOLL.</li>
               <li>Caller memory on the Northsun warm path, designed for sub-300ms voice recall (Cloudflare edge → Upstash Redis).</li>
-              <li>heycli pushing prompts to Claude Code, Codex, and Aider from one source-of-truth.</li>
             </ul>
+            <p className="text-sm text-meta mt-4">
+              Correction, October 5, 2026: this list used to include a line saying HeyCLI was pushing prompts to Claude Code, Codex, and Aider. HeyCLI is in engineering and that line overstated it, so it has been removed.
+            </p>
           </section>
 
-          <p className="text-muted pt-8 border-t border-border">
+          <p className="text-meta pt-8 border-t border-border">
             This is a <a href="https://nownownow.com/about" className="text-clay">now page</a> — a snapshot of what has my focus right now, not a résumé. If it&apos;s stale, ping me and tell me to update it.
           </p>
         </div>

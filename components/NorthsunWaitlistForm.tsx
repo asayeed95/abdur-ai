@@ -43,7 +43,7 @@ export function NorthsunWaitlistForm() {
   return (
     <div id="waitlist" className="max-w-xl mx-auto">
       {status === "ok" ? (
-        <p className="font-mono text-sm text-good text-center">{msg}</p>
+        <p className="font-mono text-sm text-good-text text-center">{msg}</p>
       ) : (
         <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
           <input
@@ -52,7 +52,7 @@ export function NorthsunWaitlistForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="flex-1 bg-surface border border-border text-text px-4 py-3 rounded-sm font-mono text-sm placeholder:text-muted-3 focus:border-clay focus:outline-none transition-colors"
+            className="flex-1 bg-surface border border-muted text-text px-4 py-3 rounded-sm font-mono text-sm placeholder:text-meta focus:border-clay focus:outline-none transition-colors"
             disabled={status === "loading"}
           />
           <button

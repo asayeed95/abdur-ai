@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contrast test — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/type.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../components/components.css">
+<link rel="stylesheet" href="../assets/preview.css">
+<style>
+  .t-summary { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: var(--space-8) 0; }
+  .t-stat { border: 1px solid rgb(var(--c-border)); border-radius: var(--radius-lg); background: rgb(var(--c-surface)); padding: var(--space-4) var(--space-6); min-width: 200px; }
+  .t-stat b { display: block; font-family: var(--font-display); font-weight: 400; font-size: var(--text-4xl); line-height: var(--leading-4xl); }
+  .t-section { margin-top: var(--space-12); }
+  .t-section h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--text-3xl); line-height: var(--leading-3xl); margin: var(--space-3) 0 var(--space-4); }
+  table.t { border-collapse: collapse; width: 100%; font-family: var(--font-mono); font-size: var(--text-xs); }
+  table.t th, table.t td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid rgb(var(--c-border)); vertical-align: top; }
+  table.t th { font-size: var(--text-10); letter-spacing: var(--tracking-widest); text-transform: uppercase; color: rgb(var(--c-meta)); font-weight: 400; }
+  table.t td.fix { font-family: var(--font-body); color: rgb(var(--c-text-soft)); white-space: normal; max-width: 52ch; }
+  .verdict-fail { color: rgb(var(--c-clay)); font-weight: 600; }
+  .verdict-pass { color: rgb(var(--c-text)); }
+  .sample { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-sm); border: 1px solid rgb(var(--c-border)); }
+  .proposed { font-family: var(--font-mono); font-size: var(--text-10); letter-spacing: var(--tracking-widest); color: rgb(var(--c-gold)); border: 1px solid rgb(var(--c-border-2)); padding: 1px 6px; border-radius: var(--radius-sm); margin-right: 6px; }
+  .wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head"><div>
+    <nav class="ds-crumbs" aria-label="Design system"><a href="../index.html">Index</a><a href="../foundations.html">Foundations</a><a href="contrast.test.html">Contrast test</a></nav>
+    <h1>Contrast test</h1>
+    <p>Reads the live <code class="code-inline">--c-*</code> values from <code class="code-inline">tokens/colors.css</code> in each theme. It measures every text token on each ground it's allowed on (4.5:1), <code class="code-inline">bg</code> on <code class="code-inline">clay</code>, and the focus ring and input boundary (3:1). Then it re-checks the four risks from 1.0. Pairs on disallowed grounds are usage errors, which <code class="code-inline">scripts/build.mjs</code> rejects in <code class="code-inline">app/</code> and <code class="code-inline">components/</code>.</p>
+  </div></div>
+
+  <div class="t-summary" id="summary"></div>
+
+  <section class="t-section">
+    <p class="eyebrow">/// Known risks</p><h2>The four named up front</h2>
+    <div class="wrap"><table class="t" id="risks"></table></div>
+  </section>
+
+  <section class="t-section">
+    <p class="eyebrow">/// Failing pairs</p><h2>Every pair under its minimum</h2>
+    <div class="wrap"><table class="t" id="fails"></table></div>
+  </section>
+
+  <section class="t-section">
+    <p class="eyebrow-muted">/// Not for text</p><h2>Palette tokens retired from text in 1.1</h2>
+    <div class="wrap"><table class="t" id="nft"></table></div>
+  </section>
+
+  <section class="t-section">
+    <p class="eyebrow-muted">/// All pairs</p><h2>Full results</h2>
+    <div class="wrap"><table class="t" id="all"></table></div>
+  </section>
+</div>
+
+<script src="../assets/contrast.js"></script>
+<script>
+(function () {
+  var C = window.DSContrast;
+  var live = C.readLive();
+  var rows = C.evaluate(live.tokens);
+  var risks = C.riskResults(rows, live.layout);
+  var text = rows.filter(function (r) { return r.kind === "text"; });
+  var ui = rows.filter(function (r) { return r.kind === "ui"; });
+  var fails = rows.filter(function (r) { return !r.pass; });
+  var cnt = function (rs, p) { return rs.filter(function (r) { return r.pass === p; }).length; };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (ch) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]; }); };
+
+  document.getElementById("summary").innerHTML = [
+    ["Text pairs pass", cnt(text, true) + " / " + text.length],
+    ["Text pairs fail", cnt(text, false)],
+    ["Non-text pass", cnt(ui, true) + " / " + ui.length],
+    ["Non-text fail", cnt(ui, false)],
+    ["Known risks failing", risks.filter(function (k) { return !k.pass; }).length + " / " + risks.length],
+  ].map(function (s) { return '<div class="t-stat"><span class="ds-state">' + s[0] + '</span><b>' + s[1] + '</b></div>'; }).join("");
+
+  var sample = function (r) {
+    return '<span data-theme="' + r.theme + '"><span class="sample" style="background:rgb(var(--c-' + r.bg + '));color:rgb(var(--c-' + r.fg + '))">' + (r.kind === "ui" ? "▮ ring" : "Aa 12px") + '</span></span>';
+  };
+  var verdict = function (r) {
+    if (r.missing) return '<span class="verdict-fail">missing token</span>';
+    return '<span class="' + (r.pass ? "verdict-pass" : "verdict-fail") + '">' + (r.ratio == null ? 'missing' : r.ratio.toFixed(2) + ':1') + ' ' + (r.pass ? "pass" : "fail") + '</span>' + (!r.pass && r.kind === "text" && r.large ? ' · ≥3:1 large only' : '');
+  };
+
+  document.getElementById("risks").innerHTML = '<tr><th>risk</th><th>result</th><th>detail</th><th>fix</th></tr>' + risks.map(function (k) {
+    return '<tr><td style="white-space:normal">' + esc(k.label) + '</td><td class="' + (k.pass ? "verdict-pass" : "verdict-fail") + '">' + (k.pass ? "PASS" : "FAIL") + '</td><td>' + esc(k.detail) + '</td><td class="fix">' + (k.pass ? "Fixed in 1.1" : "Open") + '</td></tr>';
+  }).join("");
+
+  document.getElementById("fails").innerHTML = '<tr><th>theme</th><th>pair</th><th>sample</th><th>ratio</th><th>needs</th><th>used for</th><th>fix</th></tr>' + fails.map(function (r) {
+    return '<tr><td>' + r.theme + '</td><td>' + r.fg + ' on ' + r.bg + '</td><td>' + sample(r) + '</td><td>' + verdict(r) + '</td><td>' + r.min + ':1</td><td class="fix">' + esc(r.use) + '</td><td class="fix">' + "—" + '</td></tr>';
+  }).join("") + (fails.length ? "" : '<tr><td colspan="7" class="verdict-pass">No failing pairs.</td></tr>');
+
+  document.getElementById("nft").innerHTML = '<tr><th>token</th><th>dark range</th><th>light range</th><th>rule</th></tr>' + C.notForText(live.tokens).map(function (t) {
+    return '<tr><td>' + t.fg + '</td><td>' + t.dark + ':1</td><td>' + t.light + ':1</td><td class="fix">' + esc(t.rule) + '</td></tr>';
+  }).join("");
+
+  document.getElementById("all").innerHTML = '<tr><th>theme</th><th>kind</th><th>pair</th><th>sample</th><th>fg / bg</th><th>result</th></tr>' + rows.map(function (r) {
+    return '<tr><td>' + r.theme + '</td><td>' + r.kind + '</td><td>' + r.fg + ' on ' + r.bg + '</td><td>' + sample(r) + '</td><td>' + (r.fgHex || "?") + ' / ' + (r.bgHex || "?") + '</td><td>' + verdict(r) + '</td></tr>';
+  }).join("");
+
+  window.__contrastResults = { rows: rows, risks: risks, text: { pass: cnt(text, true), fail: cnt(text, false) }, ui: { pass: cnt(ui, true), fail: cnt(ui, false) } };
+  document.title = "Contrast: " + fails.length + " failing — abdur.ai Design System";
+  if (window.console) console.log("[contrast]", JSON.stringify(window.__contrastResults.text), JSON.stringify(window.__contrastResults.ui), fails.map(function (r) { return r.theme + " " + r.fg + "/" + r.bg + " " + (r.ratio == null ? "missing" : r.ratio.toFixed(2)); }));
+})();
+</script>
+</body>
+</html>

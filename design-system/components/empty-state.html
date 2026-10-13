@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EmptyState — abdur.ai Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/colors.css">
+<link rel="stylesheet" href="../tokens/type.css">
+<link rel="stylesheet" href="../tokens/spacing.css">
+<link rel="stylesheet" href="../tokens/motion.css">
+<link rel="stylesheet" href="../components/components.css">
+<link rel="stylesheet" href="../assets/preview.css">
+</head>
+<body>
+<div class="ds-shell">
+  <div class="ds-head">
+    <div><nav class="ds-crumbs" aria-label="Design system"><a href="../index.html">Index</a><a href="../foundations.html">Foundations</a><a href="../tests/contrast.test.html">Contrast test</a></nav><h1>EmptyState</h1><p>What a list shows when it has nothing to list, built only from existing pieces.</p><p class="ds-src">Source: none (requested by the brief; composed from existing classes)</p></div>
+  </div>
+  <div class="ds-panels">
+    <section class="ds-panel" data-theme="dark"><span class="ds-state ds-panel-label">Dark (default)</span><div class="empty">
+      <p class="eyebrow-muted">/// Nothing here yet</p>
+      <h3 class="empty-title">No posts in this register.</h3>
+      <p class="empty-body">Every piece declares whether it is reported, designed, or argued. None has been filed under this one.</p>
+      <a href="#" class="btn btn-secondary">All writing →</a>
+    </div></section>
+    <section class="ds-panel" data-theme="light"><span class="ds-state ds-panel-label">Light</span><div class="empty">
+      <p class="eyebrow-muted">/// Nothing here yet</p>
+      <h3 class="empty-title">No posts in this register.</h3>
+      <p class="empty-body">Every piece declares whether it is reported, designed, or argued. None has been filed under this one.</p>
+      <a href="#" class="btn btn-secondary">All writing →</a>
+    </div></section>
+  </div>
+  <ul class="ds-guide"><li>Intentional addition: the app has no empty state today. It's composed from <code>.eyebrow-muted</code>, a Playfair <code>2xl</code> line, a <code>meta</code> sentence and a secondary button. No new styles.</li><li>Say what's missing and where to go. Never promise a date or a count.</li></ul>
+</div>
+</body>
+</html>

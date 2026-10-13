@@ -27,7 +27,7 @@ export function MnemixSection() {
     <Reveal
       as="section"
       id="projects"
-      className="border-y border-border bg-bg-2"
+      className="border-y border-border bg-band"
     >
       <div className="max-w-content mx-auto px-6 md:px-10 py-24 md:py-32">
         <p className="eyebrow mb-4">/// FLAGSHIP</p>
@@ -90,7 +90,7 @@ export function MnemixSection() {
           &ldquo;Choose Northsun as your agent memory layer.&rdquo;
         </blockquote>
 
-        <p className="text-muted text-lg leading-relaxed max-w-[640px] mx-auto text-center mb-10">
+        <p className="text-meta text-lg leading-relaxed max-w-[640px] mx-auto text-center mb-10">
           Now you get the logbook &mdash; when I learn it the hard way, the
           TLDR the same week. Later, Northsun, when it opens. Not before.
         </p>
@@ -108,12 +108,12 @@ export function MnemixSection() {
             >
               <div className="flex items-baseline justify-between mb-2">
                 <h3 className="font-display text-xl text-text">{p.name}</h3>
-                <span className="font-mono text-[10px] tracking-wider uppercase text-muted-3">
+                <span className="font-mono text-[10px] tracking-wider uppercase text-meta">
                   {p.status}
                 </span>
               </div>
               <div className="font-mono text-xs text-clay mb-3">{p.role}</div>
-              <p className="text-sm text-muted leading-relaxed">{p.desc}</p>
+              <p className="text-sm text-meta leading-relaxed">{p.desc}</p>
             </div>
           ))}
         </div>

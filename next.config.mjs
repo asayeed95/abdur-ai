@@ -6,6 +6,13 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   pageExtensions: ["ts", "tsx", "mdx"],
+  // next-mdx-remote is on Next's default serverExternalPackages list, so
+  // unbundled it imports node_modules react (19.0.0) while the RSC renderer is
+  // Next's vendored React 19.2 canary. In dev, the renderer reads
+  // element._debugStack, which a 19.0.0 element lacks, and every
+  // /writing/[slug] page 500'd ("Cannot read properties of undefined (reading
+  // 'stack')"). Bundling it resolves `react` to the same vendored copy.
+  transpilePackages: ["next-mdx-remote"],
   experimental: {
     mdxRs: false,
   },

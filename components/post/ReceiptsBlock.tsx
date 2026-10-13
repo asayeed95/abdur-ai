@@ -12,14 +12,14 @@ export function ReceiptsBlock({ items }: { items: Item[] }) {
             <code className="text-text bg-bg px-1.5 py-0.5 rounded border border-border">
               {it.path}
             </code>
-            {it.lines && <span className="text-muted-3"> {it.lines}</span>}
+            {it.lines && <span className="text-meta"> {it.lines}</span>}
             {it.sha && (
-              <span className="text-muted-3"> @ </span>
+              <span className="text-meta"> @ </span>
             )}
             {it.sha && (
               <code className="text-clay">{it.sha}</code>
             )}
-            {it.note && <p className="text-muted text-[13px] mt-1 ml-1">{it.note}</p>}
+            {it.note && <p className="text-meta text-[13px] mt-1 ml-1">{it.note}</p>}
           </li>
         ))}
       </ul>

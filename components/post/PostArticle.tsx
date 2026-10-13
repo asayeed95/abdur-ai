@@ -3,8 +3,10 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import { MnemixCTA, AsecWaitlistCTA, NewsletterCTA } from "@/components/post/LeadMagnets";
+import { PostSubscribe } from "@/components/post/PostSubscribe";
 import { ReceiptsBlock } from "@/components/post/ReceiptsBlock";
 import { PatternsBlock } from "@/components/post/PatternsBlock";
+import { POST_VISUALS } from "@/components/post/mdx-components";
 import { RegisterBadge, RegisterNote } from "@/components/post/RegisterNote";
 import { postPath, type PostMeta } from "@/lib/posts";
 import { ogImageForPost } from "@/lib/og";
@@ -69,11 +71,11 @@ export function PostArticle({
           {post.title}
         </h1>
         {post.subtitle && (
-          <p className="font-display italic text-xl md:text-2xl text-muted mb-6">
+          <p className="font-display italic text-xl md:text-2xl text-meta mb-6">
             {post.subtitle}
           </p>
         )}
-        <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-muted-3">
+        <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-meta">
           <RegisterBadge register={post.register} />
           <span>{post.dateDisplay}</span>
           <span>·</span>
@@ -85,7 +87,12 @@ export function PostArticle({
         <RegisterNote register={post.register} note={post.statusNote} />
       </header>
 
-      <div className="prose-clay max-w-prose mx-auto mt-12">
+      {/* Long unbroken strings (inline-code paths, bare URLs in source ledgers,
+          receipt notes) widened a 360 px page to as much as 549 px. Text may break
+          inside a word that would overflow; links and inline code may break anywhere.
+          Code blocks keep white-space: pre, so they never wrap and still scroll
+          sideways in their own box. */}
+      <div className="prose-clay max-w-prose mx-auto mt-12 break-words [&_a]:[overflow-wrap:anywhere] [&_:not(pre)>code]:[overflow-wrap:anywhere]">
         <MDXRemote
           source={source}
           options={{
@@ -95,6 +102,15 @@ export function PostArticle({
             },
           }}
           components={{
+            ...POST_VISUALS,
+            // A wide table must scroll inside its own box, never widen the page: on a
+            // 390 px phone an unwrapped four-column table pushed the layout viewport
+            // out to 406 px. Keyboard-focusable so it can be scrolled without a pointer.
+            table: (props: React.ComponentProps<"table">) => (
+              <div className="overflow-x-auto" role="region" aria-label="Table, scrolls sideways" tabIndex={0}>
+                <table {...props} />
+              </div>
+            ),
             MnemixCTA,
             AsecWaitlistCTA,
             NewsletterCTA,
@@ -106,13 +122,17 @@ export function PostArticle({
         />
       </div>
 
+      {/* Every article ends with a way to subscribe. Posts that already embed
+          <NewsletterCTA /> keep their own; the rest get the inline form. */}
+      {!source.includes("<NewsletterCTA") && <PostSubscribe />}
+
       <nav aria-label="Previous and next post" className="max-w-prose mx-auto mt-20 pt-8 border-t border-border grid sm:grid-cols-2 gap-6">
         {prev ? (
           <Link
             href={postPath(prev.slug)}
             className="group block bg-surface border border-border rounded-lg p-5 hover:border-clay transition-colors"
           >
-            <p className="font-mono text-[10px] tracking-widest uppercase text-muted-3 mb-2">
+            <p className="font-mono text-[10px] tracking-widest uppercase text-meta mb-2">
               ← Previous
             </p>
             <p className="font-display text-lg text-text group-hover:text-clay transition-colors leading-tight">
@@ -127,7 +147,7 @@ export function PostArticle({
             href={postPath(next.slug)}
             className="group block bg-surface border border-border rounded-lg p-5 hover:border-clay transition-colors text-right"
           >
-            <p className="font-mono text-[10px] tracking-widest uppercase text-muted-3 mb-2">
+            <p className="font-mono text-[10px] tracking-widest uppercase text-meta mb-2">
               Next →
             </p>
             <p className="font-display text-lg text-text group-hover:text-clay transition-colors leading-tight">
