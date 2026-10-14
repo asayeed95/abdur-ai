@@ -22,7 +22,7 @@ export const SITE = {
       alias — a hiring conversation should land in the inbox Abdur reads. */
   hireEmail: "asayeed95@outlook.com",
   handles: {
-    x: "@asayeed95",
+    x: "@Abdur_sayeed",
     github: "https://github.com/asayeed95",
     linkedin: "https://www.linkedin.com/in/asayeed95/",
   },

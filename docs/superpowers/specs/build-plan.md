@@ -14,7 +14,7 @@ This file was (re)written 2026-07-08 during a build-discipline retrofit, cross-c
 |---|---|---|---|
 | D-1 | Wire `/api/subscribe` to Resend audiences | `app/api/subscribe/route.ts` calls the Resend API with `RESEND_API_KEY` / per-list audience IDs; commit `7122c7f` | done — 2026-07-08 |
 | D-2 | Generate OG cover image for flagship post | `public/blog/the-night-the-doctrine-failed/cover.jpg` exists; commit `fc4c370` | done — 2026-07-08 |
-| D-3 | Replace `TODO_X_HANDLE` / `TODO_GITHUB_HANDLE` placeholders | `grep -r TODO_X_HANDLE\|TODO_GITHUB_HANDLE` returns nothing outside this doc's own history; `lib/site.ts` has real handles (`@asayeed95`, `github.com/asayeed95`) | done — 2026-07-08 |
+| D-3 | Replace `TODO_X_HANDLE` / `TODO_GITHUB_HANDLE` placeholders | `grep -r TODO_X_HANDLE\|TODO_GITHUB_HANDLE` returns nothing outside this doc's own history; `lib/site.ts` has real handles (X `@Abdur_sayeed`, `github.com/asayeed95`) | done — 2026-07-08 |
 | D-4 | Add the 3 backlog posts | `content/posts/voice-ai-memory-latency-is-a-dead-argument.mdx`, `cross-video-retention-pattern-detection.mdx`, `who-owns-the-architecture-when-ai-writes-the-code.mdx` all present alongside the flagship post; commit "content: publish three backlog posts" | done — 2026-07-08 |
 | D-5 | Link Vercel project | `.vercel/project.json` present (`projectName: abdur-ai`) | done — 2026-07-08 (link only — see W-2 for live-deploy verification, which is NOT the same claim) |
 | D-6 | Wire a real ESLint config so `npm run lint` runs headlessly | `eslint.config.mjs` added (flat config, `next/core-web-vitals` + `next/typescript`); repo previously had zero eslint config, which made `next lint` block on an interactive TTY prompt — unusable in CI/pre-commit | done — 2026-07-08 |
