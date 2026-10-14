@@ -1,11 +1,13 @@
 name: Community DB keep-alive
 # The community Supabase project (abdur-ai, AgencyFlow HQ free plan) pauses
-# after ~7 days without activity (AGE-2988). One anonymous read a day keeps
-# it awake. The publishable key is public by design (it ships in every page
-# bundle); RLS decides what it can read.
+# after ~7 days of low activity (AGE-2988). Supabase's pausing guide says
+# "typically a few user requests to the database each day" is enough, so read
+# once every four hours (six a day; GitHub may delay or drop a scheduled run).
+# The publishable key is public by design (it ships in every page bundle);
+# RLS decides what it can read.
 on:
   schedule:
-    - cron: "17 9 * * *"
+    - cron: "17 */4 * * *"
   workflow_dispatch:
 permissions: {}
 jobs:
