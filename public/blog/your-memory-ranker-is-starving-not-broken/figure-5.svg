@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="t d">
+<title id="t">Expect the floor to lift within days</title>
+<desc id="d">Illustrative timeline, not measured: day 0 flat floor, day 1 explicit ids wired, day 3 first spread, week 1 recognisable top 20. Bars show importance scores; the dashed line marks the floor.</desc>
+<rect width="1200" height="720" fill="#F6F1E8"/>
+<text x="60" y="68" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="22" letter-spacing="4" font-weight="700" fill="#D97757">FIG 5 · WHAT TO EXPECT</text>
+<text x="60" y="130" font-family="Georgia, 'Times New Roman', serif" font-size="46" font-weight="700" fill="#0B0A08">Expect the floor to lift within days</text>
+<rect x="60" y="152" width="680" height="44" rx="22" fill="none" stroke="#D97757" stroke-width="2"/>
+<text x="400" y="182" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="26" letter-spacing="1" fill="#AF4E2C">ILLUSTRATIVE EXPECTATION, NOT MEASURED</text>
+<line x1="60" y1="350" x2="1140" y2="350" stroke="#6E655C" stroke-opacity="0.6" stroke-width="2"/>
+<line x1="60" y1="338" x2="1140" y2="338" stroke="#6E655C" stroke-opacity="0.6" stroke-width="2" stroke-dasharray="8 6"/>
+<line x1="60" y1="388" x2="1116" y2="388" stroke="#0B0A08" stroke-width="4"/>
+<path d="M1116 376 L1140 388 L1116 400 Z" fill="#0B0A08"/>
+<line x1="195" y1="354" x2="195" y2="374" stroke="#6E655C" stroke-opacity="0.45" stroke-width="2"/>
+<rect x="134" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="160" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="186" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="212" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="238" y="338" width="18" height="12" fill="#6E655C"/>
+<circle cx="195" cy="388" r="11" fill="#D97757" stroke="#F6F1E8" stroke-width="4"/>
+<text x="195" y="436" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="26" font-weight="700" letter-spacing="3" fill="#AF4E2C">DAY 0</text>
+<text x="195" y="480" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#0B0A08">Flat</text>
+<text x="195" y="514" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#0B0A08">floor</text>
+<text x="195" y="556" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="28" fill="#6E655C">every score</text>
+<text x="195" y="588" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="28" fill="#6E655C">at the floor</text>
+<line x1="465" y1="354" x2="465" y2="374" stroke="#6E655C" stroke-opacity="0.45" stroke-width="2"/>
+<rect x="404" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="430" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="456" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="482" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="508" y="338" width="18" height="12" fill="#6E655C"/>
+<circle cx="465" cy="388" r="11" fill="#D97757" stroke="#F6F1E8" stroke-width="4"/>
+<text x="465" y="436" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="26" font-weight="700" letter-spacing="3" fill="#AF4E2C">DAY 1</text>
+<text x="465" y="480" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#0B0A08">Explicit ids</text>
+<text x="465" y="514" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#0B0A08">wired</text>
+<text x="465" y="556" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="28" fill="#6E655C">agent sends</text>
+<text x="465" y="588" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="28" fill="#6E655C">used ids</text>
+<line x1="735" y1="354" x2="735" y2="374" stroke="#6E655C" stroke-opacity="0.45" stroke-width="2"/>
+<rect x="674" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="700" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="726" y="313" width="18" height="37" fill="#D97757"/>
+<rect x="752" y="338" width="18" height="12" fill="#6E655C"/>
+<rect x="778" y="286" width="18" height="64" fill="#D97757"/>
+<circle cx="735" cy="388" r="11" fill="#D97757" stroke="#F6F1E8" stroke-width="4"/>
+<text x="735" y="436" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="26" font-weight="700" letter-spacing="3" fill="#AF4E2C">DAY 3</text>
+<text x="735" y="480" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#0B0A08">First</text>
+<text x="735" y="514" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#0B0A08">spread</text>
+<text x="735" y="556" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="28" fill="#6E655C">scores start</text>
+<text x="735" y="588" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="28" fill="#6E655C">to separate</text>
+<line x1="1005" y1="354" x2="1005" y2="374" stroke="#6E655C" stroke-opacity="0.45" stroke-width="2"/>
+<rect x="944" y="326" width="18" height="24" fill="#D97757"/>
+<rect x="970" y="261" width="18" height="89" fill="#D97757"/>
+<rect x="996" y="301" width="18" height="49" fill="#D97757"/>
+<rect x="1022" y="240" width="18" height="110" fill="#D97757"/>
+<rect x="1048" y="313" width="18" height="37" fill="#D97757"/>
+<circle cx="1005" cy="388" r="11" fill="#D97757" stroke="#F6F1E8" stroke-width="4"/>
+<text x="1005" y="436" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="26" font-weight="700" letter-spacing="3" fill="#AF4E2C">WEEK 1</text>
+<text x="1005" y="480" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#0B0A08">Top 20</text>
+<text x="1005" y="514" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#0B0A08">recognisable</text>
+<text x="1005" y="556" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="28" fill="#6E655C">a list you</text>
+<text x="1005" y="588" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="28" fill="#6E655C">would nod at</text>
+<line x1="60" y1="618" x2="1140" y2="618" stroke="#6E655C" stroke-opacity="0.35" stroke-width="2"/>
+<text x="60" y="656" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="28" fill="#6E655C">Bars: importance scores. Dashed line = the floor.</text>
+<text x="60" y="696" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="28" fill="#6E655C">Days not to scale.</text>
+</svg>

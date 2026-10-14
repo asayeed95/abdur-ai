@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" role="img" aria-labelledby="t4 d4">
+  <title id="t4">Pick the use signal that fits the surface</title>
+  <desc id="d4">A decision tree. A tool-calling agent sends explicit ids. A chat agent is matched by reference on ids, paths and tickets. A voice agent uses the turn outcome. The echo match is marked as the trap.</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#0B0A08"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#D97757"/></marker>
+  </defs>
+  <rect width="1200" height="720" fill="#F6F1E8"/>
+
+  <text x="40" y="44" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="22" letter-spacing="4" font-weight="700" fill="#D97757">FIG 4 · FEED THE RANKER · WHICH SIGNAL</text>
+  <text x="40" y="94" font-family="Georgia, 'Times New Roman', serif" font-size="40" font-weight="700" fill="#0B0A08">Pick the use signal that fits the surface</text>
+
+  <!-- root -->
+  <rect x="40" y="355" width="250" height="110" rx="8" fill="#0B0A08"/>
+  <text x="165" y="402" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="24" font-weight="700" fill="#F6F1E8">WHICH</text>
+  <text x="165" y="436" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="24" font-weight="700" fill="#F6F1E8">SURFACE?</text>
+
+  <!-- trunk -->
+  <path d="M290 410 H320" stroke="#0B0A08" stroke-width="3" fill="none"/>
+  <path d="M320 220 V500" stroke="#0B0A08" stroke-width="3" fill="none"/>
+  <path d="M320 220 H356" stroke="#0B0A08" stroke-width="3" fill="none" marker-end="url(#ah)"/>
+  <path d="M320 340 H356" stroke="#0B0A08" stroke-width="3" fill="none" marker-end="url(#ah)"/>
+  <path d="M320 460 H356" stroke="#0B0A08" stroke-width="3" fill="none" marker-end="url(#ah)"/>
+  <path d="M320 500 V620 H356" stroke="#D97757" stroke-width="3" stroke-dasharray="10 8" fill="none" marker-end="url(#ahr)"/>
+
+  <!-- surfaces -->
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="26" fill="#0B0A08">
+    <rect x="360" y="175" width="300" height="90" rx="8" fill="#FBF8F1" stroke="#0B0A08" stroke-width="3"/>
+    <text x="510" y="232" text-anchor="middle">Tool-calling agent</text>
+    <rect x="360" y="295" width="300" height="90" rx="8" fill="#FBF8F1" stroke="#0B0A08" stroke-width="3"/>
+    <text x="510" y="352" text-anchor="middle">Chat</text>
+    <rect x="360" y="415" width="300" height="90" rx="8" fill="#FBF8F1" stroke="#0B0A08" stroke-width="3"/>
+    <text x="510" y="472" text-anchor="middle">Voice</text>
+    <rect x="360" y="575" width="300" height="90" rx="8" fill="#FBF8F1" stroke="#D97757" stroke-width="3" stroke-dasharray="10 8"/>
+    <text x="510" y="632" text-anchor="middle" fill="#6E655C">The easy shortcut</text>
+  </g>
+
+  <!-- surface to result arrows -->
+  <path d="M660 220 H706" stroke="#0B0A08" stroke-width="3" fill="none" marker-end="url(#ah)"/>
+  <path d="M660 340 H706" stroke="#0B0A08" stroke-width="3" fill="none" marker-end="url(#ah)"/>
+  <path d="M660 460 H706" stroke="#0B0A08" stroke-width="3" fill="none" marker-end="url(#ah)"/>
+  <path d="M660 620 H706" stroke="#D97757" stroke-width="3" stroke-dasharray="10 8" fill="none" marker-end="url(#ahr)"/>
+
+  <!-- results -->
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif">
+    <rect x="710" y="165" width="450" height="110" rx="8" fill="#FBF8F1" stroke="#0B0A08" stroke-width="3"/>
+    <text x="732" y="207" font-size="28" font-weight="700" fill="#0B0A08">Explicit ids</text>
+    <text x="1138" y="207" text-anchor="end" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="22" letter-spacing="2" fill="#D97757">TOLD</text>
+    <text x="732" y="250" font-size="24" fill="#6E655C">the agent sends the ids it used</text>
+
+    <rect x="710" y="285" width="450" height="110" rx="8" fill="#FBF8F1" stroke="#0B0A08" stroke-width="3"/>
+    <text x="732" y="327" font-size="28" font-weight="700" fill="#0B0A08">Reference match</text>
+    <text x="1138" y="327" text-anchor="end" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="22" letter-spacing="2" fill="#D97757">OBSERVED</text>
+    <text x="732" y="370" font-size="24" fill="#6E655C">ids, paths, tickets in its output</text>
+
+    <rect x="710" y="405" width="450" height="110" rx="8" fill="#FBF8F1" stroke="#0B0A08" stroke-width="3"/>
+    <text x="732" y="447" font-size="28" font-weight="700" fill="#0B0A08">Turn outcome</text>
+    <text x="1138" y="447" text-anchor="end" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="22" letter-spacing="2" fill="#D97757">OBSERVED</text>
+    <text x="732" y="490" font-size="24" fill="#6E655C">was the turn resolved?</text>
+
+    <rect x="710" y="565" width="450" height="110" rx="8" fill="#F3DDD0" stroke="#D97757" stroke-width="3" stroke-dasharray="10 8"/>
+    <text x="732" y="607" font-size="28" font-weight="700" fill="#0B0A08">Echo match</text>
+    <text x="1138" y="607" text-anchor="end" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="22" font-weight="700" letter-spacing="2" fill="#D97757">THE TRAP</text>
+    <text x="732" y="650" font-size="24" fill="#0B0A08">restated text is not use</text>
+  </g>
+</svg>

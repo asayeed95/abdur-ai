@@ -349,3 +349,12 @@ every article's h1 and body prose are untouched.
   content-publish-override: content/posts/min-width-0-on-a-grid-middle-item-can-let-links-overlap.mdx
   reason: publish the Northsun-sourced Builder Log on min-width: 0 in the middle track of a grid letting non-wrapping nav links overlap their neighbours, shown on a stand-in demo page measured in headless Chromium; Northsun's records (PR #1763) describe the same pattern as the cause of an overlap in a navigation bar (reported; receipts: merge commit ef6c80da, its first commit 9e110f41, the PR description, the work-log entry, the browser test and the comments read; the post says merged and makes no claim about deployment or production, or that the overlap reached a user; the demo is a stand-in with fixed-size boxes and invented constants).
   approved-by: Abdur / live session (Claude Code session_0129i77Ey6E7kn1L1Fc1CNL8; "You are authorized to research, maintain the editorial backlog, write and edit articles, publish to abdur.ai, make supporting abdur.ai improvements, verify production behavior, and document the work in Linear. Execute ordinary decisions without waiting for Abdur.") / 2026-10-03
+
+## 2026-10-13 — "Your memory ranker is starving, not broken" (founder-run publish)
+
+Abdur ran `npm run tldr:publish -- your-memory-ranker-is-starving-not-broken && git add … && git commit … && git push` himself in Terminal at 20:41 EDT on 2026-10-13; the publish step passed (frontmatter + public-claims check) and only the dependency install and this lock entry stood between his command and the commit. Draft written by the blog workflow wf_c90f3eab-898 (Sonnet/Haiku stages, Fable plan), final read by Slice0-gargantua (Claude Fable 5.1, session ef78974f); run record on Linear AGE-3411.
+
+- task-id: AGE-3411-blog
+  content-publish-override: content/posts/your-memory-ranker-is-starving-not-broken.mdx
+  reason: Founder-initiated publish of a reviewed draft (passed tldr:publish incl. the claims check); staged on a clean branch from main with the override so the lock is satisfied deliberately, not bypassed.
+  approved-by: Abdur / typed publish + push command in Terminal / 2026-10-13 20:41 EDT

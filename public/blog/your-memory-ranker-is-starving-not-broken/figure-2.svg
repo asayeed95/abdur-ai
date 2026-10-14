@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="f2t f2d">
+  <title id="f2t">The feedback edge is the one nobody built</title>
+  <desc id="f2d">A loop of six steps: serve, agent acts, feedback (explicit ids or inferred match), audit row, rescore job, ranking. Every edge is solid except the one from the agent to feedback, drawn dashed in terracotta and annotated 3 in 376 sessions.</desc>
+  <defs>
+    <marker id="aInk" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="20" markerHeight="20" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#0B0A08"/>
+    </marker>
+    <marker id="aTerra" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="20" markerHeight="20" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#D97757"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+    .tag { font-size: 22px; letter-spacing: 4px; fill: #D97757; font-weight: 700; }
+    .head { font-family: Georgia, "Times New Roman", serif; font-size: 44px; font-weight: 700; fill: #0B0A08; }
+    .nt { font-size: 28px; font-weight: 700; fill: #0B0A08; }
+    .ns { font-size: 22px; fill: #6E655C; }
+    .note { font-size: 24px; font-weight: 700; fill: #D97757; }
+    .lg { font-size: 22px; fill: #6E655C; }
+  </style>
+
+  <rect width="1200" height="720" fill="#F6F1E8"/>
+
+  <text class="tag" x="60" y="62">FIG 2 · THE FEEDBACK LOOP</text>
+  <text class="head" x="60" y="112">The feedback edge is the one nobody built</text>
+
+  <!-- Row 1 -->
+  <rect x="50" y="200" width="260" height="120" rx="10" fill="#F6F1E8" stroke="#0B0A08" stroke-width="3"/>
+  <text class="nt" x="180" y="252" text-anchor="middle">Serve</text>
+  <text class="ns" x="180" y="287" text-anchor="middle">memories sent</text>
+
+  <rect x="470" y="200" width="260" height="120" rx="10" fill="#F6F1E8" stroke="#0B0A08" stroke-width="3"/>
+  <text class="nt" x="600" y="252" text-anchor="middle">Agent acts</text>
+  <text class="ns" x="600" y="287" text-anchor="middle">uses only a few</text>
+
+  <rect x="890" y="200" width="260" height="120" rx="10" fill="#F6F1E8" stroke="#D97757" stroke-width="3"/>
+  <text class="nt" x="1020" y="243" text-anchor="middle">Feedback</text>
+  <text class="ns" x="1020" y="273" text-anchor="middle">explicit ids or</text>
+  <text class="ns" x="1020" y="300" text-anchor="middle">inferred match</text>
+
+  <!-- Row 2 -->
+  <rect x="890" y="480" width="260" height="120" rx="10" fill="#F6F1E8" stroke="#0B0A08" stroke-width="3"/>
+  <text class="nt" x="1020" y="532" text-anchor="middle">Audit row</text>
+  <text class="ns" x="1020" y="567" text-anchor="middle">one row per use</text>
+
+  <rect x="470" y="480" width="260" height="120" rx="10" fill="#F6F1E8" stroke="#0B0A08" stroke-width="3"/>
+  <text class="nt" x="600" y="532" text-anchor="middle">Rescore job</text>
+  <text class="ns" x="600" y="567" text-anchor="middle">reads the rows</text>
+
+  <rect x="50" y="480" width="260" height="120" rx="10" fill="#F6F1E8" stroke="#0B0A08" stroke-width="3"/>
+  <text class="nt" x="180" y="532" text-anchor="middle">Ranking</text>
+  <text class="ns" x="180" y="567" text-anchor="middle">scores move</text>
+
+  <!-- Solid edges -->
+  <line x1="180" y1="478" x2="180" y2="326" stroke="#0B0A08" stroke-width="3.5" marker-end="url(#aInk)"/>
+  <text class="ns" x="200" y="408">next packet</text>
+  <line x1="310" y1="260" x2="460" y2="260" stroke="#0B0A08" stroke-width="3.5" marker-end="url(#aInk)"/>
+  <line x1="1020" y1="322" x2="1020" y2="474" stroke="#0B0A08" stroke-width="3.5" marker-end="url(#aInk)"/>
+  <line x1="888" y1="540" x2="740" y2="540" stroke="#0B0A08" stroke-width="3.5" marker-end="url(#aInk)"/>
+  <line x1="468" y1="540" x2="320" y2="540" stroke="#0B0A08" stroke-width="3.5" marker-end="url(#aInk)"/>
+
+  <!-- The missing edge -->
+  <line x1="732" y1="260" x2="880" y2="260" stroke="#D97757" stroke-width="5" stroke-dasharray="14 10" marker-end="url(#aTerra)"/>
+  <text class="note" x="806" y="212" text-anchor="middle">3 in 376</text>
+  <text class="note" x="806" y="240" text-anchor="middle">sessions</text>
+
+  <!-- Legend -->
+  <line x1="60" y1="670" x2="130" y2="670" stroke="#0B0A08" stroke-width="3.5"/>
+  <text class="lg" x="146" y="678">built and instrumented</text>
+  <line x1="470" y1="670" x2="540" y2="670" stroke="#D97757" stroke-width="5" stroke-dasharray="14 10"/>
+  <text class="lg" x="556" y="678">almost no signal travels here</text>
+</svg>

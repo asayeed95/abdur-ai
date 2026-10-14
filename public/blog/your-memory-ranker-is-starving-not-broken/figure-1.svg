@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="t d">
+  <title id="t">1,780 of 1,782 memories scored the minimum</title>
+  <desc id="d">Histogram of memory importance scores. One tall bar at the minimum score holds 1,780 memories. Two tiny bars above it hold one memory each, the only two that ever received a use signal.</desc>
+  <style>
+    text { font-family: ui-monospace, "SF Mono", Menlo, monospace; fill: #0B0A08; }
+    .tag { font-size: 22px; letter-spacing: 4px; fill: #D97757; font-weight: 700; }
+    .title { font-family: Georgia, "Times New Roman", serif; font-size: 44px; font-weight: 700; }
+    .muted { fill: #6E655C; }
+    .big { font-size: 56px; font-weight: 700; fill: #D97757; }
+    .lab { font-size: 24px; }
+    .strong { font-size: 28px; font-weight: 700; }
+  </style>
+  <rect width="1200" height="720" fill="#F6F1E8"/>
+
+  <text class="tag" x="80" y="68">FIG 1 · IMPORTANCE SCORES</text>
+  <text class="title" x="80" y="124">1,780 of 1,782 memories scored the minimum</text>
+
+  <!-- tall bar: 1,780 -->
+  <text class="big" x="100" y="226">1,780</text>
+  <rect x="100" y="246" width="110" height="344" fill="#D97757"/>
+  <text class="lab" x="232" y="290">memories sit at</text>
+  <text class="lab" x="232" y="324">the minimum score</text>
+
+  <!-- two tiny bars -->
+  <rect x="466" y="582" width="110" height="8" fill="#0B0A08"/>
+  <rect x="832" y="582" width="110" height="8" fill="#0B0A08"/>
+  <text class="lab" x="521" y="566" text-anchor="middle">1</text>
+  <text class="lab" x="887" y="566" text-anchor="middle">1</text>
+
+  <!-- callout -->
+  <line x1="521" y1="440" x2="521" y2="540" stroke="#6E655C" stroke-width="2"/>
+  <line x1="887" y1="440" x2="887" y2="540" stroke="#6E655C" stroke-width="2"/>
+  <line x1="521" y1="440" x2="887" y2="440" stroke="#6E655C" stroke-width="2"/>
+  <text class="strong" x="704" y="394" text-anchor="middle">2 memories above the floor</text>
+  <text class="lab muted" x="704" y="428" text-anchor="middle">the only two that ever got a use signal</text>
+
+  <!-- axis -->
+  <line x1="80" y1="590" x2="1120" y2="590" stroke="#0B0A08" stroke-width="3"/>
+  <text class="lab" x="155" y="628" text-anchor="middle">MINIMUM</text>
+  <text class="tag muted" x="80" y="684" style="fill:#6E655C">IMPORTANCE SCORE</text>
+  <text class="tag muted" x="1120" y="684" text-anchor="end" style="fill:#6E655C">HIGHER →</text>
+</svg>

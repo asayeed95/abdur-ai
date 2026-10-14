@@ -1,0 +1,166 @@
+---
+slug: your-memory-ranker-is-starving-not-broken
+title: "Your memory ranker is starving, not broken"
+subtitle: "Flat importance scores mean the ranker is missing its input, not its formula."
+description: "Flat importance scores usually mean your memory ranker is starved of use signals, not broken. Three audit queries and a feedback loop that fixes it."
+dek: "If every score sits at the floor, stop editing the formula. Count uses, not serves, and feed the ranker the one signal it can learn from."
+tldr: "If every importance score in your memory store sits at the floor, the scoring formula is probably fine. The input is missing. In one engine I run, the formula was correct end to end and nearly every memory still scored the minimum, because the system served a huge number of context packets and heard back from the agent almost never. A ranker can only learn from what the agent tells it afterwards, so serving without feedback starves it. Counting serves is not the fix: it rewards position, not value, and lets the ranker grade its own homework. Count uses, not serves, the way a library counts checkouts, not shelf views. This post gives three audit queries to tell a starved ranker from a broken one, four moves to feed it (explicit ids, reference-match inference, cross-session repeats, a reversible rescore), a minimal feedback payload, an eight-line checklist, and the three ways the fix stalls. It is a design lesson from one engine, not a benchmark."
+date: 2026-10-13T14:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Agent Memory"
+register: argued
+status_note: "Measured on one engine I run, 2026-10-11; design lesson, not a benchmark."
+draft: true
+flagship: false
+pinned: false
+featured: false
+reading_time: 8
+word_count: 1819
+tags:
+  - agent-memory
+  - ranking
+  - feedback-loops
+  - retrieval
+citation_preferred: "Sayeed, Abdur Rahman. 'Your memory ranker is starving, not broken.' abdur.ai, 13 October 2026."
+---
+
+Every importance score in your memory store is the same number. You have read the scoring formula twice and it is correct. You are about to add a fourth feature to it. Don't.
+
+I ran into this on a memory engine I run for my own coding agents. A rescore pass put 1,780 of 1,782 memories at the minimum importance. The formula weighs repetition, explicit use, cross-session repeats and preference. It was right end to end: the only two memories above the floor were exactly the two that had ever received a use signal. Meanwhile the engine had served about 20,900 context packets to 376 agent sessions and heard back, in total, three times (three signals that landed on two memories). Serving was logged as "offered" and, by design, moved nothing.
+
+That is a starved ranker: a scorer that works, fed almost nothing. This post is about telling a starved ranker from a broken one, and feeding it.
+
+![Nearly every memory sits at the minimum importance score; only two sit above it, and they are the two that ever received a use signal.](/blog/your-memory-ranker-is-starving-not-broken/figure-1.png)
+
+**If your importance scores all sit at the floor, your ranker is not broken. It is starving.**
+
+## Where ranking signals come from
+
+Think of a library. The catalog can be flawless and the librarian brilliant, but if nobody records which books leave the building, every book looks equally unloved. A ranker is the librarian. It can only learn from what the agent tells it afterwards.
+
+Trace the loop in your own system. Your engine serves a packet of memories. The agent acts on some of them and ignores the rest. A feedback path should carry that fact back as a row: either explicit ids from the agent, or an inference made by matching the agent's output against what it was shown. A rescore job reads those rows and moves scores. Ranking changes, and the next packet is a little better.
+
+Many memory layers I have seen build every box in that diagram except the dashed edge. The serve path is thoroughly instrumented. The path that says "and the agent used this one" is a TODO, or a heuristic that fires once in a blue moon. The ranker keeps running on schedule and has nothing to chew on.
+
+![The memory feedback loop, with the feedback edge drawn dashed because almost no signal travels along it.](/blog/your-memory-ranker-is-starving-not-broken/figure-2.png)
+
+**A ranker can only learn from what the agent tells it afterwards.**
+
+## Offered is not used
+
+The tempting shortcut is to count serves. You already have that data, it is dense, and the scores would finally spread out. Resist it.
+
+Counting serves measures position, not value. Whatever ranked in the top few last week gets served this week, which earns it a higher score, which puts it in the top few next week. New facts never get a turn on the shelf. The ranker is grading its own homework, and it will give itself an A.
+
+The library version: shelf views versus checkouts. A book on the front table gets looked at because it is on the front table. The only honest popularity signal is the one that required a person to carry the book out the door. Serves are shelf views. Uses are checkouts. Keep recording the serve, because you need it for the audit below, but give it zero weight in the score.
+
+![Ranking by serves lets the top results reinforce themselves while new facts never surface; ranking by uses, with an exploration slot reserved for new facts, promotes what the agent actually acted on.](/blog/your-memory-ranker-is-starving-not-broken/figure-3.png)
+
+**Count uses, not serves. Counting serves rewards position, not value; it makes the ranker grade its own homework.**
+
+## The three-query audit
+
+Before you touch the formula, run three queries. They assume three tables: `memories(id, importance)`, `served_packets(id, memory_ids[], session_id, served_at)` and `packet_feedback(packet_id, used_memory_ids[], kind, created_at)`. Rename to fit. The SQL is Postgres-flavored.
+
+```sql
+-- 1. Serves per memory: is the same top slice getting all the shelf time?
+SELECT m.id, m.importance, count(*) AS serves
+FROM memories m
+JOIN served_packets p ON m.id = ANY (p.memory_ids)
+GROUP BY m.id, m.importance
+ORDER BY serves DESC
+LIMIT 20;
+
+-- 2. Uses per memory, next to serves: checkouts vs shelf views.
+--    'offered' rows are excluded on purpose.
+SELECT m.id,
+       count(DISTINCT p.id)                            AS serves,
+       count(DISTINCT f.packet_id)                     AS uses,
+       count(DISTINCT f.packet_id)::float
+         / NULLIF(count(DISTINCT p.id), 0)             AS use_rate
+FROM memories m
+JOIN served_packets p      ON m.id = ANY (p.memory_ids)
+LEFT JOIN packet_feedback f ON f.packet_id = p.id
+                           AND m.id = ANY (f.used_memory_ids)
+                           AND f.kind <> 'offered'
+GROUP BY m.id
+ORDER BY serves DESC
+LIMIT 50;
+
+-- 3. Starvation check: share of scores at the floor, and the share of
+--    served packets that ever got a feedback row.
+-- If your scorer has a fixed floor constant, replace the min() subquery with it.
+SELECT
+  count(*) FILTER (WHERE importance = (SELECT min(importance) FROM memories))::float
+    / count(*)                                         AS share_at_floor,
+  (SELECT count(DISTINCT packet_id) FROM packet_feedback WHERE kind <> 'offered')::float
+    / NULLIF((SELECT count(*) FROM served_packets), 0) AS packets_with_feedback
+FROM memories;
+```
+
+Read the results in this order. If `share_at_floor` is high and `packets_with_feedback` is near zero, you have a starved ranker and the formula is innocent. If feedback coverage is healthy but scores are still flat, now you may look at the formula. If query 1 shows the same twenty ids dominating while query 2 shows their use rate is low, you have position bias, which the failure modes below cover.
+
+**Run these before you touch the formula.**
+
+## Feed the ranker: four moves
+
+You do not need a research project. You need four moves, in this order of trust.
+
+**1. Explicit ids from the agent.** Give the agent a tool, or a field on its existing tool, that says "I used these memories." This is the strongest signal and the cheapest to reason about. Where your agent calls tools, this is the default.
+
+**2. Inferred use by reference match.** Where the agent will not report, infer from what it produced. Look for the concrete handles a memory carries: ticket ids, file paths, function names, entity names, quoted values. If the agent's output or tool calls reference a handle from a served memory, count it as a use. This is a checkout you observed rather than one you were told about.
+
+**Voice and other surfaces with no text output.** Fall back to the turn outcome: if the turn resolved after a memory was served, credit the memory weakly and mark the row inferred so the rescore can weight it below explicit ids.
+
+**3. Cross-session repeats.** A memory used once in each of fifty sessions says more than a memory used fifty times in one session. Score on distinct sessions, so one long conversation cannot crown a fact. Score on use rate (uses divided by serves, as query 2 computes), and reserve one or two slots per packet for low-exposure memories so new facts get a turn. A fact that is never served can never be used, which is the same cold-start trap serves create.
+
+**4. A cheap, reversible rescore.** Recompute from the feedback rows on a schedule. Keep the previous score beside the new one, cap how far a score can move per run, and make the job dry-run by default so you can diff before you commit. If a run looks wrong, restoring last run's scores is one statement.
+
+One trap to avoid on the way: the echo match. It checks whether the agent repeated the memory's text back, and it looks like reference matching, but it is not. Echo matching is counting the people who read a spine aloud and calling them borrowers. Agents act on facts without restating them, and they restate facts they never needed. On my engine an echo heuristic was the only source of signal, and it barely registered. If echo is all you have, plan as if you have no signal.
+
+Which signal fits depends on the surface:
+
+![A decision tree: tool-calling agents send explicit ids, chat agents are matched by reference on ids, paths and tickets, voice agents use the turn outcome, and echo matching is marked as the trap.](/blog/your-memory-ranker-is-starving-not-broken/figure-4.png)
+
+Here is the smallest payload an agent tool needs to send. Nothing else is required to start. The `packet_id` comes back in the serve response; the agent just echoes it with the ids it used.
+
+```json
+{
+  "packet_id": "pkt_8f3a",
+  "kind": "explicit",
+  "used_memory_ids": ["mem_42", "mem_77"]
+}
+```
+
+**Explicit beats inferred; inferred by reference beats inferred by echo; rescore cheaply and reversibly.**
+
+## What to expect, and the three ways it stalls
+
+This is the shape I would expect, not a measured result, so read the days as illustrative. Once signals flow, the floor should lift quickly because the first feedback rows touch exactly the memories that were doing the work. A first spread appears within days. Within a week, the top of your ranking should be a list a human recognises as "yes, those are the facts we keep needing." Day zero is the flat floor you started with.
+
+A starved ranker stays starved in three ways.
+
+- **Starvation continues.** You wired the path but coverage is still tiny: the tool is never called, or only on one surface. Query 3 tells you.
+- **Position bias returns.** You slipped serves back into the score, or your feedback only fires for memories that were already first in line. Query 1 against query 2 tells you.
+- **Stale caches.** You rescored, but packets are cached by query and served for hours or days, so the new ranking never reaches the agent. Key the cache on a score version, or expire it when a rescore lands.
+
+![An illustrative timeline, not measured: a flat floor at day zero, explicit ids wired on day one, scores starting to separate by day three, and a recognisable top twenty in the first week.](/blog/your-memory-ranker-is-starving-not-broken/figure-5.png)
+
+**Once signals flow, the floor should lift within days; starvation, position bias and stale caches are the three ways it stalls.**
+
+## The checklist
+
+Copy this into your tracker.
+
+1. Log every serve as "offered", and give it zero weight in the score.
+2. Run the three audit queries and record your floor share and feedback coverage.
+3. Add a way for the agent to report used memory ids, and make it the default path.
+4. For agents that will not report, infer use by reference match on ids, paths and tickets.
+5. Delete any echo-match heuristic from the score, or demote it to a weak tie-breaker.
+6. Score on use rate across distinct sessions, not raw counts, and reserve a slot or two per packet for under-served memories.
+7. Keep the prior score, cap per-run movement, and run the job dry-run first.
+8. Version the packet cache by score, and re-run query 3 weekly.
+
+If you remember one line, make it this one: **count uses, not serves.**
+
+Which signal does your agent send back today: none, echo, or ids?
