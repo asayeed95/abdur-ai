@@ -1,0 +1,112 @@
+---
+title: "The fault test that kept writing to production"
+seo_title: "Why NEXT_PUBLIC_ env vars ignore a restart"
+slug: next-public-env-vars-need-a-rebuild-not-a-restart
+description: "A 'Supabase down' test edited .env.local and restarted. NEXT_PUBLIC_ vars are inlined at build time, so the server kept writing to production."
+dek: "In Next.js, a NEXT_PUBLIC_ variable is a build-time constant, even in server code. An env-swap fault test that only restarts the server is testing nothing, and it may be writing to the real database."
+date: 2026-09-24T09:00:00-04:00
+author: Abdur Rahman Sayeed
+section: "Mistakes TLDR"
+register: reported
+tags:
+  - nextjs
+  - environment-variables
+  - fault-injection
+  - verification
+tldr: "I staged a 'Supabase down' fault test for this site's ingest routes by editing .env.local and restarting the server. The URL variable was NEXT_PUBLIC_SUPABASE_URL. Next.js replaces every process.env.NEXT_PUBLIC_* reference with its literal value at build time, in server code as well as client code, so the restarted server never saw the edit. It kept writing to production Supabase, and the test rows labelled 'should not persist' persisted. The lazy getter in lib/supabase.ts looked like a runtime read; the compiler had already turned it into a constant. The verifier caught it only because it re-queried the real table afterward. Lesson: a fault injection is valid only after you prove which values the running process reads. Grep the build output, prefer server-only variable names in server code, and treat any write path in a test as live until proven otherwise."
+receipts:
+  - path: "RETRO.md"
+    sha: "dd7d2b2"
+    note: "the 2026-09-04 entry: env-swap fault test, NEXT_PUBLIC_SUPABASE_URL inlined into the server bundle, test rows persisted in production, caught by the verifier's re-query"
+  - path: "lib/supabase.ts"
+    sha: "dd7d2b2"
+    note: "the lazy process.env getter that looked runtime-resolved, and the header note that changing the NEXT_PUBLIC_ URL requires a rebuild, not a restart"
+citation_preferred: "Sayeed, Abdur Rahman. 'The fault test that kept writing to production.' abdur.ai, 24 September 2026."
+related:
+  - 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
+  - your-pager-is-not-your-customer
+  - the-dashboard-query-rls-wouldnt-let-through
+  - the-night-the-doctrine-failed
+---
+
+**Short answer:** In Next.js, every `process.env.NEXT_PUBLIC_*` reference is replaced with its literal value when you run `next build`, in server code as well as in the browser bundle. Editing `.env.local` and restarting changes nothing for those references. To change the value you need a rebuild, or a server-only variable that the process reads at runtime.
+
+I learned that the expensive way, on this site. The rest of this post is what happened, why it happens, and the check I would run before trusting any env-swap test again.
+
+## What happened?
+
+This site's homepage has two live panels, a Now panel and a Ship log, fed by `/api/ingest/*` webhooks that write to Supabase. Before calling that path done, I wanted to prove the failure mode: if Supabase is unreachable, the ingest route should fail loudly and nothing should persist.
+
+The fault test was simple. Point the Supabase URL at something dead in `.env.local`, restart the server, send test rows, confirm none of them land.
+
+The rows landed. They were labelled "should not persist", and they persisted, in the production table. The restarted server was still talking to the real Supabase project the whole time.
+
+The only reason anyone knew is that the verifier did not stop at the test's own output. It went back and re-queried the real table afterward. Without that re-query, nothing in the procedure would have flagged the leak. The receipts for this are in the frontmatter: the `RETRO.md` entry and the `lib/supabase.ts` file at the commit where the ingest path landed.
+
+## Why does a restart not pick up the new value?
+
+Because the variable is not read at runtime at all.
+
+The URL lives in `NEXT_PUBLIC_SUPABASE_URL`. The Next.js documentation is direct about this prefix: values are inlined into the JavaScript at build time, and after the build the app no longer responds to changes in those variables. The compiler rewrites the source. `process.env.NEXT_PUBLIC_SUPABASE_URL` becomes a string literal in the compiled output.
+
+Most people file that under "browser bundle", because the prefix exists so client code can see a value. What caught me is that the replacement also happens in server code. The server bundle had the production URL baked into it, so a restart reloaded `.env.local` into a process that no longer consulted it for that name.
+
+The code even looked safe. `lib/supabase.ts` reads the URL through a lazy getter:
+
+```ts
+const BASE = () => process.env.NEXT_PUBLIC_SUPABASE_URL;
+```
+
+A function that reads `process.env` on every call reads like a runtime lookup. It is not one. The replacement is textual and happens at compile time, so after the build the function simply returns the literal it was given. Wrapping an inlined variable in a getter changes when your code asks for the value, not when the value was decided.
+
+## Who needs to care about this?
+
+Anyone running fault injection, staging swaps, or "point it at a broken endpoint" tests against a Next.js app. Three cases come up most:
+
+- **Server code that reads a `NEXT_PUBLIC_` variable.** It is common, because the same URL is often needed on both sides. On the server, that value is frozen at build.
+- **Statically rendered pages.** Even a server-only variable is captured at build time if the page that reads it is prerendered. Runtime changes only reach code that actually runs per request.
+- **Tests that swap env and restart instead of rebuilding.** This is the case that bit me. The swap feels like it worked because the process restarted cleanly.
+
+There is also a trap in the other direction. The documentation notes that dynamic lookups, such as `process.env[name]` with a computed key, are not inlined. So two lines that look equivalent can behave differently: one frozen at build, one read at runtime. If you do not know which one your code uses, you do not know what your test is testing.
+
+## How do you run an env-swap fault test that means something?
+
+Prove what the running process reads before you trust the swap. This is the checklist I would run, in order:
+
+1. **Grep the build output for the value you think you replaced.** After the build, search `.next/` for the production host. If it is there, a restart cannot remove it. This takes seconds and would have stopped my test before the first row.
+2. **Rebuild for the fault case, or use a server-only name.** For a value only the server needs, a variable without the `NEXT_PUBLIC_` prefix, read in code that runs per request, is resolved from the environment when the process runs. For a `NEXT_PUBLIC_` value, the fault case needs its own build.
+3. **Make the process tell you what it resolved.** Log the host it is about to connect to at startup or on the first request. Log the host only, never a key. One line in the log turns an assumption into an observation.
+4. **Treat every write path in a test as live until proven otherwise.** Label test rows so they are easy to find and delete. Then check the real destination afterward, the way the verifier did. The route's own response is a claim about where the write went, not proof.
+5. **Prefer a fault the process cannot route around.** Blocking the host at the network layer tests the failure mode regardless of how the URL reached the code. An env swap tests the failure mode only if the env is actually what the code reads.
+
+The same idea runs through the rest of this logbook. In [29 review rounds hardened a CI gate that nothing ran](/writing/29-review-rounds-hardened-a-ci-gate-that-nothing-ran), the rule was that a survived mutation is evidence only once the mutant is proven effective. A fault test is the same shape. The injected fault is a mutant, and you have to prove it actually changed the system before you read the result. In [Your pager is not your customer](/writing/your-pager-is-not-your-customer), the rule was to keep signal separate from impact. Here the route's response was the signal, and the real table was the impact.
+
+## Why is this worse than a normal bug?
+
+Because it inverts the purpose of the test.
+
+A fault test exists to prove that writes stop when a dependency is gone. Mine proved the opposite without anyone noticing, and it did it against production. A test that silently hits the real system is worse than no test, because it produces a confident report and real side effects at the same time.
+
+It is also invisible from the code. Nothing in `lib/supabase.ts` is wrong. Its header comment already says that changing the `NEXT_PUBLIC_` URL requires a rebuild, not a restart. The fact was written down in the file. The test procedure just did not read it. That is the same failure class as [The night the doctrine failed](/writing/the-night-the-doctrine-failed): a gate that returns green because it never touched the thing it claims to check. It also sits close to [The dashboard query RLS wouldn't let through](/writing/the-dashboard-query-rls-wouldnt-let-through), another case where the database did exactly what it was told and the surprise was in what we had actually told it.
+
+## FAQ
+
+### Are NEXT_PUBLIC_ variables inlined in server code too?
+
+Yes. The replacement happens at build time wherever the reference appears, which is why this site's server kept using the production Supabase URL after `.env.local` changed and the server restarted.
+
+### Does `next start` reload `.env.local`?
+
+It loads env files when the process starts, and server code that reads a non-prefixed variable at runtime will see the new value. A `NEXT_PUBLIC_` reference that was inlined at build will not.
+
+### Does wrapping `process.env` in a function avoid inlining?
+
+No. A getter like `() => process.env.NEXT_PUBLIC_X` still contains the static reference, so the compiler replaces it with the literal. Only a lookup the compiler cannot resolve statically, such as a computed key, is left for runtime.
+
+### How do I check what value my build baked in?
+
+Search the build output directory for the value, or for the host part of a URL. If the old value is in the compiled files, only a rebuild changes it.
+
+### Should server-only config use the NEXT_PUBLIC_ prefix?
+
+Not if you want to change it without a rebuild. Keep the prefix for values the browser genuinely needs, and give server code its own variable name.
