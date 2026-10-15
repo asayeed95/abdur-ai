@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="650" viewBox="0 0 800 650" role="img" aria-labelledby="title desc"><title id="title">One prompt can trigger many model calls</title><desc id="desc">Illustrative coding workflow. A request starts repeated reading, reasoning, editing, testing and review. Subagents may add parallel calls.</desc><rect width="800" height="650" fill="#F6F1E8"/><style>text{font-family:Arial,Helvetica,sans-serif;fill:#0B0A08}.mono{font-family:Menlo,monospace}</style>
+<text x="40" y="40" font-size="16" font-weight="600" text-anchor="start" style="fill:#6E655C" class="mono">WHY PROMPT COUNT MISLEADS</text>
+<text x="40" y="94" font-size="37" font-weight="700" text-anchor="start" style="fill:#0B0A08">One prompt. Many model calls.</text>
+<rect x="160" y="126" width="480" height="62" rx="14" fill="#0B0A08"/>
+<text x="400" y="165" font-size="25" font-weight="600" text-anchor="middle" style="fill:#FFFCF7">“Investigate this bug and fix it.”</text>
+<line x1="400" y1="190" x2="400" y2="227" stroke="#6E655C" stroke-width="2"/>
+<path d="M395,219 L400,227 L405,219" fill="none" stroke="#6E655C" stroke-width="2"/>
+<rect x="40" y="244" width="340" height="104" rx="14" fill="#FFFCF7" stroke="#D7CFC3"/>
+<text x="58" y="274" font-size="15" font-weight="600" text-anchor="start" style="fill:#D97757" class="mono">01</text>
+<text x="58" y="304" font-size="25" font-weight="700" text-anchor="start" style="fill:#0B0A08">Read context</text>
+<text x="58" y="332" font-size="19" font-weight="400" text-anchor="start" style="fill:#6E655C">Files, history, instructions</text>
+<rect x="420" y="244" width="340" height="104" rx="14" fill="#FFFCF7" stroke="#D7CFC3"/>
+<text x="438" y="274" font-size="15" font-weight="600" text-anchor="start" style="fill:#D97757" class="mono">02</text>
+<text x="438" y="304" font-size="25" font-weight="700" text-anchor="start" style="fill:#0B0A08">Reason and edit</text>
+<text x="438" y="332" font-size="19" font-weight="400" text-anchor="start" style="fill:#6E655C">Choose and apply a change</text>
+<rect x="40" y="378" width="340" height="104" rx="14" fill="#FFFCF7" stroke="#D7CFC3"/>
+<text x="58" y="408" font-size="15" font-weight="600" text-anchor="start" style="fill:#D97757" class="mono">04</text>
+<text x="58" y="438" font-size="25" font-weight="700" text-anchor="start" style="fill:#0B0A08">Review results</text>
+<text x="58" y="466" font-size="19" font-weight="400" text-anchor="start" style="fill:#6E655C">Inspect, revise, continue</text>
+<rect x="420" y="378" width="340" height="104" rx="14" fill="#FFFCF7" stroke="#D7CFC3"/>
+<text x="438" y="408" font-size="15" font-weight="600" text-anchor="start" style="fill:#D97757" class="mono">03</text>
+<text x="438" y="438" font-size="25" font-weight="700" text-anchor="start" style="fill:#0B0A08">Run tools and tests</text>
+<text x="438" y="466" font-size="19" font-weight="400" text-anchor="start" style="fill:#6E655C">Get new evidence</text>
+<line x1="382" y1="297" x2="418" y2="297" stroke="#6E655C" stroke-width="2"/>
+<path d="M410,292 L418,297 L410,302" fill="none" stroke="#6E655C" stroke-width="2"/>
+<line x1="590" y1="350" x2="590" y2="376" stroke="#6E655C" stroke-width="2"/>
+<path d="M585,368 L590,376 L595,368" fill="none" stroke="#6E655C" stroke-width="2"/>
+<line x1="418" y1="430" x2="383" y2="430" stroke="#6E655C" stroke-width="2"/>
+<path d="M391,425 L383,430 L391,435" fill="none" stroke="#6E655C" stroke-width="2"/>
+<path d="M210,378 L210,350" fill="none" stroke="#6E655C" stroke-width="2"/><path d="M205,358 L210,350 L215,358" fill="none" stroke="#6E655C" stroke-width="2"/>
+<text x="400" y="530" font-size="23" font-weight="600" text-anchor="middle" style="fill:#0B0A08">Repeat as needed. Subagents can add parallel calls.</text>
+<text x="400" y="565" font-size="22" font-weight="400" text-anchor="middle" style="fill:#6E655C">The meter follows the work in every model call.</text>
+<line x1="40" y1="602" x2="760" y2="602" stroke="#D7CFC3" stroke-width="2"/>
+<text x="40" y="628" font-size="12" font-weight="400" text-anchor="start" style="fill:#6E655C" class="mono">ILLUSTRATIVE WORKFLOW · NOT A COUNT OF COMPLETED TASKS</text>
+</svg>

@@ -1,0 +1,149 @@
+---
+title: "I priced 30 days of Claude Code usage: $34,829"
+slug: "claude-code-subscriptions-vs-usage-credits"
+date: "2026-10-15"
+description: "A measured comparison of Claude Code subscriptions and usage credits: the $34,829 replacement-cost estimate, trade-offs, and how to calculate your own break-even."
+author: "Abdur"
+register: "reported"
+tags: ["Claude Code", "AI costs", "Agent workflows"]
+reading_time: 7
+seo_title: "Claude Code: My $34,829 Usage-Credit Estimate"
+tldr: "Thirty days of Claude Code logs on one Mac price out at $34,828.54 at current API rates. This is an estimated replacement cost, not an invoice or verified savings. At the latest week’s pace, $2,000 of credits would cover about 3.8 days if all work were metered. Compare the work a subscription can actually absorb with its metered cost; do not use prompt count or subscription price as a capacity guarantee."
+og:
+  image: "/blog/claude-code-subscriptions-vs-usage-credits/01-month-estimate.png"
+receipts:
+  - path: "/blog/claude-code-subscriptions-vs-usage-credits/daily-estimated-cost.csv"
+    note: "30 complete days, 181697 deduplicated Claude response records, $34828.540321 estimated at current rates; aggregate local-log evidence, not billing proof."
+---
+
+![Thirty days of local Claude Code logs were estimated at $34,829 at API rates. This is a replacement-cost estimate, not an invoice.](/blog/claude-code-subscriptions-vs-usage-credits/01-month-estimate.png)
+
+I wanted to answer a simple question: should I buy more Claude usage credits, or put that money toward subscription capacity?
+
+Then I priced 30 days of my Claude Code logs at current API rates.
+
+**The estimate was $34,828.54.**
+
+I had to stop and make sense of that number. It is a replacement-cost estimate for recorded usage, **not an invoice, an amount I paid, or verified savings**.
+
+But it changed how I think about the “buy more usage” button. A discounted credit bundle can still disappear quickly when agents do substantial work behind each prompt.
+
+Here is the calculation, where subscriptions help, where credits help, and how to compare them for your own workload.
+
+## What those 30 days actually contained
+
+The audit covered **September 15 through October 14, 2026**: 30 complete days of Claude Code history stored on one Mac.
+
+After deduplication and excluding non-Claude and synthetic responses, it contained:
+
+- **181,697 Claude model response records.**
+- **2,613 distinct session identifiers.**
+- Main-session work and subagent work.
+
+Those are workload measurements. They do **not** mean 181,697 things shipped, 181,697 human prompts, or 2,613 completed projects.
+
+I use agents across software development and maintenance: implementation, debugging, reviews, testing, documentation, and operational work. The important context is sustained work across sessions, with tools and subagents involved. Project names are irrelevant to the cost lesson.
+
+![One coding request can lead to repeated cycles of reading context, reasoning, editing, running tools and reviewing results. Each model call can add metered usage.](/blog/claude-code-subscriptions-vs-usage-credits/02-work-behind-prompt.png)
+
+A request such as “investigate this bug and fix it” can start a sequence: read files, reason about the problem, edit code, run tests, inspect failures, and try again. Subagents can add their own calls.
+
+That is why “How many prompts do I get?” is a weak way to compare these plans.
+
+**Measure the work behind the prompt.**
+
+## A subscription and a credit balance measure different things
+
+A Claude subscription provides included usage subject to plan limits. Extra-usage credits pay for metered work after those limits are reached. Anthropic says extra usage is billed at standard API rates. [How usage credits work](https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans)
+
+The credit balance in the Claude app and a balance in the API Console are separate billing arrangements. This article focuses on extra usage in Claude Code and uses API prices to estimate its cost; it does not assume those balances are interchangeable. [Claude Code billing](https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan)
+
+Think of a subscription as a membership with usage windows, and credits as paying the meter. The membership has limits. The meter charges for the work it records.
+
+For my 30-day estimate, the cost split was:
+
+![Cached context accounted for about 85 percent of the estimated cost: $17,183 in cache reads and $12,513 in cache writes. Output cost about $5,022 and uncached input about $110.](/blog/claude-code-subscriptions-vs-usage-credits/03-cost-breakdown.png)
+
+**About 85% came from cache reads and writes.** Caching still reduces the cost of reusing context. It does not make that reuse free. At enough volume, discounted context processing becomes a large part of the total. [Token and cache pricing](https://platform.claude.com/docs/en/about-claude/pricing)
+
+Counting only the words I typed or the answers I saw would miss most of this estimate.
+
+## How long would a $2,000 bundle last?
+
+The checkout offered **$2,000 in usage credits for $1,400**, a 30% discount. That purchase is additional to the underlying subscription fee.
+
+That answers how much the balance costs. It does not tell you how much of your work it covers.
+
+Across all 30 days, my estimate averaged **$1,160.95 in credits per calendar day**. A $2,000 balance would cover about **1.7 days** at that rate—about **5.7% of the full 30-day estimate**.
+
+My latest complete week was lighter, so it is worth showing that too:
+
+**October 8–14: $3,710.74 in estimated credits, averaging $530.11 per day.**
+
+At that pace, the same bundle would last about **3.8 days**.
+
+![At the latest measured pace of $530 per calendar day, $2,000 in credits covers about 3.8 days. This assumes all recorded work is metered; included usage would extend the balance.](/blog/claude-code-subscriptions-vs-usage-credits/04-bundle-duration.png)
+
+These duration estimates assume **all the recorded work is charged to credits**. In a real subscription-plus-credits setup, included usage would extend the balance. My workload also varies; 3.8 days is an average-based estimate, not a countdown.
+
+There is another detail: Anthropic currently limits discounted Pro/Max bundle purchases to **$2,000 in face value per month**. Beyond that, usage is billed at standard rates. You cannot apply a 30% discount to an arbitrarily large monthly estimate. [Bundle discounts and limits](https://support.claude.com/en/articles/14246112-buy-usage-bundles)
+
+**A discount lowers the price of the balance. Your workload determines how long it lasts.**
+
+## Would more subscriptions be better?
+
+For context, I have roughly six or seven subscriptions across Max, Team and Pro. **Four are Max 20x.** This is a mixed setup, not a single $200 subscription producing the entire result.
+
+Seven Max 20x plans at the published $200 web price would cost **$1,400 per month**: the same cash outlay as the $2,000 credit bundle, before the bundle account’s base subscription. [Max pricing](https://support.claude.com/en/articles/11049741-what-is-the-max-plan)
+
+Even a hypothetical ten would cost **$2,000 per month**. That is useful scale, but a subscription price does not establish how much work those plans would cover.
+
+The audit does not identify every account's included usage, existing overage, or API billing. I cannot claim “I got $35,000 of work for $2,000,” calculate verified savings, or guarantee that seven or ten Max plans would absorb this workload.
+
+The practical comparison is between **work an additional subscription can actually cover** and what that same work would cost on the meter.
+
+![Seven hypothetical Max plans cost $1,400 per month, while $1,400 buys $2,000 in usage credits. Subscriptions win on cost only if their usable included capacity replaces more than $2,000 of metered work.](/blog/claude-code-subscriptions-vs-usage-credits/05-break-even.png)
+
+At a 30% credit discount, a $200 subscription breaks even when it replaces:
+
+**$200 ÷ 0.70 = $285.71 of metered work per month.**
+
+For seven subscriptions, the equivalent threshold is **$2,000 of metered work collectively**. Work that cannot fit inside their limits does not count. If the alternative is full-price overage after the discount cap, the $200 subscription's threshold is $200 instead.
+
+That is the question to ask before paying for another plan: **how much of my existing metered work will this actually replace?**
+
+## The advantages and drawbacks of each path
+
+**Subscription capacity is attractive for recurring work.** You know the base monthly fee, and included usage can be valuable when you consistently use it. It suits work that can be scheduled around resets.
+
+The drawbacks are real: unused capacity still costs money, multiple accounts add friction, and each has separate limits. Claude applies five-hour and weekly limits, with an additional Fable weekly limit on Max. Buying more subscriptions does not create one pooled, unrestricted allowance. [Claude Code plan limits](https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan)
+
+**Credits are attractive for overflow and flexibility.** They let you continue on the same account after included usage runs out. Occasional bursts may be cheaper than carrying another subscription every month. They are also useful when finishing something now matters more than minimizing token cost.
+
+Their drawback is that the meter follows the agent's work. Long sessions, repeated context processing and parallel agents can consume a balance quickly. A spending cap helps control that exposure; a discount does not remove it.
+
+For my recurring workload, I would prioritize useful subscription capacity and keep credits for overflow. Someone with occasional short sessions could reasonably reach a different conclusion.
+
+## Run this check on your own usage
+
+Start with a representative week, then compare it with 30 complete days. Include quieter days; measuring only your busiest session will distort the answer.
+
+Ask for this audit:
+
+> Audit my local Claude Code usage for the last 30 complete days and the latest complete week. Deduplicate response records and include subagents. Separate Claude from other providers. Price the original models using current official rates for input, output, cache reads and cache writes. Do not count thinking or iteration details twice. Report estimated metered cost, daily averages, and how long a $2,000 credit balance would last if all that work were metered. Distinguish this estimate from actual charges and completed tasks. Identify missing machines, uncertain billing attribution and pricing assumptions. Keep prompts, account identifiers and project details out of the report. Do not change billing settings or purchase anything.
+
+Then compare the estimate with your actual bill and included-usage limits. For an additional subscription, focus on the portion of work it could absorb—not your entire workload by default.
+
+**The useful number is the cost of the work you would otherwise put on the meter.**
+
+My $34,829 estimate is one person's heavy workload, not a typical-user benchmark. What made it useful was finally putting numbers behind the decision.
+
+Have you priced a week of your own agent usage—and did it change which plan you would choose?
+
+## A short note on the numbers
+
+This was a local-log audit assisted by Codex, using prices checked on October 15, 2026. Totals reconcile across models, days and cost components. The calculation distinguishes cache lifetimes and applicable model pricing tiers; it assumes standard global rates where routing metadata is unavailable.
+
+It covers history stored on one Mac. My separate Windows laptop and Mac Mini were not audited. Missing or deleted logs are outside the calculation. The model-call and session counts measure recorded activity, not validated delivery or quality. The headline is an estimate of repricing that activity at current rates, before bundle discounts—not a historical invoice, an actual savings figure, or a forecast.
+
+[Download the daily aggregate measurements](/blog/claude-code-subscriptions-vs-usage-credits/daily-estimated-cost.csv) · [Copy the audit prompt](/blog/claude-code-subscriptions-vs-usage-credits/audit-your-own-usage.txt)
