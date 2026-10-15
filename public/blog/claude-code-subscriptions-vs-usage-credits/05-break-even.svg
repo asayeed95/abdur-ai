@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="650" viewBox="0 0 800 650" role="img" aria-labelledby="title desc"><title id="title">Same cash, different capacity</title><desc id="desc">Seven hypothetical Max 20x subscriptions cost $1,400 per month. $1,400 buys $2,000 in metered credits. Subscriptions beat discounted credits only if their usable included capacity replaces more than $2,000 in metered work.</desc><rect width="800" height="650" fill="#F6F1E8"/><style>text{font-family:Arial,Helvetica,sans-serif;fill:#0B0A08}.mono{font-family:Menlo,monospace}</style>
+<text x="40" y="40" font-size="16" font-weight="600" text-anchor="start" style="fill:#6E655C" class="mono">HYPOTHETICAL COMPARISON · NOT MY ACCOUNT INVENTORY</text>
+<text x="40" y="98" font-size="38" font-weight="700" text-anchor="start" style="fill:#0B0A08">Same $1,400. Different capacity.</text>
+<rect x="40" y="135" width="350" height="223" rx="14" fill="#FFFCF7" stroke="#D7CFC3"/>
+<text x="60" y="173" font-size="16" font-weight="600" text-anchor="start" style="fill:#6E655C" class="mono">7 MAX 20× PLANS</text>
+<text x="60" y="229" font-size="46" font-weight="700" text-anchor="start" style="fill:#0B0A08">$1,400</text>
+<text x="60" y="263" font-size="24" font-weight="400" text-anchor="start" style="fill:#6E655C">per month</text>
+<rect x="410" y="135" width="350" height="223" rx="14" fill="#FFFCF7" stroke="#D7CFC3"/>
+<text x="430" y="173" font-size="16" font-weight="600" text-anchor="start" style="fill:#6E655C" class="mono">USAGE CREDIT BUNDLE</text>
+<text x="430" y="229" font-size="46" font-weight="700" text-anchor="start" style="fill:#0B0A08">$1,400</text>
+<text x="430" y="263" font-size="24" font-weight="400" text-anchor="start" style="fill:#6E655C">one purchase</text>
+<text x="60" y="309" font-size="24" font-weight="600" text-anchor="start" style="fill:#0B0A08">Separate included limits</text>
+<text x="430" y="309" font-size="24" font-weight="600" text-anchor="start" style="fill:#0B0A08">$2,000 of metered work</text>
+<rect x="40" y="395" width="720" height="153" rx="14" fill="#0B0A08"/>
+<text x="65" y="436" font-size="16" font-weight="600" text-anchor="start" style="fill:#FFFCF7" class="mono">BREAK-EVEN AT A 30% CREDIT DISCOUNT</text>
+<text x="65" y="480" font-size="36" font-weight="700" text-anchor="start" style="fill:#FFFCF7">$200 ÷ 0.70 = $285.71</text>
+<text x="65" y="518" font-size="24" font-weight="400" text-anchor="start" style="fill:#FFFCF7">of metered work replaced per plan, per month</text>
+<text x="40" y="584" font-size="22" font-weight="400" text-anchor="start" style="fill:#6E655C">Unused capacity and work outside plan limits do not count.</text>
+<line x1="40" y1="602" x2="760" y2="602" stroke="#D7CFC3" stroke-width="2"/>
+<text x="40" y="628" font-size="12" font-weight="400" text-anchor="start" style="fill:#6E655C" class="mono">PLAN PRICES AND DISCOUNTS CHECKED OCT 15, 2026</text>
+</svg>

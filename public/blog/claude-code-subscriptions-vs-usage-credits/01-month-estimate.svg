@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-labelledby="title desc"><title id="title">Thirty days, $34,829 estimated metered cost</title><desc id="desc">One Mac, September 15 to October 14, 2026. 181,697 Claude model response records and 2,613 session identifiers. This is an estimate, not an invoice.</desc><rect width="800" height="450" fill="#F6F1E8"/><style>text{font-family:Arial,Helvetica,sans-serif;fill:#0B0A08}.mono{font-family:Menlo,monospace}</style>
+<text x="40" y="40" font-size="16" font-weight="600" text-anchor="start" style="fill:#6E655C" class="mono">THE COST OF THE WORK BEHIND THE PROMPT</text>
+<text x="40" y="100" font-size="40" font-weight="700" text-anchor="start" style="fill:#0B0A08">30 days of Claude Code</text>
+<text x="36" y="205" font-size="100" font-weight="700" text-anchor="start" style="fill:#0B0A08">$34,829</text>
+<text x="40" y="244" font-size="27" font-weight="600" text-anchor="start" style="fill:#D97757">Estimated metered cost. Not an invoice.</text>
+<line x1="40" y1="273" x2="760" y2="273" stroke="#D7CFC3" stroke-width="2"/>
+<text x="40" y="322" font-size="34" font-weight="700" text-anchor="start" style="fill:#0B0A08">181,697</text>
+<text x="40" y="350" font-size="21" font-weight="400" text-anchor="start" style="fill:#6E655C">model responses</text>
+<text x="315" y="322" font-size="34" font-weight="700" text-anchor="start" style="fill:#0B0A08">2,613</text>
+<text x="315" y="350" font-size="21" font-weight="400" text-anchor="start" style="fill:#6E655C">session IDs</text>
+<text x="590" y="322" font-size="34" font-weight="700" text-anchor="start" style="fill:#0B0A08">1 Mac</text>
+<text x="590" y="350" font-size="21" font-weight="400" text-anchor="start" style="fill:#6E655C">local history</text>
+<text x="40" y="409" font-size="14" font-weight="400" text-anchor="start" style="fill:#6E655C" class="mono">SEP 15–OCT 14, 2026  ·  ORIGINAL MODELS AT CURRENT API RATES</text>
+</svg>

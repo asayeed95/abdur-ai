@@ -349,3 +349,9 @@ every article's h1 and body prose are untouched.
   content-publish-override: content/posts/min-width-0-on-a-grid-middle-item-can-let-links-overlap.mdx
   reason: publish the Northsun-sourced Builder Log on min-width: 0 in the middle track of a grid letting non-wrapping nav links overlap their neighbours, shown on a stand-in demo page measured in headless Chromium; Northsun's records (PR #1763) describe the same pattern as the cause of an overlap in a navigation bar (reported; receipts: merge commit ef6c80da, its first commit 9e110f41, the PR description, the work-log entry, the browser test and the comments read; the post says merged and makes no claim about deployment or production, or that the overlap reached a user; the demo is a stand-in with fixed-size boxes and invented constants).
   approved-by: Abdur / live session (Claude Code session_0129i77Ey6E7kn1L1Fc1CNL8; "You are authorized to research, maintain the editorial backlog, write and edit articles, publish to abdur.ai, make supporting abdur.ai improvements, verify production behavior, and document the work in Linear. Execute ordinary decisions without waiting for Abdur.") / 2026-10-03
+
+
+- task-id: C-14
+  content-publish-override: content/posts/claude-code-subscriptions-vs-usage-credits.mdx
+  reason: Publish the exact founder-reviewed Claude Code cost article and its diagrams through the existing Writing pipeline.
+  approved-by: Abdur, 2026-10-15, explicit publication request in this chat.
