@@ -281,6 +281,10 @@ every article's h1 and body prose are untouched.
   design-token-override: tailwind.config.ts
   reason: registers the three aliases above as Tailwind colours (meta, good-text, band). No existing colour changes.
   approved-by: Abdur / live session ("apply all 8 fixes") / 2026-10-02 18:29 EDT
+- task-id: AGE-2596
+  copy-override: components/NowPanel.tsx and its mount in app/page.tsx (homepage section "/// NOW · live — Agents at work." with the "updated weekly · pushed by my agents" line and four hand-written agent rows) removed; getNowState() removed from lib/supabase.ts.
+  reason: a hand-written seed list was presented as "live" with status pills (now_state had 0 rows in production), the pills were low-contrast, and the rows named models without linking to any proof. Removed rather than rebuilt: the homepage already shows real published posts in the Latest section, and no build-time source for merged-PR data exists in this repo.
+  approved-by: Abdur / Slack C0BTVUX1YH5 ts 1790696740.824649 (relayed by the coordinator; ask dated 2026-09-29 15:45Z)
 - task-id: AGE-2884
   content-publish-override: content/posts/newsletter-signup-200-proves-less-than-you-think.mdx
   reason: publish the 2026-10-03 Builder Log on signup-journey observability (reported; receipts c7bc07f, bf42386, d28ad56 and ab38e15 re-verified against git history; the pre-audit behaviours reproduced with scripts/repro-prefix-signup.sh; Resend send-email, custom-headers, unsubscribe-for-transactional and test-email docs and Vercel custom-events docs re-read 2026-10-03). Independent fresh-context agent review completed 2026-10-03 (verdict: approve with fixes; 2 blockers, 9 fixes, 5 nits). Blockers and fixes applied, including a real defect the review found (the existing-contact backfill call had no timeout; now bounded, with its own scenario and mutant). No price, benchmark, customer or integration claim. Nothing is claimed about the real Resend API: provider acceptance, delivery, inbox receipt and the real subscriber count are stated as not observed.

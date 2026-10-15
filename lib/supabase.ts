@@ -1,5 +1,5 @@
 /**
- * Server-only Supabase (PostgREST) helpers for the Now panel + Ship log.
+ * Server-only Supabase (PostgREST) helpers for the Ship log and the /api/ingest/now state write.
  *
  * Raw fetch against `${NEXT_PUBLIC_SUPABASE_URL}/rest/v1` — no
  * @supabase/supabase-js, because tagged reads need fetch cache tags so
@@ -62,26 +62,6 @@ export type ShipEntry = {
   client_id?: string | null;
 };
 
-/** Latest Now-panel agent states, or null on any failure. */
-export async function getNowState(): Promise<NowAgent[] | null> {
-  if (!configured()) return null;
-  try {
-    const res = await postgrest("/now_state?select=agents&profile_id=eq.abdur", {
-      method: "GET",
-      next: { tags: ["now"] },
-    });
-    if (!res.ok) {
-      console.warn(`[supabase] getNowState HTTP ${res.status}`);
-      return null;
-    }
-    const rows = (await res.json()) as Array<{ agents: NowAgent[] }>;
-    return rows[0]?.agents ?? null;
-  } catch (err) {
-    console.warn("[supabase] getNowState failed:", err);
-    return null;
-  }
-}
-
 /** Most recent ship-log entries (newest first), or [] on any failure. */
 export async function getShipLog(limit = 25): Promise<ShipEntry[]> {
   if (!configured()) return [];
@@ -102,7 +82,7 @@ export async function getShipLog(limit = 25): Promise<ShipEntry[]> {
   }
 }
 
-/** Upsert the Now-panel state (merge-duplicates on pk profile_id). Throws on failure. */
+/** Upsert the now_state row (merge-duplicates on pk profile_id). Nothing on the site reads it since the homepage panel was removed (AGE-2596). Throws on failure. */
 export async function upsertNowState(agents: NowAgent[]): Promise<void> {
   if (!configured()) throw new Error("supabase not configured");
   const res = await postgrest("/now_state", {
