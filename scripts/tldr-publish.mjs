@@ -274,7 +274,16 @@ function publishSlug() {
   }
 }
 
-const invoked = process.argv[1] ? path.resolve(process.argv[1]) : "";
-if (invoked === scriptFile) {
+function canonicalPath(entry) {
+  const resolved = path.resolve(entry);
+  try {
+    return fs.realpathSync(resolved);
+  } catch {
+    return resolved;
+  }
+}
+
+const invoked = process.argv[1] ? canonicalPath(process.argv[1]) : "";
+if (invoked === canonicalPath(scriptFile)) {
   publishSlug();
 }

@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
 const { escapeReportField, formatTable } = await import("../scripts/subscriber-sources.mjs");
 
@@ -31,6 +36,23 @@ test("synthetic attribution rows are one physical line and contain no raw contro
   assert.equal(escapeReportField("\n"), "\\x0a");
   const widthRow = formatTable("T", new Map([["\n", 3]]), 3).split("\n").at(-1);
   assert.equal(widthRow, `  ${"\\x0a".padEnd(7)}      3  100.0%`);
+});
+
+test("a symlinked report script still runs instead of exiting 0", () => {
+  const script = fileURLToPath(new URL("../scripts/subscriber-sources.mjs", import.meta.url));
+  const dir = mkdtempSync(path.join(tmpdir(), "age3654-sources-"));
+  const link = path.join(dir, "subscriber-sources.mjs");
+  symlinkSync(script, link);
+  try {
+    const result = spawnSync(process.execPath, [link], {
+      encoding: "utf8",
+      env: { ...process.env, RESEND_API_KEY: "" },
+    });
+    assert.notEqual(result.status, 0, result.stdout + result.stderr);
+    assert.match(result.stderr, /RESEND_API_KEY/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("empty report stays a single data line", () => {

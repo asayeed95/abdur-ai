@@ -9,6 +9,7 @@
  *
  * Usage: node scripts/subscriber-sources.mjs   (or: npm run subscribers:sources)
  */
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -169,8 +170,17 @@ async function main() {
   printTable("By list + source_path", byListSource, totals.contacts || 1);
 }
 
+function canonicalPath(entry) {
+  const resolved = path.resolve(entry);
+  try {
+    return fs.realpathSync(resolved);
+  } catch {
+    return resolved;
+  }
+}
+
 const scriptFile = fileURLToPath(import.meta.url);
-const invoked = process.argv[1] ? path.resolve(process.argv[1]) : "";
-if (invoked === scriptFile) {
+const invoked = process.argv[1] ? canonicalPath(process.argv[1]) : "";
+if (invoked === canonicalPath(scriptFile)) {
   await main();
 }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, chmodSync, rmSync, existsSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, chmodSync, rmSync, existsSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
@@ -125,6 +125,19 @@ test("YAML envelope parses ordinary frontmatter and does not eval a JS tag", asy
   try {
     assert.throws(() => parseYamlFrontmatter(extractYamlEnvelope(tagged).yaml));
     assert.equal(existsSync(sentinel), false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("a symlinked publisher path still runs instead of exiting 0", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "age3654-link-"));
+  const link = path.join(dir, "tldr-publish.mjs");
+  symlinkSync(publisher, link);
+  try {
+    const result = spawnSync(process.execPath, [link], { encoding: "utf8" });
+    assert.notEqual(result.status, 0, result.stdout + result.stderr);
+    assert.match(result.stderr, /Usage:/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
