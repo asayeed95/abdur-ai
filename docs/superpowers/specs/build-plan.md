@@ -61,6 +61,8 @@ This file was (re)written 2026-07-08 during a build-discipline retrofit, cross-c
 
 | C-16 | Point agents at the Marketing law (AGE-3643, MKT setup §4) | One `AGENTS.md` startup step: public-content work applies Linear MKT Doc 01 (Reader-First Editorial Law, DRAFT v1.0 pending Abdur) and states reader → need → takeaway → evidence → format → route before drafting. Docs only; no code, route, access or vendor change. `AGENTS.md` stays under its 3,000-byte budget (2,990). | review — 2026-10-15 (PR #107) |
 
+| C-17 | Restore the agent content-routing rule target (AGE-3645) | Restored `content/posts/_drafts/CONTENT-ROUTING-RULE.md` verbatim from `d3c77fd` (also restored unchanged at `e390e9e` on `draft/glm-abdur-ai-content-2026-09-14`); absent on `origin/main@4d3787e`. `AGENTS.md` unchanged at 2,990 bytes; drafts-only and approval restrictions preserved. | review — 2026-10-16 (draft PR; nothing published) |
+
 ## Phase 2 — Stripe + Library checkout (deferred)
 
 Not started. See W-3 above — this whole phase is optional per the original handoff (`CLAUDE.md` §8) and should stay untouched until explicitly prioritized.
