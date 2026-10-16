@@ -45,6 +45,12 @@ const nextConfig = {
         headers: [{ key: "Content-Type", value: "text/plain; charset=utf-8" }],
       },
       {
+        // Plain-text brand briefs for content agents (AGE-3169). Explicit
+        // charset so bots don't mis-decode the em dashes and arrows.
+        source: "/brand/:file*.md",
+        headers: [{ key: "Content-Type", value: "text/markdown; charset=utf-8" }],
+      },
+      {
         source: "/writing/rss.xml",
         headers: [{ key: "Content-Type", value: "application/rss+xml" }],
       },

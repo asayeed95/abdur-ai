@@ -357,7 +357,7 @@ if (ai > -1) {
     process.exit(1);
   }
   const { exportArtifact } = await import("./artifact.mjs");
-  exportArtifact({ out: path.resolve(process.argv[ai + 1]), DS, REPO, color, tokensJson, rows, risks, C, templates, VERSION, UPDATED, liveTokens: live });
+  exportArtifact({ out: path.resolve(process.argv[ai + 1]), DS, visuals: VISUALS, REPO, color, tokensJson, rows, risks, C, templates, VERSION, UPDATED, liveTokens: live });
 }
 
 if (errors.length) {
