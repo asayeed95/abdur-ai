@@ -57,6 +57,8 @@ This file was (re)written 2026-07-08 during a build-discipline retrofit, cross-c
 
 | C-14 | Publish the approved Claude Code usage-cost article (AGE-3616) | Five figures, public aggregate measurements and audit prompt; preserve replacement-cost and workload caveats. Founder requested Writing and X publication on 2026-10-15. | done — 2026-10-15 (Writing and X live; supplemental downloads moved out of the legacy /blog redirect namespace) |
 
+| C-15 | Publish the RSS explainer and diagram through Writing and X API (AGE-3635) | Founder authorized both publications and the linked summary on 2026-10-15. Local hard gate and public read-back required; live receipts tracked in AGE-3635. | review — 2026-10-15 |
+
 ## Phase 2 — Stripe + Library checkout (deferred)
 
 Not started. See W-3 above — this whole phase is optional per the original handoff (`CLAUDE.md` §8) and should stay untouched until explicitly prioritized.
