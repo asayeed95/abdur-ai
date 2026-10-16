@@ -59,6 +59,8 @@ This file was (re)written 2026-07-08 during a build-discipline retrofit, cross-c
 
 | C-15 | Publish the RSS explainer and diagram through Writing and X API (AGE-3635) | Founder authorized both publications and the linked summary on 2026-10-15. Local hard gate and public read-back required; live receipts tracked in AGE-3635. | review — 2026-10-15 |
 
+| C-16 | Point agents at the Marketing law (AGE-3643, MKT setup §4) | One `AGENTS.md` startup step: public-content work applies Linear MKT Doc 01 (Reader-First Editorial Law, DRAFT v1.0 pending Abdur) and states reader → need → takeaway → evidence → format → route before drafting. Docs only; no code, route, access or vendor change. `AGENTS.md` stays under its 3,000-byte budget (2,990). | review — 2026-10-15 (PR #107) |
+
 ## Phase 2 — Stripe + Library checkout (deferred)
 
 Not started. See W-3 above — this whole phase is optional per the original handoff (`CLAUDE.md` §8) and should stay untouched until explicitly prioritized.
