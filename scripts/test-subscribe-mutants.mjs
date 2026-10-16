@@ -37,6 +37,18 @@ const MUTANTS = [
     to: "    if (false) {\n      const to = new URL",
   },
   {
+    name: "native return_to honoured for any value (open redirect)",
+    file: ROUTE,
+    from: "if (typeof returnTo === \"string\" && Object.hasOwn(NATIVE_RETURN, returnTo)) {\n      nativeTarget = NATIVE_RETURN[returnTo];",
+    to: "if (typeof returnTo === \"string\") {\n      nativeTarget = NATIVE_RETURN[returnTo] ?? { ok: returnTo, error: returnTo };",
+  },
+  {
+    name: "kit native signup lands on /subscribe again (no return_to target)",
+    file: ROUTE,
+    from: '"/kit": { ok: "/kit/thanks", error: "/kit" },',
+    to: "",
+  },
+  {
     name: "raw address back in the idempotency key",
     file: ROUTE,
     from: "welcome-${list}/${emailTag(email)}",

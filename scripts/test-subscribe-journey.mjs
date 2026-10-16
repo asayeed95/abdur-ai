@@ -248,6 +248,60 @@ try {
     assert(html.includes("doesn&#x27;t look right") || html.includes("doesn't look right"), "notice not rendered");
   });
 
+  await scenario("kit native form (JS off) → 303 to /kit/thanks, source_path=/kit stored, links rendered", "redirect + render (app only)", async () => {
+    resetMock();
+    const r = await form(site.base, { email: "kit@example.com", list: "tldr", return_to: "/kit", source_path: "/kit", rendered_at: String(slow()) });
+    assert(r.status === 303, `status ${r.status}`);
+    const loc = new URL(r.headers.get("location"));
+    assert(loc.pathname === "/kit/thanks", `location ${loc}`);
+    assert(contactCalls().length === 1, "contact not stored");
+    assert(contactCalls()[0].body.properties?.source_path === "/kit", "kit attribution missing");
+    assert(!("return_to" in (contactCalls()[0].body.properties ?? {})), "return_to leaked into contact properties");
+    const html = await (await fetch(`${site.base}/kit/thanks`)).text();
+    assert(html.includes('href="/kit/agent-reliability-kit.zip"'), "zip link not rendered on /kit/thanks");
+  });
+
+  await scenario("kit native form errors → 303 back to /kit?error=…, page renders the notice", "redirect + render (app only)", async () => {
+    resetMock();
+    const r = await form(site.base, { email: "nope", return_to: "/kit", rendered_at: String(slow()) });
+    const loc = new URL(r.headers.get("location"));
+    assert(r.status === 303 && loc.pathname === "/kit" && loc.searchParams.get("error") === "invalid", `status ${r.status} location ${loc}`);
+    assert(calls.length === 0, "provider called");
+    const html = await (await fetch(`${site.base}/kit?error=invalid`)).text();
+    assert(html.includes("doesn&#x27;t look right") || html.includes("doesn't look right"), "notice not rendered");
+    const b = await form(noConfig.base, { email: "cfg@example.com", return_to: "/kit", rendered_at: String(slow()) });
+    const bl = new URL(b.headers.get("location"));
+    assert(b.status === 303 && bl.pathname === "/kit" && bl.searchParams.get("error") === "unavailable", `no-config location ${bl}`);
+  });
+
+  await scenario("unlisted return_to is ignored (no open redirect); JSON callers unaffected", "redirect (app only)", async () => {
+    resetMock();
+    for (const target of ["https://evil.example/", "//evil.example", "/kit/thanks", "/writing"]) {
+      const r = await form(site.base, { email: "nope", return_to: target, rendered_at: String(slow()) });
+      const loc = new URL(r.headers.get("location"));
+      assert(r.status === 303 && ["127.0.0.1", "localhost"].includes(loc.hostname) && loc.pathname === "/subscribe", `return_to ${target} → ${loc}`);
+    }
+    const j = await post(site.base, { email: "json-kit@example.com", return_to: "/kit", rendered_at: slow() });
+    assert(j.status === 200 && (await j.json()).ok === true, `json status ${j.status}`);
+  });
+
+  await scenario("/kit has one h1, a native-post form that returns to /kit, and every kit file serves 200", "render (app only)", async () => {
+    const html = await (await fetch(`${site.base}/kit`)).text();
+    assert((html.match(/<h1[\s>]/g) ?? []).length === 1, "h1 count != 1");
+    assert(/<form[^>]+action="\/api\/subscribe"[^>]+method="post"/.test(html), "form is not a native POST to /api/subscribe");
+    assert(/name="return_to" value="\/kit"/.test(html), "return_to hidden field missing");
+    for (const f of [
+      "/kit/agent-reliability-kit.zip",
+      "/kit/agent-verification-checklist.md",
+      "/kit/durable-memory-starter/memory.mjs",
+      "/kit/durable-memory-starter/README.md",
+      "/kit/incident-postmortem-template.md",
+    ]) {
+      const r = await fetch(`${site.base}${f}`);
+      assert(r.status === 200, `${f} → ${r.status}`);
+    }
+  });
+
   await scenario("duplicate signup (409) → 200, no second welcome", "provider accepted (stand-in)", async () => {
     resetMock();
     await post(site.base, { email: "dupe@example.com", rendered_at: slow(), source_path: "/a" });
