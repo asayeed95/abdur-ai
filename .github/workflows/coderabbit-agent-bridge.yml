@@ -61,6 +61,12 @@ jobs:
             // this workflow. PR issue comments are untrusted. AGE-1116 still
             // owns retirement of this executor; this check only stops a forged,
             // copied, or stale marker from suppressing a real run.
+            function claudeAttemptStepName(prNumber, headSha, baseSha) {
+              return `Record the Claude attempt pr=${prNumber} head=${headSha} base=${baseSha}`;
+            }
+            function priorAttemptBlocksRun(priorAttempt, forceRetry) {
+              return priorAttempt === true && forceRetry !== true;
+            }
             async function findAuthenticPriorAttempt(commitComments, expected, github) {
               const marker = /^<!-- review-bridge:claude-attempt pr=(\d+) head=([0-9a-f]{40}) base=([0-9a-f]{40}) run=(\d+) -->$/m;
               for (const comment of commitComments || []) {
@@ -103,8 +109,13 @@ jobs:
                   : null;
                 if (workflowSuffix === null || (workflowSuffix !== '' && !workflowSuffix.startsWith('@'))) continue;
                 if (run.event !== 'issue_comment' && run.event !== 'workflow_dispatch') continue;
+                const dedupable = run.status === 'in_progress'
+                  || (run.status === 'completed' && run.conclusion === 'success');
+                if (!dedupable) continue;
                 const attemptStep = (jobs || []).flatMap(job => job.steps || []).find(step =>
-                  step.name === 'Record the Claude attempt' && step.conclusion === 'success' && step.completed_at
+                  step.name === claudeAttemptStepName(expected.prNumber, expected.head, expected.base)
+                  && step.conclusion === 'success'
+                  && step.completed_at
                 );
                 if (!attemptStep) continue;
                 const delta = Math.abs(new Date(comment.created_at) - new Date(attemptStep.completed_at));
@@ -181,7 +192,7 @@ jobs:
                 result.reason = 'No completed CodeRabbit receipt is bound to the current head';
               } else if (!codex) {
                 result.reason = 'No trusted Codex marker is bound to the current head and base';
-              } else if (priorAttempt && !forceRetry) {
+              } else if (priorAttemptBlocksRun(priorAttempt, forceRetry)) {
                 result.reason = 'Claude already has an attempt recorded for this head';
               } else {
                 result.proceed = true;
@@ -229,7 +240,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: test -n "$ANTHROPIC_API_KEY"
 
-      - name: Record the Claude attempt
+      - name: Record the Claude attempt pr=${{ steps.gate.outputs.pr_number }} head=${{ steps.gate.outputs.head }} base=${{ steps.gate.outputs.base }}
         if: steps.credential.outcome == 'success'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:

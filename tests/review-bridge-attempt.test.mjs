@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const workflowPath = fileURLToPath(new URL("../.github/workflows/coderabbit-agent-bridge.yml", import.meta.url));
 const workflow = readFileSync(workflowPath, "utf8");
 
-function loadAttemptChecker() {
+function loadAttemptModule() {
   const match = workflow.match(
     /\/\/ AGE-3654 attempt-authenticity:begin\n([\s\S]*?)\n[ \t]*\/\/ AGE-3654 attempt-authenticity:end/,
   );
@@ -15,7 +15,23 @@ function loadAttemptChecker() {
   const indents = rawLines.filter((line) => line.trim()).map((line) => line.match(/^ */)[0].length);
   const trim = Math.min(...indents);
   const source = rawLines.map((line) => line.slice(trim)).join("\n");
-  return new Function(`${source}\nreturn findAuthenticPriorAttempt;`)();
+  return new Function(`${source}
+    return {
+      findAuthenticPriorAttempt,
+      priorAttemptBlocksRun: typeof priorAttemptBlocksRun === "function" ? priorAttemptBlocksRun : null,
+      claudeAttemptStepName: typeof claudeAttemptStepName === "function" ? claudeAttemptStepName : null,
+    };
+  `)();
+}
+
+function loadAttemptChecker() {
+  return loadAttemptModule().findAuthenticPriorAttempt;
+}
+
+function subjectStepName(pr = 70, headSha = head, baseSha = base) {
+  const { claudeAttemptStepName } = loadAttemptModule();
+  assert.equal(typeof claudeAttemptStepName, "function", "step name must come from the workflow");
+  return claudeAttemptStepName(pr, headSha, baseSha);
 }
 
 const head = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -74,6 +90,8 @@ function realRun(overrides = {}) {
   return {
     path: ".github/workflows/coderabbit-agent-bridge.yml",
     event: "issue_comment",
+    status: "completed",
+    conclusion: "success",
     repository: { full_name: "asayeed95/abdur-ai" },
     head_sha: "dddddddddddddddddddddddddddddddddddddddd",
     pull_requests: [],
@@ -81,9 +99,9 @@ function realRun(overrides = {}) {
   };
 }
 
-function realJobs(completedAt = stepAt) {
+function realJobs(completedAt = stepAt, name = subjectStepName()) {
   return [{
-    steps: [{ name: "Record the Claude attempt", conclusion: "success", completed_at: completedAt }],
+    steps: [{ name, conclusion: "success", completed_at: completedAt }],
   }];
 }
 
@@ -100,7 +118,8 @@ test("a forged issue-comment marker cannot suppress the current head", async () 
   assert.doesNotMatch(workflow, /comments\.some\(/);
   assert.match(workflow, /findAuthenticPriorAttempt\(commitComments,/);
   assert.doesNotMatch(workflow, /findAuthenticPriorAttempt\(comments,/);
-  assert.match(workflow, /priorAttempt && !forceRetry/);
+  assert.match(workflow, /priorAttemptBlocksRun\(priorAttempt, forceRetry\)/);
+  assert.match(workflow, /name: Record the Claude attempt pr=\$\{\{ steps\.gate\.outputs\.pr_number \}\} head=\$\{\{ steps\.gate\.outputs\.head \}\} base=\$\{\{ steps\.gate\.outputs\.base \}\}/);
   assert.match(workflow, /createCommitComment/);
   assert.match(workflow, /anthropics\/claude-code-action@/);
 });
@@ -162,4 +181,90 @@ test("a run that never recorded the attempt step does not suppress", async () =>
   const fn = loadAttemptChecker();
   const github = githubFor(realRun(), [{ steps: [{ name: "Verify exact-head CodeRabbit and Codex receipts", conclusion: "success" }] }]);
   assert.equal(await fn([authenticComment(marker(), commentAt)], expected(), github), false);
+});
+
+test("wrong-subject dispatch run does not dedupe", async () => {
+  const fn = loadAttemptChecker();
+  const github = githubFor(
+    realRun({
+      event: "workflow_dispatch",
+      pull_requests: [],
+      head_sha: otherHead,
+      status: "completed",
+      conclusion: "success",
+    }),
+    realJobs(stepAt, "Record the Claude attempt"),
+  );
+  assert.equal(await fn([authenticComment(marker(), commentAt)], expected(), github), false);
+
+  const otherSubject = githubFor(
+    realRun({
+      event: "workflow_dispatch",
+      pull_requests: [],
+      status: "completed",
+      conclusion: "success",
+    }),
+    realJobs(stepAt, subjectStepName(16, otherHead, base)),
+  );
+  assert.equal(await fn([authenticComment(marker(), commentAt)], expected(), otherSubject), false);
+});
+
+test("completed failure stays retryable", async () => {
+  const fn = loadAttemptChecker();
+  const github = githubFor(
+    realRun({ status: "completed", conclusion: "failure" }),
+    realJobs(),
+  );
+  assert.equal(await fn([authenticComment(marker(), commentAt)], expected(), github), false);
+});
+
+test("cancelled run stays retryable", async () => {
+  const fn = loadAttemptChecker();
+  const github = githubFor(
+    realRun({ status: "completed", conclusion: "cancelled" }),
+    realJobs(),
+  );
+  assert.equal(await fn([authenticComment(marker(), commentAt)], expected(), github), false);
+});
+
+test("timed_out run stays retryable", async () => {
+  const fn = loadAttemptChecker();
+  const github = githubFor(
+    realRun({ status: "completed", conclusion: "timed_out" }),
+    realJobs(),
+  );
+  assert.equal(await fn([authenticComment(marker(), commentAt)], expected(), github), false);
+});
+
+test("in_progress run for the same subject dedupes", async () => {
+  const fn = loadAttemptChecker();
+  const github = githubFor(
+    realRun({ status: "in_progress", conclusion: null }),
+    realJobs(),
+  );
+  assert.equal(await fn([authenticComment(marker(), commentAt)], expected(), github), true);
+});
+
+test("completed success for the same subject dedupes", async () => {
+  const fn = loadAttemptChecker();
+  const github = githubFor(
+    realRun({ status: "completed", conclusion: "success" }),
+    realJobs(),
+  );
+  assert.equal(await fn([authenticComment(marker(), commentAt)], expected(), github), true);
+});
+
+test("force_retry does not suppress an authentic attempt", async () => {
+  const { findAuthenticPriorAttempt, priorAttemptBlocksRun } = loadAttemptModule();
+  assert.equal(typeof priorAttemptBlocksRun, "function", "suppression decision must come from the workflow");
+  const github = githubFor(realRun(), realJobs());
+  const priorAttempt = await findAuthenticPriorAttempt(
+    [authenticComment(marker(), commentAt)],
+    expected(),
+    github,
+  );
+  assert.equal(priorAttempt, true);
+  assert.equal(priorAttemptBlocksRun(priorAttempt, true), false);
+  assert.equal(priorAttemptBlocksRun(priorAttempt, false), true);
+  assert.match(workflow, /priorAttemptBlocksRun\(priorAttempt, forceRetry\)/);
 });
