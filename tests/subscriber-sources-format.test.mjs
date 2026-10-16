@@ -55,6 +55,25 @@ test("a symlinked report script still runs instead of exiting 0", () => {
   }
 });
 
+test("line and paragraph separators are escaped before width calculation", () => {
+  assert.equal(escapeReportField("\u2028"), "\\u2028");
+  assert.equal(escapeReportField("\u2029"), "\\u2029");
+  const raw = "\u2028\u2029";
+  const escaped = escapeReportField(raw);
+  assert.equal(escaped, "\\u2028\\u2029");
+  assert.equal(escaped.includes("\u2028"), false);
+  assert.equal(escaped.includes("\u2029"), false);
+  const lone = formatTable("T", new Map([["\u2028", 3]]), 3).split("\n").at(-1);
+  assert.equal(lone.includes("\u2028"), false);
+  assert.equal(lone, `  ${"\\u2028".padEnd(7)}      3  100.0%`);
+  const out = formatTable("T", new Map([[raw, 2], ["x", 1]]), 3);
+  assert.equal(out.includes("\u2028"), false);
+  assert.equal(out.includes("\u2029"), false);
+  const rows = out.split("\n").filter((line) => line.startsWith("  "));
+  assert.equal(rows[0], `  ${escaped.padEnd(escaped.length)}      2  66.7%`);
+  assert.equal(rows[1], `  ${"x".padEnd(escaped.length)}      1  33.3%`);
+});
+
 test("empty report stays a single data line", () => {
   const out = formatTable("By utm_source", new Map(), 1);
   assert.equal(out.split("\n").at(-1), "  (no data)");

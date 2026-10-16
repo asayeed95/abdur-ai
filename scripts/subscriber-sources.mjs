@@ -66,14 +66,19 @@ function bump(map, key) {
 }
 
 /**
- * Visible ASCII for C0, DEL, and C1. Applied before width so a newline, CR,
- * or ESC cannot open a second row or move the cursor. AGE-3654 / cedd7176.
+ * Visible ASCII for C0, DEL, C1, U+2028, and U+2029. Applied before width so
+ * a newline, CR, ESC, or Unicode line separator cannot open a second row.
+ * AGE-3654 / cedd7176.
  */
 export function escapeReportField(value) {
   let out = "";
   for (const ch of String(value)) {
     const cp = ch.codePointAt(0);
-    if (cp <= 0x1f || cp === 0x7f || (cp >= 0x80 && cp <= 0x9f)) {
+    if (cp === 0x2028) {
+      out += "\\u2028";
+    } else if (cp === 0x2029) {
+      out += "\\u2029";
+    } else if (cp <= 0x1f || cp === 0x7f || (cp >= 0x80 && cp <= 0x9f)) {
       out += `\\x${cp.toString(16).padStart(2, "0")}`;
     } else {
       out += ch;
