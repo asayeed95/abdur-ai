@@ -355,3 +355,9 @@ every article's h1 and body prose are untouched.
   content-publish-override: content/posts/claude-code-subscriptions-vs-usage-credits.mdx
   reason: Publish the exact founder-reviewed Claude Code cost article and its diagrams through the existing Writing pipeline.
   approved-by: Abdur, 2026-10-15, explicit publication request in this chat.
+
+
+- task-id: C-15
+  content-publish-override: content/posts/rss-is-a-follow-button-for-your-website.mdx
+  reason: Publish the founder-requested short RSS article and diagram to Writing and X as the full API test.
+  approved-by: Abdur, 2026-10-15, explicit publication instruction in this chat.
