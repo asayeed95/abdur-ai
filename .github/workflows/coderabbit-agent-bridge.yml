@@ -96,7 +96,12 @@ jobs:
                 const repoName = `${expected.owner}/${expected.repo}`;
                 const runRepo = run?.repository?.full_name || run?.head_repository?.full_name;
                 if (runRepo && runRepo !== repoName) continue;
-                if (run?.path !== '.github/workflows/coderabbit-agent-bridge.yml') continue;
+                const workflowFile = '.github/workflows/coderabbit-agent-bridge.yml';
+                const workflowPath = typeof run?.path === 'string' ? run.path : '';
+                const workflowSuffix = workflowPath.startsWith(workflowFile)
+                  ? workflowPath.slice(workflowFile.length)
+                  : null;
+                if (workflowSuffix === null || (workflowSuffix !== '' && !workflowSuffix.startsWith('@'))) continue;
                 if (run.event !== 'issue_comment' && run.event !== 'workflow_dispatch') continue;
                 const attemptStep = (jobs || []).flatMap(job => job.steps || []).find(step =>
                   step.name === 'Record the Claude attempt' && step.conclusion === 'success' && step.completed_at

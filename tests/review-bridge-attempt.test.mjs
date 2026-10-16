@@ -136,6 +136,20 @@ test("an authentic attempt for this head, base, PR, and run suppresses", async (
   assert.equal(await fn([comment], expected(), github), true);
 });
 
+test("a ref-suffixed workflow path still counts and a near-miss filename does not", async () => {
+  const fn = loadAttemptChecker();
+  const suffixed = githubFor(
+    realRun({ path: ".github/workflows/coderabbit-agent-bridge.yml@main" }),
+    realJobs(),
+  );
+  assert.equal(await fn([authenticComment(marker(), commentAt)], expected(), suffixed), true);
+  const nearMiss = githubFor(
+    realRun({ path: ".github/workflows/coderabbit-agent-bridge.yml.bak" }),
+    realJobs(),
+  );
+  assert.equal(await fn([authenticComment(marker(), commentAt)], expected(), nearMiss), false);
+});
+
 test("the current run id cannot suppress itself", async () => {
   const fn = loadAttemptChecker();
   const github = githubFor(realRun(), realJobs());
