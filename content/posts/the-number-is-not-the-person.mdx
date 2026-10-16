@@ -1,6 +1,7 @@
 ---
 title: "The number is not the person"
 date: "2026-08-23"
+updated: "2026-10-03"
 register: argued
 status_note: "Argument. Grounded in public vendor docs, not a measured incident."
 excerpt: "If the next call injects whatever the last number stored, a shared line will greet the wrong human. Key by a principal, not by ANI."
@@ -42,6 +43,10 @@ Walk it as a failure class, not a ticket:
 2. **Call B.** A different person uses the same number. The platform matches the number. The agent injects the stored fields. The opener is already about Call A’s issue.
 3. **The room hears competence.** The transcript looks personal. The principal is wrong.
 
+<Figure label="Figure 1" caption="Memory keyed by the number: Call B gets greeted about Call A's issue.">
+<NumberIsNotThePersonDiagram />
+</Figure>
+
 Shared line and wrong person are questions you ask, not logos you print. Ask: is this number exclusive to one human? Is the next caller the same legal subject as the last? If you cannot answer those, you do not have a principal. You have a channel.
 
 This is the same muscle as the pager lesson on [abdur.ai](https://abdur.ai/aitldr/your-pager-is-not-your-customer): a loud, well-keyed signal can still be about the wrong object. There the object was “customer impact.” Here the object is “this human.” I am not claiming the two incidents are the same outage. I am claiming the same evidence cut.
@@ -51,6 +56,15 @@ This is the same muscle as the pager lesson on [abdur.ai](https://abdur.ai/aitld
 You ask, you do not assume.
 
 A principal is the subject you are allowed to remember: a user id, an account key, a verified member, a workspace member — something that survives a handset change and does not leap to the roommate. ANI is the inbound caller ID. It is useful. It is not enough.
+
+<Tabs label="What memory is keyed by">
+<Tab title="Keyed by ANI">
+The inbound caller ID. Useful, not enough. On a shared line the number matches, the stored fields are injected, and Call B hears Call A's name and issue.
+</Tab>
+<Tab title="Keyed by a principal">
+A user id, an account key, a verified member, a workspace member: something that survives a handset change and does not leap to the roommate. The id you would use after a SIM swap.
+</Tab>
+</Tabs>
 
 Monday questions, in the paywall and in the repo:
 

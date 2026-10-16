@@ -48,6 +48,19 @@ Here's how Mnemix is designed for sub-300ms voice recall on the warm path:
 
 Mnemix is designed for sub-300ms voice recall on the warm path. That target is intended to fit inside the VAD silence the agent was going to wait through regardless. The lookup is designed to happen during silence that already existed rather than adding a separate pause.
 
+<Tabs label="Where the lookup sits in a turn">
+<Tab title="The objection">
+<VoiceMemoryLatencyDiagram variant="objection" />
+
+A memory lookup mid-call adds a pause, and the conversation falls apart.
+</Tab>
+<Tab title="The design">
+<VoiceMemoryLatencyDiagram variant="design" />
+
+The lookup is designed to happen inside the VAD silence the agent was going to wait through regardless, not as a separate pause.
+</Tab>
+</Tabs>
+
 ## Where the argument actually lives
 
 The "memory is too slow for voice" question does not disappear because a lookup can be fast. It becomes a systems question: whether context changes the quality of the conversation enough to earn its place in a constrained path.

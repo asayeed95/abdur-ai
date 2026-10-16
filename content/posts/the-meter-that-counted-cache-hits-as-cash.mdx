@@ -6,6 +6,7 @@ description: "A usage ledger that charges no one is the cheapest place to break 
 dek: "The ledger charged no one, the flag was off, and the migration never touched prod. Review still found three bugs — one that would have billed tenants for free cache hits, one that let a tenant rewrite its own billing history, and a table in prod that no migration created."
 tldr: "I built Mnemix's usage ledger before charging anyone: append-only, RLS-scoped per tenant, integer micro-dollars, flag off by default. Review found three bugs before prod saw any of it. The enrichment meter counted cache hits as live vendor calls — it would have billed tenants for free lookups. The RLS policy had no FOR clause, so a tenant could update or delete its own billing history. And applying the migration hit a different usage_events table already living in prod: 12 rows, last write 2026-04-25, created by no migration, read by no code. Fixes: gate the meter on !cacheHit, INSERT/SELECT-only policies plus an append-only trigger, and rename the orphan to usage_events_legacy_20260425. Pattern P-019: count before you charge — a flag-off ledger is the cheapest place to break billing code."
 date: 2026-07-24T09:00:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "Mistakes TLDR"
 register: reported
@@ -45,6 +46,25 @@ Review broke it three times before prod saw the migration.
 ## What broke
 
 **One: the enrichment meter counted cache hits as cash.** `/v1/recall_and_enrich` emits two meters — `recall`, the primary value metric, and `enrichment_query` when vendors were called. The second decided "vendors were called" by reading `sourcesCalled`, which is populated from *either* a cache hit (`Object.keys(cachedEnrichment)`) *or* a live vendor race. A cache hit makes zero Trestle/Twilio requests; that cost was already counted on the request that populated the cache. Every cache hit would have been billed as a fresh vendor lookup — on a path with zero test coverage.
+
+<StepThrough label="Walk bug one">
+<CacheHitMeterDiagram />
+<Step title="Two meters" highlight="request recall">
+`/v1/recall_and_enrich` emits `recall`, the primary value metric, and `enrichment_query` when vendors were called.
+</Step>
+<Step title="One list, two ways to fill it" highlight="cache hit miss cached live leak fill sources">
+`sourcesCalled` is populated from either a cache hit or a live vendor race.
+</Step>
+<Step title="A cache hit costs nothing" highlight="hit cached">
+A cache hit makes zero Trestle/Twilio requests. That cost was already counted on the request that populated the cache.
+</Step>
+<Step title="The meter can't tell" highlight="leak sources read meter">
+The meter decided "vendors were called" by reading `sourcesCalled`. So every cache hit counts as a fresh vendor lookup. The better the hit rate, the more phantom revenue.
+</Step>
+<Step title="The fix" highlight="fix">
+Gate the `enrichment_query` meter on `!cacheHit`, plus three route tests: live call emits both meters, cache hit emits recall only, flag off emits nothing.
+</Step>
+</StepThrough>
 
 **Two: the RLS policy let a tenant rewrite its own billing history.** The `usage_events` policy had no `FOR` clause. In Postgres, a policy without one applies to every command — including UPDATE and DELETE.
 

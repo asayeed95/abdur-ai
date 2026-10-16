@@ -6,6 +6,7 @@ description: "Bounding Redis retries on a webhook health path took three designs
 dek: "The Redis retries on the Linear webhook's /health path existed to absorb slowness. Two designs in, they could amplify it: a shared abort fuse that fired inside unrelated writes, an unbounded claim that could stall past Linear's 5-second deadline, and a synthetic 200 from the SDK that read real first deliveries as duplicates. The fix was a factory and one rule — only null means duplicate."
 tldr: "The Linear webhook claims deliveries in Redis against Linear's 5-second deadline, and its /health path ran Redis retries to ride out slowness. Bounding them took three designs. The first created one static AbortSignal.timeout() at setup and shared it across requests — a creation-anchored fuse that bounded nothing per-call and, on slow requests, fired inside the detached post-ack bookkeeping writes. The retry-only replacement dropped the fuse footgun but left a silently-hung request able to stall the awaited claim past the deadline. Merged underneath, the duplicate check classified anything that wasn't result === 'OK' as a duplicate — and when a static abort fires mid-request, @upstash/redis doesn't throw; it fabricates a synthetic 200 whose result is 'Aborted'. A real first delivery would read as a duplicate and be silently dropped: fail-closed, the worst mode for a fail-open webhook. The fix: a signal factory the SDK invokes per command (worst case 2 attempts x 1.5s + 150ms, about 3.15s), and one rule — only a null SETNX reply means duplicate; everything else fails open and goes to Sentry."
 date: 2026-07-23T09:00:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "Mistakes TLDR"
 register: reported
@@ -52,6 +53,25 @@ Design one: a single static `AbortSignal.timeout()`, created once and shared by 
 Design two: keep the retries, drop the signal. The fuse footgun was gone, but so was every bound. One silently-hung Redis request could now stall the awaited claim past Linear's 5-second deadline. The retries existed to absorb a slow Redis; unbounded, they could hold a whole delivery hostage to one.
 
 The third problem was older and worse, and it was already merged in #423. The duplicate check classified anything that wasn't `result === 'OK'` as a duplicate. But when a static abort fires mid-request, `@upstash/redis` does not throw. It fabricates a synthetic 200 Response whose result is `"Aborted"`. `"Aborted"` is not `'OK'`, so a legitimate first delivery would read as a duplicate and be silently dropped. Fail-closed on timeout — the worst mode for a webhook whose whole design is fail-open.
+
+<StepThrough label="Walk the three designs">
+<RetryStormDiagram />
+<Step title="Claim before ack" highlight="delivery await claim">
+The webhook claims each delivery in Redis before acking. The claim is awaited inline, against Linear's 5-second deadline. The retries are there to ride out a slow Redis.
+</Step>
+<Step title="Design one: a shared fuse" highlight="fuse claim bookkeeping">
+One static `AbortSignal.timeout()`, created once and shared by every request. It bounded nothing per call, and on slow requests it fired late, inside the detached post-ack bookkeeping writes.
+</Step>
+<Step title="Design two: no bound at all" highlight="delivery await claim">
+Keep the retries, drop the signal. One silently hung Redis request could now stall the awaited claim past the 5-second deadline.
+</Step>
+<Step title="The 200 that meant aborted" highlight="decide yes dup">
+Already merged in #423: anything that wasn't `result === 'OK'` counted as a duplicate. On a static abort, `@upstash/redis` doesn't throw; it fabricates a synthetic 200 whose result is `"Aborted"`. A real first delivery reads as a duplicate and is silently dropped.
+</Step>
+<Step title="The fix" highlight="claim decide no open bookkeeping">
+A signal factory the SDK invokes per command, so every attempt gets a fresh fuse of its own: worst case about 3.15s for the awaited claim, inside the 5s deadline. And only null means duplicate. Everything else fails open and goes to Sentry.
+</Step>
+</StepThrough>
 
 ## What it cost
 

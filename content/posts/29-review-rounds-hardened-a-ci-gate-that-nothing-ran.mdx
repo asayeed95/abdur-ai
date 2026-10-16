@@ -5,6 +5,7 @@ slug: 29-review-rounds-hardened-a-ci-gate-that-nothing-ran
 description: "A path-authorization script survived 29 adversarial review rounds — and no CI job ever invoked it. Wiring it in exposed a bypass needing no code edit."
 dek: "The bypass that needed no edit at all — and the five-minute audit that finds it in your repo."
 date: 2026-08-25T20:58:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "Builder Logs"
 register: reported
@@ -102,6 +103,25 @@ build-plan-authorization:
 ```
 
 The lesson, as the reviewer put it: **a gate that cannot run must never be mistaken for a gate that passed.** A skip that a required context accepts is a pass wearing a different word.
+
+<StepThrough label="Walk the gate">
+<NothingRanGateDiagram />
+<Step title="A lock with no door" highlight="run to-verdict verdict">
+The verifier had survived twenty-nine adversarial review rounds. No CI job invoked it. An agent ran it by hand and self-reported.
+</Step>
+<Step title="Its own job, its own context" highlight="event job">
+The gate runs as its own job with its own required status context, not a step inside the existing test job. Delete a step and it fails open; an own-context job that never reports holds the PR at "Expected".
+</Step>
+<Step title="The bypass with no edit" highlight="bypass">
+A job-level `if: github.event_name == 'pull_request'` turned a manual `workflow_dispatch` on the PR's branch into a skipped job. A skipped job satisfies a required status check.
+</Step>
+<Step title="Decide inside the step" highlight="noif step decide yes run push skip to-pass pass no refuse to-red red">
+No job-level `if:`. The step reads the event. A pull request runs the gate. A push to `main` prints a named skip, `VERDICT: skip reason=not-a-pull-request event=push`, and exits 0. Any other event, such as a manual `workflow_dispatch`, fails the check instead of skipping it.
+</Step>
+<Step title="A judge the PR can't edit" highlight="decide yes run to-verdict verdict">
+The gate and the verifier are materialized from `origin/main` at run time. All the gate does with the verifier is read its exit code.
+</Step>
+</StepThrough>
 
 ## The one where my mutation test lied to me
 

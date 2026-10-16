@@ -7,6 +7,7 @@ description: "An audit found 12 of 15 pages with meta descriptions past a 155-ch
 dek: "An audit of this site found meta descriptions running past ~155 characters on 12 of 15 pages and four titles past ~60. All ten post descriptions were written to be read in full, not to survive a cut. Here is the budget, the fix, and the one change the audit got wrong."
 tldr: "A live audit of abdur.ai on 2026-09-10 found 12 of 15 pages with meta descriptions past a ~155-character budget (worst: 271 characters) and four <title> values past ~60 (worst: 87). All ten posts were over, between 164 and 271 characters. Google sets no hard limit on description length but truncates snippets as needed to fit the device width, so any of those descriptions Google chose to show was likely to be cut before the sentence finished. The fix (c57a046, PR #49) rewrote each description as one complete thought within budget, moved the old copy into the dek on the one post that had none so its index teaser didn't change, and added an optional seo_title field used for <title> only, so the h1 and share cards keep the full editorial title. The home page got its own meta description, separate from the identity blurb that llms.txt and JSON-LD use. The audit had also recommended disallowing the duplicate /aitldr/ URLs in robots.txt. That would have stopped Google reading their rel=canonical, and Google's docs say not to use robots.txt for canonicalization. It didn't ship. Afterwards: 28 rendered pages, 0 over budget."
 date: 2026-09-26T09:00:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "Mistakes TLDR"
 register: reported
@@ -66,6 +67,10 @@ Two smaller findings came out of the same pass. `/now` had a 49-character descri
 Google's snippet documentation says there's no limit on how long a meta description can be, but the snippet "is truncated in Google Search results as needed, typically to fit the device width." Its title-link docs say the same about titles. Google also says snippets come primarily from page content and it only sometimes uses the meta description.
 
 So 155 and 60 are budgets I chose, not limits Google publishes. A character count is a stand-in for a pixel width, and a wide letter uses more of it than a narrow one. I use a budget because it's checkable, and a description written as one complete thought inside it survives truncation better than a paragraph that gets cut off.
+
+<Figure label="Figure 1" caption="Worst description 271 characters, cut before the sentence finished; after the fix, 141 to 152.">
+<MetaDescriptionTruncationDiagram />
+</Figure>
 
 ## Who this bites
 
@@ -152,6 +157,16 @@ It didn't ship. `app/robots.ts` blocks `/api/` and nothing else, and the canonic
 5. **Read each description as a claim.** "Updated weekly" is a promise. If the page can't back it up, cut it.
 6. **Canonicalize duplicates with `rel="canonical"`, not robots.txt.** The crawler has to fetch the page to see the tag.
 7. **Re-run the measurement after every content change.** A new post is a new description.
+
+<Checklist label="Check your own site">
+<Check>I measured the rendered output, not the source, counting characters after decoding entities.</Check>
+<Check>Each description is one complete thought, with the answer or finding first.</Check>
+<Check>Meta description, teaser and identity blurb are separate fields.</Check>
+<Check>Titles have an optional SERP-only title, with the template suffix counted.</Check>
+<Check>No description makes a claim the page can't back up.</Check>
+<Check>Duplicates are canonicalized with rel="canonical", not robots.txt.</Check>
+<Check>I re-ran the measurement after the last content change.</Check>
+</Checklist>
 
 ## FAQ
 

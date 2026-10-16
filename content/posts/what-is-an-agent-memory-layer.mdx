@@ -7,6 +7,7 @@ description: "An agent memory layer decides what an AI agent keeps, who each fac
 dek: "An agent memory layer is the policy between an AI agent and its storage: what gets written, whose it is, when it was true, and what comes back at the next decision. Here is the definition, the six jobs it has to do, who needs one, and who doesn't."
 tldr: "An agent memory layer is the part of an AI agent's stack that decides what gets kept, who each fact is about, when it was true, and what comes back at the moment of the next decision. The context window is not memory, because it does not outlive the session. A vector database is not a memory layer either: it is an index that answers similarity, with no opinion on what should be stored, whose it is, whether it is still true, or whether it was deleted. A memory layer has six jobs: gate writes, key by principal, keep two clocks (bi-temporal), carry provenance, recall inside the channel's time budget, and forget on purpose. You need one when the same agent serves the same principal more than once. You do not need one for single-shot tasks, or when a restart-safe event log already covers the problem."
 date: 2026-09-29T09:00:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "Agent Systems"
 register: argued
@@ -64,6 +65,31 @@ Six jobs. Skip one and you get a recognizable failure.
 4. **Carry provenance.** Every fact points back to the event that produced it. Without it, when the agent is wrong you can't tell whether the source was wrong, the extraction was wrong, or the retrieval was wrong.
 5. **Recall at decision time, inside the channel's budget.** A chat agent can afford a pause. A voice agent mid-conversation can't. Without a budget, memory can be correct and still arrive after the agent has already answered. I argued in [the voice-AI latency post](/writing/voice-ai-memory-latency-is-a-dead-argument) that this is an architecture problem, not a physics one.
 6. **Forget on purpose.** Corrections supersede old facts instead of sitting beside them, and deletion requests actually stop a fact from being recalled. Without it, the agent "remembers" something the user corrected last week, or something they asked it to drop.
+
+<StepThrough label="Walk the six jobs">
+<MemoryLayerDiagram />
+<Step title="Between the agent and storage" highlight="agent layer storage">
+The context window is where an agent thinks. A vector database is one place memory can be stored. The memory layer is the policy between them: two doors and a rulebook.
+</Step>
+<Step title="Gate writes" highlight="write">
+The write door decides what becomes a durable fact. Most of it shouldn't.
+</Step>
+<Step title="Key by principal" highlight="principal">
+Every fact belongs to a subject (a user, an account, a workspace), not to a channel.
+</Step>
+<Step title="Keep two clocks" highlight="clocks">
+When a fact was true, and when the agent learned it.
+</Step>
+<Step title="Carry provenance" highlight="provenance">
+Every fact points back to the event that produced it.
+</Step>
+<Step title="Recall inside the budget" highlight="read">
+The read door answers what the agent needs to know, about this principal, right now, inside the channel's time budget.
+</Step>
+<Step title="Forget on purpose" highlight="forget">
+Corrections supersede old facts instead of sitting beside them. Deletion requests stop a fact from being recalled.
+</Step>
+</StepThrough>
 
 ## Who needs an agent memory layer?
 

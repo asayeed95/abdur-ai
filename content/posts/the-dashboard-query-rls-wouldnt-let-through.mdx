@@ -6,6 +6,7 @@ description: "Migration 031 revoked two columns and the dashboard's select('*') 
 dek: "I revoked two columns from the dashboard's own role and broke every logged-in page load for three days. Postgres was right; my select('*') was wrong — and the retry screen I'd shipped earlier turned the crash into something quiet."
 tldr: "Migration 031 hardened the tenants table in the Mnemix repo: it narrowed the authenticated role's SELECT grant to an explicit column list, cutting tenant_secret and api_key_hash. Correct call — and it broke the dashboard instantly. dashboard/layout.tsx and dashboard/page.tsx both fetched the tenant with select('*'), and Postgres checks column privileges at parse time, before row filtering. Every authenticated page load failed with 42501, 'permission denied for table tenants,' unconditionally — even for queries matching zero rows. My own earlier guard (PR #410) turned the crash into a 'couldn't load your workspace' retry screen, which kept the failure quiet for three days. The hotfix (aee3f57, PR #433) narrowed both selects to the exact 031 grant list, verified live against prod via the Supabase Management API: select('*') 42501'd under SET ROLE authenticated even for a nonexistent row; the explicit column list returned the real tenant's row. The pattern: privilege narrowing is a breaking change to your own queries — replay every affected query against the new grants before you merge."
 date: 2026-07-25T09:00:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "Mistakes TLDR"
 register: reported
@@ -53,6 +54,25 @@ The problem was on my side of the fence. `dashboard/layout.tsx`, which runs on e
 Three days of a dashboard that could not load for any logged-in user, including the one real tenant the dashboard exists for.
 
 It also didn't look broken, which is its own cost. An earlier PR of mine, #410, had added a guard that caught the `data: null` plus error result and rendered a retry screen instead of crashing. Directionally right. In practice it converted a loud failure into a quiet one: the app "handled" the error, so the failure surfaced as a retry screen instead of a crash, and the real bug sat underneath for three days. I had tested the error path. I had never once loaded the actual dashboard against prod after 031.
+
+<StepThrough label="Walk the incident">
+<RlsDashboardQueryDiagram />
+<Step title="031 narrows the grant" highlight="check decide">
+Migration 031 narrows the `authenticated` role's SELECT grant on `tenants` to an explicit column list. `tenant_secret` and `api_key_hash` are out. Right call.
+</Step>
+<Step title="select('*') on every page load" highlight="load parse expand">
+`dashboard/layout.tsx` runs on every authenticated page load and fetches the tenant row with `select('*')`. Postgres expands `*` to the full column list at parse time.
+</Step>
+<Step title="The privilege check fires first" highlight="check decide no deny">
+Column privilege is checked before a single row is filtered. Two ungranted columns make the whole query illegal: 42501, `permission denied for table tenants`, even for a row that does not exist.
+</Step>
+<Step title="The guard makes it quiet" highlight="deny to-guard guard">
+#410 caught the error and rendered a retry screen instead of crashing. A loud failure became a quiet one, for three days.
+</Step>
+<Step title="The fix: the exact grant list" highlight="decide yes filter to-row row">
+#433 narrows both selects to the exact 031 grant list. The check passes, and the real tenant's row comes back.
+</Step>
+</StepThrough>
 
 The one honest mitigation: it failed closed. Nobody read a column they shouldn't have. What it cost was the dashboard itself, plus a P0 hotfix that a single end-to-end page load against prod would have made unnecessary.
 

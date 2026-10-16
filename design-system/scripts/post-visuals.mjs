@@ -70,7 +70,11 @@ export async function buildPostVisuals({ REPO, DS }) {
   const React = (await import("react")).default;
   const { renderToStaticMarkup } = await import("react-dom/server");
   const h = React.createElement;
-  const render = (el) => renderToStaticMarkup(el);
+  // Every render takes an id prefix. A page shows each visual more than once
+  // (a dark and a light panel; StepThrough etc. also no-JS and enhanced), and
+  // the components derive their ids from useId(), so a distinct
+  // identifierPrefix per render keeps every id on the page unique.
+  const render = (el, prefix) => renderToStaticMarkup(el, { identifierPrefix: prefix });
 
   const mods = async (root) => ({
     Figure: (await load(root, "components/post/Figure.tsx")).Figure,
@@ -110,7 +114,7 @@ export async function buildPostVisuals({ REPO, DS }) {
       h(M.slots.Answer, null, p("So a restart rebuilds context from what happened, not from what was last summarized.")));
 
   const S = (label) => `<span class="ds-state">${label}</span>`;
-  const both = (make) => `<div class="ds-stack">${S("no JS · feeds · crawlers")}${render(make(N))}${S("enhanced (after hydration)")}${render(make(E))}</div>`;
+  const both = (make, pre) => `<div class="ds-stack">${S("no JS · feeds · crawlers")}${render(make(N), `${pre}nojs-`)}${S("enhanced (after hydration)")}${render(make(E), `${pre}enh-`)}</div>`;
 
   const diagramNames = Object.keys(N.diagrams).filter((k) => /Diagram$/.test(k));
   const entries = [
@@ -123,7 +127,7 @@ export async function buildPostVisuals({ REPO, DS }) {
         "Width: the 65ch prose column, never wider. `size=\"narrow\"` caps it at `--aitldr-figure-max` (28rem) for small visuals.",
         "`not-prose`, so the post's element rules don't restyle what's inside.",
       ],
-      html: () => render(h(N.Figure, { label: "Figure 1", caption: "Done is a claim until the check's output matches it." }, h(N.diagrams.VerificationLoopDiagram))),
+      html: (pre) => render(h(N.Figure, { label: "Figure 1", caption: "Done is a claim until the check's output matches it." }, h(N.diagrams.VerificationLoopDiagram)), pre),
     },
     ...diagramNames.map((name) => ({
       slug: name.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase(), name, source: `components/diagrams/${name}.tsx`,
@@ -134,7 +138,7 @@ export async function buildPostVisuals({ REPO, DS }) {
         "Groups carry `data-node` names; inside a StepThrough the current step's names stay lit and the rest dim to 40%.",
         "No numbers. A diagram shows a mechanism, never a measurement.",
       ],
-      html: () => render(h(N.Figure, { label: "Figure 1", caption: "Preview caption." }, h(N.diagrams[name]))),
+      html: (pre) => render(h(N.Figure, { label: "Figure 1", caption: "Preview caption." }, h(N.diagrams[name])), pre),
     })),
     {
       slug: "step-through", name: "StepThrough", source: "components/interactive/StepThrough.tsx, components/interactive/slots.tsx",
@@ -144,7 +148,7 @@ export async function buildPostVisuals({ REPO, DS }) {
         "`Step` takes `highlight=\"a b\"`: diagram node names that stay lit while the rest dim to 40%. (The dimming runs in an effect, so this static preview shows the diagram undimmed.)",
         "Step titles are Playfair `xl`. The step counter is mono `meta`.",
       ],
-      html: () => both(stepThrough),
+      html: (pre) => both(stepThrough, pre),
     },
     {
       slug: "tabs", name: "Tabs", source: "components/interactive/Tabs.tsx, components/interactive/slots.tsx",
@@ -153,7 +157,7 @@ export async function buildPostVisuals({ REPO, DS }) {
         "No JS: every panel renders under its mono title. Enhanced: a WAI-ARIA tablist with roving tabindex; arrows, Home and End move.",
         "Selected tab: `clay` label over a 2px `clay` rule. Others: `meta` → `text` on hover.",
       ],
-      html: () => both(tabs),
+      html: (pre) => both(tabs, pre),
     },
     {
       slug: "checklist", name: "Checklist", source: "components/interactive/Checklist.tsx",
@@ -162,7 +166,7 @@ export async function buildPostVisuals({ REPO, DS }) {
         "Checkboxes use `accent-clay`. A checked row's text steps up from `text-soft` to `text`.",
         "Enhanced adds `n of m checked` (live, mono `meta`) and Reset. Nothing is stored or sent.",
       ],
-      html: () => both(checklist),
+      html: (pre) => both(checklist, pre),
     },
     {
       slug: "quiz", name: "Quiz", source: "components/interactive/Quiz.tsx, components/interactive/slots.tsx",
@@ -172,12 +176,12 @@ export async function buildPostVisuals({ REPO, DS }) {
         "Enhanced: Check marks the pick. Right is `good-text` with a `good-text` border; wrong is `clay`. No red exists.",
         "Mark exactly one `Choice` with the bare `correct` attribute; the reveal repeats it before the `Answer`.",
       ],
-      html: () => `${both(quiz)}<div class="ds-stack" style="margin-top:var(--space-8)">${S("no choices: think first")}${render(prompt(N))}</div>`,
+      html: (pre) => `${both(quiz, pre)}<div class="ds-stack" style="margin-top:var(--space-8)">${S("no choices: think first")}${render(prompt(N), `${pre}prompt-`)}</div>`,
     },
   ];
 
   // Compile the utilities the rendered markup uses, from the app's own config.
-  const all = entries.map((e) => e.html()).join("\n");
+  const all = entries.map((e) => e.html("ds-")).join("\n");
   const ts = (await import("typescript")).default;
   const cfgOut = path.join(cache, "tailwind.config.mjs");
   fs.writeFileSync(cfgOut, ts.transpileModule(fs.readFileSync(path.join(REPO, "tailwind.config.ts"), "utf8"), {

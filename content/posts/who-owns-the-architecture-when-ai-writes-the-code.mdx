@@ -6,6 +6,7 @@ subtitle: "The honest version of AI-native building"
 description: "AI writes most of my code and I own every decision. The test that separates the two: explain a decision, then change it. Otherwise you are a passenger."
 dek: "Writing the code and owning the system are not the same job. The test that separates them: explain a decision, then change it. If the answer is 'the AI chose it,' you're a passenger."
 date: 2026-07-02T11:00:00-04:00
+updated: 2026-10-03
 author: Abdur Rahman Sayeed
 section: "AI-Native Engineering"
 register: argued
@@ -43,11 +44,23 @@ The AI produces an implementation. My job is everything around that:
 
 The AI is fast hands. The architecture, the judgment, the taste, the "this is the wrong abstraction and here's why" — that doesn't come from the model. If it did, the model could do my whole job and wouldn't need me to drive it.
 
+<Figure label="Figure 1" caption="The AI is fast hands. Everything around the code is my job.">
+<ArchitectureOwnershipDiagram />
+</Figure>
+
 ## The test that separates the two
 
 Here's how you tell whether someone owns AI-generated work or just prompted it: **ask them to explain a decision and then change it.**
 
 "Why this vector DB over that one? What breaks if traffic 10x's? Walk me through what happens when the retrieval misses." If the answer is "the AI chose it," that person doesn't own the system — they're a passenger. If they can defend every decision and tell you what they'd do differently at scale, the code being AI-generated is irrelevant. They own it.
+
+<Quiz question="You ask why they picked this vector DB over that one. Which answer means they own the system?">
+<Choice>The AI chose it.</Choice>
+<Choice correct>They defend the decision and tell you what they'd do differently at scale.</Choice>
+<Answer>
+If the answer is "the AI chose it," they're a passenger. Owning it means you can explain a decision, then change it.
+</Answer>
+</Quiz>
 
 I hold myself to the second standard. Not because it sounds good, but because the moment something goes down in production at 2am, the AI isn't on call. I am.
 
