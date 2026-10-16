@@ -56,6 +56,68 @@ jobs:
           FORCE_RETRY: ${{ inputs.force_retry }}
         with:
           script: |
+            // AGE-3654 attempt-authenticity:begin
+            // Prior attempts are commit comments on the current head, posted by
+            // this workflow. PR issue comments are untrusted. AGE-1116 still
+            // owns retirement of this executor; this check only stops a forged,
+            // copied, or stale marker from suppressing a real run.
+            async function findAuthenticPriorAttempt(commitComments, expected, github) {
+              const marker = /^<!-- review-bridge:claude-attempt pr=(\d+) head=([0-9a-f]{40}) base=([0-9a-f]{40}) run=(\d+) -->$/m;
+              for (const comment of commitComments || []) {
+                if (comment?.user?.login !== 'github-actions[bot]') continue;
+                const app = comment.performed_via_github_app?.slug;
+                if (app && app !== 'github-actions') continue;
+                const match = String(comment.body || '').match(marker);
+                if (!match) continue;
+                const pr = match[1];
+                const head = match[2];
+                const base = match[3];
+                const runId = match[4];
+                if (pr !== String(expected.prNumber)) continue;
+                if (head !== expected.head || base !== expected.base) continue;
+                if (runId === '0' || runId === String(expected.currentRunId)) continue;
+                let run;
+                let jobs;
+                try {
+                  run = (await github.rest.actions.getWorkflowRun({
+                    owner: expected.owner,
+                    repo: expected.repo,
+                    run_id: Number(runId),
+                  })).data;
+                  jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+                    owner: expected.owner,
+                    repo: expected.repo,
+                    run_id: Number(runId),
+                    per_page: 100,
+                  });
+                } catch {
+                  continue;
+                }
+                const repoName = `${expected.owner}/${expected.repo}`;
+                const runRepo = run?.repository?.full_name || run?.head_repository?.full_name;
+                if (runRepo && runRepo !== repoName) continue;
+                if (run?.path !== '.github/workflows/coderabbit-agent-bridge.yml') continue;
+                if (run.event !== 'issue_comment' && run.event !== 'workflow_dispatch') continue;
+                const attemptStep = (jobs || []).flatMap(job => job.steps || []).find(step =>
+                  step.name === 'Record the Claude attempt' && step.conclusion === 'success' && step.completed_at
+                );
+                if (!attemptStep) continue;
+                const delta = Math.abs(new Date(comment.created_at) - new Date(attemptStep.completed_at));
+                if (Number.isNaN(delta) || delta > 5 * 60 * 1000) continue;
+                const linked = Array.isArray(run.pull_requests) ? run.pull_requests : [];
+                if (linked.length > 0) {
+                  const linkedHere = linked.some(item =>
+                    Number(item.number) === Number(expected.prNumber) &&
+                    item.head?.sha === expected.head &&
+                    (!item.base?.sha || item.base.sha === expected.base)
+                  );
+                  if (!linkedHere) continue;
+                }
+                return true;
+              }
+              return false;
+            }
+            // AGE-3654 attempt-authenticity:end
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const prNumber = context.eventName === 'workflow_dispatch'
@@ -103,8 +165,12 @@ jobs:
               const codex = comments
                 .filter(c => trustedCodexActors.has(c.user?.login) && c.body?.includes(codexNeedle))
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
-              const attemptNeedle = `<!-- review-bridge:claude-attempt head=${head} base=${base} `;
-              const priorAttempt = comments.some(c => c.body?.includes(attemptNeedle));
+              const commitComments = await github.paginate(github.rest.repos.listCommentsForCommit, {
+                owner, repo, commit_sha: head, per_page: 100,
+              });
+              const priorAttempt = await findAuthenticPriorAttempt(commitComments, {
+                owner, repo, prNumber, head, base, currentRunId: context.runId,
+              }, github);
 
               if (!codeRabbitReceipt) {
                 result.reason = 'No completed CodeRabbit receipt is bound to the current head';
@@ -167,10 +233,17 @@ jobs:
           INPUT_BASE: ${{ steps.gate.outputs.base }}
         with:
           script: |
+            const marker = `<!-- review-bridge:claude-attempt pr=${process.env.PR_NUMBER} head=${process.env.INPUT_HEAD} base=${process.env.INPUT_BASE} run=${context.runId} -->`;
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: process.env.INPUT_HEAD,
+              body: `${marker}\nClaude final review started for \`${process.env.INPUT_HEAD}\`.`,
+            });
             await github.rest.issues.createComment({
               ...context.repo,
               issue_number: Number(process.env.PR_NUMBER),
-              body: `<!-- review-bridge:claude-attempt head=${process.env.INPUT_HEAD} base=${process.env.INPUT_BASE} run=${context.runId} -->\n` +
+              body: `${marker}\n` +
                 `Claude final review started for \`${process.env.INPUT_HEAD}\` after exact-head CodeRabbit and Codex receipts.`,
             });
 
