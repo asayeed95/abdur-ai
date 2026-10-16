@@ -13,6 +13,7 @@
 #      _drafts/) without an explicit, on-record override in the same file —
 #      see content/posts/_drafts/CONTENT-ROUTING-RULE.md for why.
 #   3. The site actually builds, lints, and typechecks clean.
+#   4. Focused security regressions via `npm run test:security`.
 #
 # Usage:
 #   ./scripts/check-phase.sh              # soft: report, exit 0
@@ -135,6 +136,15 @@ if npm run lint >$TMPD/lint.out 2>&1; then
 else
   fail "npm run lint FAILED — see $TMPD/lint.out"
   tail -20 $TMPD/lint.out | sed 's/^/      /'
+fi
+
+# ---------- Security regressions ----------
+echo "==> Security regressions"
+if npm run test:security >$TMPD/security.out 2>&1; then
+  pass "npm run test:security"
+else
+  fail "npm run test:security FAILED — see $TMPD/security.out"
+  tail -30 $TMPD/security.out | sed 's/^/      /'
 fi
 
 # ---------- Build ----------
