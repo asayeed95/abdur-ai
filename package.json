@@ -13,6 +13,7 @@
     "check:og": "node scripts/check-og-meta.mjs",
     "check:robots": "node --test scripts/check-robots.test.mjs && node scripts/check-robots.mjs",
     "subscribers:sources": "node scripts/subscriber-sources.mjs",
+    "test:security": "node --test tests/tldr-publish-security.test.mjs tests/review-bridge-attempt.test.mjs tests/subscriber-sources-format.test.mjs",
     "test:subscribe": "node scripts/test-subscribe-journey.mjs",
     "test:subscribe:mutants": "node scripts/test-subscribe-mutants.mjs"
   },

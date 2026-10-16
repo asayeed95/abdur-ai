@@ -12,186 +12,278 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import matter from "gray-matter";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const slug = (process.argv[2] || "").replace(/\.mdx?$/, "").trim();
-if (!slug) {
-  console.error("Usage: npm run tldr:publish -- <slug>");
-  process.exit(1);
-}
-if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-  console.error("Slug must contain lowercase letters, numbers, and single hyphens only.");
-  process.exit(1);
+// YAML-only parse. The gray-matter dispatcher reads the opening delimiter and
+// evals a ---js / ---javascript sentinel before any field check. engines.yaml
+// is js-yaml safeLoad: unknown tags throw, and the JavaScript engine is never
+// selected. AGE-3654 / 90f8eb65.
+const parseYaml = matter.engines.yaml.parse;
+
+const scriptFile = fileURLToPath(import.meta.url);
+const root = path.resolve(path.dirname(scriptFile), "..");
+
+const JS_FRONTMATTER = /^---[ \t]*(?:js|javascript)\b/i;
+
+export function extractYamlEnvelope(raw) {
+  const text = String(raw ?? "");
+  const newlineAt = text.search(/\r?\n/);
+  const firstLine = newlineAt === -1 ? text : text.slice(0, newlineAt);
+  if (JS_FRONTMATTER.test(firstLine)) {
+    const error = new Error("JavaScript frontmatter is not allowed.");
+    error.code = "FRONTMATTER_ENGINE";
+    throw error;
+  }
+  if (!/^---[ \t]*$/.test(firstLine)) {
+    const error = new Error("Draft needs YAML frontmatter (--- ... ---).");
+    error.code = "FRONTMATTER_ENVELOPE";
+    throw error;
+  }
+  const match = text.match(/^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*\r?\n/);
+  if (!match) {
+    const error = new Error("Draft needs YAML frontmatter (--- ... ---).");
+    error.code = "FRONTMATTER_ENVELOPE";
+    throw error;
+  }
+  return { yaml: match[1], match };
 }
 
-const drafts = path.join(root, "content", "posts", "_drafts");
-const publishedDir = path.join(root, "content", "posts");
-const src =
-  [".mdx", ".md"]
-    .map((ext) => path.join(drafts, slug + ext))
-    .find((p) => fs.existsSync(p)) || null;
-if (!src) {
-  console.error(`No draft at content/posts/_drafts/${slug}.mdx`);
-  process.exit(1);
+export function parseYamlFrontmatter(yamlText) {
+  const data = parseYaml(String(yamlText));
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    const error = new Error("Draft needs YAML frontmatter (--- ... ---).");
+    error.code = "FRONTMATTER_ENVELOPE";
+    throw error;
+  }
+  return data;
 }
 
-const dest = path.join(publishedDir, `${slug}.mdx`);
-if (fs.existsSync(dest) || fs.existsSync(path.join(publishedDir, `${slug}.md`))) {
-  console.error(`Already published: content/posts/${slug}.mdx`);
-  process.exit(1);
+/** POSIX single quotes. $(), backticks, and double quotes stay literal. */
+export function posixQuote(value) {
+  return `'${String(value).replace(/'/g, `'\\''`)}'`;
 }
 
-const raw = fs.readFileSync(src, "utf8");
-let data;
-try {
-  data = matter(raw).data;
-} catch {
-  console.error("Draft needs YAML frontmatter (--- ... ---).");
-  process.exit(1);
-}
-const hasText = (value) => typeof value === "string" && value.trim().length > 0;
-if (!hasText(data.title)) {
-  console.error("Frontmatter needs a non-empty title.");
-  process.exit(1);
-}
-if (!data.date || Number.isNaN(new Date(data.date).getTime())) {
-  console.error("Frontmatter needs a valid date.");
-  process.exit(1);
-}
-if (!hasText(data.description) && !hasText(data.dek)) {
-  console.error("Frontmatter needs a non-empty description or dek.");
-  process.exit(1);
-}
-if (data.slug && data.slug !== slug) {
-  console.error(`Frontmatter slug must match the filename: ${slug}`);
-  process.exit(1);
-}
-if (data.title === "TITLE" || data.slug === "SLUG") {
-  console.error("Draft still has template placeholders. Edit before publish.");
-  process.exit(1);
-}
-// Register: what kind of claim is this? See content/posts/REGISTERS.md.
-// The site build refuses an undeclared post; refusing it here means you find
-// out at publish time instead of at deploy time.
-// Single authority: lib/registers.ts. Parsed rather than imported because
-// this is a plain .mjs run before any build — the same approach
-// scripts/check-public-claims.py takes, so all three cannot drift.
-const registersTs = fs.readFileSync(path.join(root, "lib", "registers.ts"), "utf8");
-const registersMatch = registersTs.match(/export const REGISTERS = \[([^\]]*)\]/);
-const REGISTERS = registersMatch ? [...registersMatch[1].matchAll(/"([a-z]+)"/g)].map((m) => m[1]) : [];
-if (REGISTERS.length === 0) {
-  console.error("Could not read the register list from lib/registers.ts.");
-  process.exit(1);
-}
-if (!REGISTERS.includes(data.register)) {
-  console.error(
-    `Frontmatter needs "register:" — one of ${REGISTERS.join(", ")}. ` +
-      `Got ${JSON.stringify(data.register)}. See content/posts/REGISTERS.md.`,
-  );
-  process.exit(1);
-}
-const usableReceipts = Array.isArray(data.receipts)
-  ? data.receipts.filter((r) => r && typeof r.path === "string" && r.path.trim().length > 0)
-  : [];
-if (data.register === "reported" && usableReceipts.length === 0) {
-  console.error(
-    'register "reported" claims an event happened, so it owes a receipts: ' +
-      "block (PR, SHA, log, or measurement). Use \"designed\" or \"argued\" if " +
-      "there is no artifact.",
-  );
-  process.exit(1);
+export function receiptSummary(slug, title) {
+  const flat = String(title).replace(/\s+/g, " ").slice(0, 120);
+  return `Published /writing/${slug}: ${flat}`;
 }
 
-const claims = path.join(root, "scripts", "check-public-claims.py");
-if (fs.existsSync(claims)) {
-  const r = spawnSync("python3", [claims], { cwd: root, encoding: "utf8" });
-  if (r.status !== 0) {
-    console.error(r.stdout || r.stderr || "claims check failed");
+export function formatManualRecoveryCommand({ receiptScript, idempotencyKey, summary }) {
+  return [
+    "node",
+    receiptScript,
+    "--kind",
+    "content_publish",
+    "--status",
+    "success",
+    "--key",
+    idempotencyKey,
+    "--summary",
+    summary,
+    "--channel",
+    "manual",
+    "--agent",
+    "tldr-publish.mjs",
+  ].map(posixQuote).join(" ");
+}
+
+function frontmatterError(err) {
+  if (err?.code === "FRONTMATTER_ENGINE") return "JavaScript frontmatter is not allowed.";
+  return "Draft needs YAML frontmatter (--- ... ---).";
+}
+
+function publishSlug() {
+  const slug = (process.argv[2] || "").replace(/\.mdx?$/, "").trim();
+  if (!slug) {
+    console.error("Usage: npm run tldr:publish -- <slug>");
     process.exit(1);
+  }
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    console.error("Slug must contain lowercase letters, numbers, and single hyphens only.");
+    process.exit(1);
+  }
+
+  const drafts = path.join(root, "content", "posts", "_drafts");
+  const publishedDir = path.join(root, "content", "posts");
+  const src =
+    [".mdx", ".md"]
+      .map((ext) => path.join(drafts, slug + ext))
+      .find((p) => fs.existsSync(p)) || null;
+  if (!src) {
+    console.error(`No draft at content/posts/_drafts/${slug}.mdx`);
+    process.exit(1);
+  }
+
+  const dest = path.join(publishedDir, `${slug}.mdx`);
+  if (fs.existsSync(dest) || fs.existsSync(path.join(publishedDir, `${slug}.md`))) {
+    console.error(`Already published: content/posts/${slug}.mdx`);
+    process.exit(1);
+  }
+
+  const raw = fs.readFileSync(src, "utf8");
+  let data;
+  let fmMatch;
+  try {
+    const envelope = extractYamlEnvelope(raw);
+    fmMatch = envelope.match;
+    data = parseYamlFrontmatter(envelope.yaml);
+  } catch (err) {
+    console.error(frontmatterError(err));
+    process.exit(1);
+  }
+  const hasText = (value) => typeof value === "string" && value.trim().length > 0;
+  if (!hasText(data.title)) {
+    console.error("Frontmatter needs a non-empty title.");
+    process.exit(1);
+  }
+  if (!data.date || Number.isNaN(new Date(data.date).getTime())) {
+    console.error("Frontmatter needs a valid date.");
+    process.exit(1);
+  }
+  if (!hasText(data.description) && !hasText(data.dek)) {
+    console.error("Frontmatter needs a non-empty description or dek.");
+    process.exit(1);
+  }
+  if (data.slug && data.slug !== slug) {
+    console.error(`Frontmatter slug must match the filename: ${slug}`);
+    process.exit(1);
+  }
+  if (data.title === "TITLE" || data.slug === "SLUG") {
+    console.error("Draft still has template placeholders. Edit before publish.");
+    process.exit(1);
+  }
+  // Register: what kind of claim is this? See content/posts/REGISTERS.md.
+  // The site build refuses an undeclared post; refusing it here means you find
+  // out at publish time instead of at deploy time.
+  // Single authority: lib/registers.ts. Parsed rather than imported because
+  // this is a plain .mjs run before any build — the same approach
+  // scripts/check-public-claims.py takes, so all three cannot drift.
+  const registersTs = fs.readFileSync(path.join(root, "lib", "registers.ts"), "utf8");
+  const registersMatch = registersTs.match(/export const REGISTERS = \[([^\]]*)\]/);
+  const REGISTERS = registersMatch ? [...registersMatch[1].matchAll(/"([a-z]+)"/g)].map((m) => m[1]) : [];
+  if (REGISTERS.length === 0) {
+    console.error("Could not read the register list from lib/registers.ts.");
+    process.exit(1);
+  }
+  if (!REGISTERS.includes(data.register)) {
+    console.error(
+      `Frontmatter needs "register:" — one of ${REGISTERS.join(", ")}. ` +
+        `Got ${JSON.stringify(data.register)}. See content/posts/REGISTERS.md.`,
+    );
+    process.exit(1);
+  }
+  const usableReceipts = Array.isArray(data.receipts)
+    ? data.receipts.filter((r) => r && typeof r.path === "string" && r.path.trim().length > 0)
+    : [];
+  if (data.register === "reported" && usableReceipts.length === 0) {
+    console.error(
+      'register "reported" claims an event happened, so it owes a receipts: ' +
+        "block (PR, SHA, log, or measurement). Use \"designed\" or \"argued\" if " +
+        "there is no artifact.",
+    );
+    process.exit(1);
+  }
+
+  const claims = path.join(root, "scripts", "check-public-claims.py");
+  if (fs.existsSync(claims)) {
+    const r = spawnSync("python3", [claims], { cwd: root, encoding: "utf8" });
+    if (r.status !== 0) {
+      console.error(r.stdout || r.stderr || "claims check failed");
+      process.exit(1);
+    }
+  }
+
+  // Drafts harvested from repo-event records carry a `source:` field pointing at
+  // an internal path. CONTENT-ROUTING-RULE.md's readiness checklist forbids
+  // internal paths on a published surface, and lib/posts.ts never reads the
+  // field — the public evidence is the receipts: block. Strip it on promotion so
+  // provenance stays in the draft and out of the published frontmatter.
+  // Operate on the frontmatter block only — a body line beginning "source:" or
+  // "draft:" (in a code block, say) must survive. `draft:` is the drafts-dir
+  // state flag and has no meaning once the file is published.
+  const cleanedFm = fmMatch[1]
+    .split(/\r?\n/)
+    .filter((line) => !/^(source|draft):[ \t]/.test(line))
+    .join("\n");
+  const promoted = raw.slice(0, fmMatch.index) + "---\n" + cleanedFm + "\n---\n" + raw.slice(fmMatch.index + fmMatch[0].length);
+  fs.writeFileSync(dest, promoted);
+  fs.unlinkSync(src);
+  console.log(`Published file: content/posts/${slug}.mdx`);
+  console.log("Live URL after deploy: https://abdur.ai/writing/" + slug);
+  console.log("Next (you): git add content/posts/" + slug + ".mdx && commit && push.");
+
+  // GMP -> ledger (ops-spine plan §4): abdur.ai is the emitter for
+  // content_publish receipts because this publish step is where a post crosses
+  // from draft to live. One receipt per publish, keyed on the slug (the
+  // platform post id), so a re-run collides on the idempotency key instead of
+  // writing a second row. This is an emitter ONLY — it never writes Notion; the
+  // ops projector is the sole Notion writer and consumes the ledger.
+  // The file is already promoted above, so a receipt failure is reported loudly
+  // (non-zero exit) rather than silently skipped or rolled back.
+  if (process.env.MNEMIX_RECEIPT_EMIT === "0") {
+    console.warn("Receipt emit disabled (MNEMIX_RECEIPT_EMIT=0) — no content_publish receipt written.");
+  } else {
+    const configuredScript = (process.env.MNEMIX_RECEIPT_SCRIPT || "~/Projects/Mnemix/scripts/ops/receipt.mjs")
+      .replace(/^~(?=$|\/)/, os.homedir());
+    // Relative paths resolve against the repo root, and the same absolute path
+    // feeds both the existence check and the spawn (no cwd mismatch).
+    const receiptScript = path.resolve(root, configuredScript);
+    const idempotencyKey = `abdurai:content_publish:writing:${slug}`;
+    const summary = receiptSummary(slug, data.title);
+    // Printed for a human shell. Every argument is POSIX-quoted so a draft
+    // title cannot keep $(...), backticks, or quotes active. The programmatic
+    // emit below stays spawnSync argv and never enters a shell. AGE-3654 / 1494200c.
+    const manualCmd = formatManualRecoveryCommand({ receiptScript, idempotencyKey, summary });
+    if (!fs.existsSync(receiptScript)) {
+      console.error(`RECEIPT NOT EMITTED: receipt script not found at ${receiptScript} (set MNEMIX_RECEIPT_SCRIPT). The post IS published on disk.`);
+      console.error("Once the script is available, emit manually (MNEMIX_OPS_INGEST_KEY must be set):");
+      console.error(`  ${manualCmd}`);
+      process.exit(1);
+    }
+    if (!process.env.MNEMIX_OPS_INGEST_KEY) {
+      console.error("RECEIPT NOT EMITTED: MNEMIX_OPS_INGEST_KEY is not set. The post IS published on disk — emit manually with:");
+      console.error(`  ${manualCmd}`);
+      process.exit(1);
+    }
+    const emit = spawnSync(
+      process.execPath,
+      [
+        receiptScript,
+        "--kind", "content_publish",
+        "--status", "success",
+        "--key", idempotencyKey,
+        "--summary", summary,
+        "--channel", "manual",
+        "--agent", "tldr-publish.mjs",
+        "--refs", JSON.stringify({ slug, url: `https://abdur.ai/writing/${slug}`, register: data.register }),
+      ],
+      { cwd: root, encoding: "utf8", env: process.env },
+    );
+    if (emit.stdout) process.stdout.write(emit.stdout);
+    if (emit.status === 4) {
+      // Receipt script exit 4 = the idempotency key already exists: the ledger row is there.
+      console.error(`RECEIPT NOT EMITTED (receipt script exit 4): ${(emit.stderr || "").trim()}`);
+      console.error("The ledger already holds a content_publish receipt for this key, and the post IS published on disk. No re-emit needed.");
+      process.exit(1);
+    }
+    if (emit.status !== 0) {
+      console.error(`RECEIPT NOT EMITTED (receipt script exit ${emit.status}): ${(emit.stderr || "").trim()}`);
+      console.error("The post IS published on disk — the ledger is missing its content_publish receipt. Re-emit with:");
+      console.error(`  ${manualCmd}`);
+      process.exit(1);
+    }
+    console.log(`Receipt emitted: ${idempotencyKey}`);
   }
 }
 
-// Drafts harvested from repo-event records carry a `source:` field pointing at
-// an internal path. CONTENT-ROUTING-RULE.md's readiness checklist forbids
-// internal paths on a published surface, and lib/posts.ts never reads the
-// field — the public evidence is the receipts: block. Strip it on promotion so
-// provenance stays in the draft and out of the published frontmatter.
-// Operate on the frontmatter block only — a body line beginning "source:" or
-// "draft:" (in a code block, say) must survive. `draft:` is the drafts-dir
-// state flag and has no meaning once the file is published.
-const fmMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
-if (!fmMatch) {
-  console.error("Draft needs YAML frontmatter (--- ... ---).");
-  process.exit(1);
+function canonicalPath(entry) {
+  const resolved = path.resolve(entry);
+  try {
+    return fs.realpathSync(resolved);
+  } catch {
+    return resolved;
+  }
 }
-const cleanedFm = fmMatch[1]
-  .split(/\r?\n/)
-  .filter((line) => !/^(source|draft):[ \t]/.test(line))
-  .join("\n");
-const promoted = raw.slice(0, fmMatch.index) + "---\n" + cleanedFm + "\n---\n" + raw.slice(fmMatch.index + fmMatch[0].length);
-fs.writeFileSync(dest, promoted);
-fs.unlinkSync(src);
-console.log(`Published file: content/posts/${slug}.mdx`);
-console.log("Live URL after deploy: https://abdur.ai/writing/" + slug);
-console.log("Next (you): git add content/posts/" + slug + ".mdx && commit && push.");
 
-// GMP -> ledger (ops-spine plan §4): abdur.ai is the emitter for
-// content_publish receipts because this publish step is where a post crosses
-// from draft to live. One receipt per publish, keyed on the slug (the
-// platform post id), so a re-run collides on the idempotency key instead of
-// writing a second row. This is an emitter ONLY — it never writes Notion; the
-// ops projector is the sole Notion writer and consumes the ledger.
-// The file is already promoted above, so a receipt failure is reported loudly
-// (non-zero exit) rather than silently skipped or rolled back.
-if (process.env.MNEMIX_RECEIPT_EMIT === "0") {
-  console.warn("Receipt emit disabled (MNEMIX_RECEIPT_EMIT=0) — no content_publish receipt written.");
-} else {
-  const configuredScript = (process.env.MNEMIX_RECEIPT_SCRIPT || "~/Projects/Mnemix/scripts/ops/receipt.mjs")
-    .replace(/^~(?=$|\/)/, os.homedir());
-  // Relative paths resolve against the repo root, and the same absolute path
-  // feeds both the existence check and the spawn (no cwd mismatch).
-  const receiptScript = path.resolve(root, configuredScript);
-  const idempotencyKey = `abdurai:content_publish:writing:${slug}`;
-  const summary = `Published /writing/${slug}: ${String(data.title).replace(/\s+/g, " ").slice(0, 120)}`;
-  const manualCmd =
-    `node ${receiptScript} --kind content_publish --status success --key "${idempotencyKey}" ` +
-    `--summary ${JSON.stringify(summary)} --channel manual --agent tldr-publish.mjs`;
-  if (!fs.existsSync(receiptScript)) {
-    console.error(`RECEIPT NOT EMITTED: receipt script not found at ${receiptScript} (set MNEMIX_RECEIPT_SCRIPT). The post IS published on disk.`);
-    console.error("Once the script is available, emit manually (MNEMIX_OPS_INGEST_KEY must be set):");
-    console.error(`  ${manualCmd}`);
-    process.exit(1);
-  }
-  if (!process.env.MNEMIX_OPS_INGEST_KEY) {
-    console.error("RECEIPT NOT EMITTED: MNEMIX_OPS_INGEST_KEY is not set. The post IS published on disk — emit manually with:");
-    console.error(`  ${manualCmd}`);
-    process.exit(1);
-  }
-  const emit = spawnSync(
-    process.execPath,
-    [
-      receiptScript,
-      "--kind", "content_publish",
-      "--status", "success",
-      "--key", idempotencyKey,
-      "--summary", summary,
-      "--channel", "manual",
-      "--agent", "tldr-publish.mjs",
-      "--refs", JSON.stringify({ slug, url: `https://abdur.ai/writing/${slug}`, register: data.register }),
-    ],
-    { cwd: root, encoding: "utf8", env: process.env },
-  );
-  if (emit.stdout) process.stdout.write(emit.stdout);
-  if (emit.status === 4) {
-    // Receipt script exit 4 = the idempotency key already exists: the ledger row is there.
-    console.error(`RECEIPT NOT EMITTED (receipt script exit 4): ${(emit.stderr || "").trim()}`);
-    console.error("The ledger already holds a content_publish receipt for this key, and the post IS published on disk. No re-emit needed.");
-    process.exit(1);
-  }
-  if (emit.status !== 0) {
-    console.error(`RECEIPT NOT EMITTED (receipt script exit ${emit.status}): ${(emit.stderr || "").trim()}`);
-    console.error("The post IS published on disk — the ledger is missing its content_publish receipt. Re-emit with:");
-    console.error(`  ${manualCmd}`);
-    process.exit(1);
-  }
-  console.log(`Receipt emitted: ${idempotencyKey}`);
+const invoked = process.argv[1] ? canonicalPath(process.argv[1]) : "";
+if (invoked === canonicalPath(scriptFile)) {
+  publishSlug();
 }
