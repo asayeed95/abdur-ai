@@ -16,6 +16,12 @@ const nextConfig = {
   experimental: {
     mdxRs: false,
   },
+  // The library pages and the Markdown download read content/library/*.md
+  // per request (visibility is decided at request time), so the files must
+  // ship with those serverless functions; the build traces imports, not reads.
+  outputFileTracingIncludes: {
+    "/library/**": ["./content/library/**/*"],
+  },
   async redirects() {
     // Legacy brand-era paths (Sentinel 2026-08-22: both 404'd). Neither route
     // ever existed in this repo; map them to the surfaces that own the intent

@@ -21,6 +21,8 @@ export const ANALYTICS_EVENTS = [
   "cta:newsletter:from-post",
   "subscribe:tldr",
   "subscribe:asec-waitlist",
+  // Free library request (AGE-3762). Props: asset id, logbook "yes" | "no".
+  "library:request",
 ] as const;
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number];
 

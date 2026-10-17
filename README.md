@@ -89,6 +89,7 @@ the `ANALYTICS_EVENTS` const — a name outside it is a type error).
 | `cta:newsletter:from-post` | Click on the newsletter CTA | `components/post/LeadMagnets.tsx` (`NewsletterCTA`) |
 | `subscribe:tldr` | Successful TLDR email capture (`/api/subscribe` 2xx) | `components/Subscribe.tsx` |
 | `subscribe:asec-waitlist` | Successful ASEC waitlist signup (`/api/subscribe` 2xx) | `components/post/LeadMagnets.tsx` |
+| `library:request` | Free library asset requested (`/api/library` 2xx); props `asset`, `logbook` (`yes`/`no`) | `components/library/AssetRequestForm.tsx` |
 
 `subscribe:*` events fire **only after a 2xx response** — they count real
 conversions, not attempts. `cta:asec:from-post` fires on submit attempt, so
