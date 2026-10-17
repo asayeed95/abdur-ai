@@ -16,7 +16,7 @@ signups from launch traffic are captured, not dropped.
 
 | Channel | Account | Blotato ID | Notes |
 |---|---|---|---|
-| X (Twitter) | @asayeed95 | `20072` | personal — primary |
+| X (Twitter) | @Abdur_sayeed | `20072` | personal — primary |
 | LinkedIn | Abdur Sayeed (personal) | `21401` | omit pageId → personal profile |
 | Instagram | @asayeed95 | `48492` | personal — carousel |
 | Threads | @asayeed95 | `6708` | bonus channel |

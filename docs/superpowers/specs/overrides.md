@@ -361,3 +361,14 @@ every article's h1 and body prose are untouched.
   content-publish-override: content/posts/rss-is-a-follow-button-for-your-website.mdx
   reason: Publish the founder-requested short RSS article and diagram to Writing and X as the full API test.
   approved-by: Abdur, 2026-10-15, explicit publication instruction in this chat.
+
+## D-3 — published X handle on post 29
+
+The CTA in the published post linked `@asayeed95` (`https://x.com/asayeed95`). That account does not exist on X. The account in `lib/site.ts` is `@Abdur_sayeed`. The sentence is otherwise unchanged. The C-11 and S-1 `content-publish-override` entries for this path stay: they authorize the original publish and the meta-description edit, not this sentence.
+
+- task-id: D-3
+  content-publish-override: content/posts/29-review-rounds-hardened-a-ci-gate-that-nothing-ran.mdx
+  copy-override: content/posts/29-review-rounds-hardened-a-ci-gate-that-nothing-ran.mdx
+  design-token-override: content/posts/29-review-rounds-hardened-a-ci-gate-that-nothing-ran.mdx
+  reason: Replace the published CTA handle and link (@asayeed95 → @Abdur_sayeed, https://x.com/Abdur_sayeed). No argument, evidence, or conclusion changed. design-token-override is recorded because AGENTS.md requires that key before a rewrite of existing post copy; copy-override is this registry's key for copy edits; content-publish-override records that the already-published file is being edited on purpose.
+  approved-by: Abdur / PR #103 opened 2026-10-14 (the handle change) / override recorded 2026-10-17
