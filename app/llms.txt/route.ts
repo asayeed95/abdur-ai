@@ -23,7 +23,6 @@ ${SITE.description}
 ## Flagship work
 - Northsun (https://northsun.ai): the memory and enrichment layer for AI agents.
   Memory, RAG, and BEAD — bi-temporal, evidence-anchored decisions.
-  Six primitives: recall, enrich, observe, gate, evidence, beacon.
 - Mnemix (https://mnemix.ai): the Memory Lab / Forgetting Test. Mnemix is a
   free diagnostic from Northsun.
 - MOLL: Mnemix Ops Learning Layer. Swarm-memory system with role-scoped pattern
