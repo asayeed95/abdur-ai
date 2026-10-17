@@ -155,6 +155,15 @@ else
   grep -E '^FAIL|↳' $TMPD/subscribe.out | sed 's/^/      /'
 fi
 
+# ---------- Library fulfillment journey (needs the build above) ----------
+echo "==> Library fulfillment journey (stand-in provider; AGE-3762)"
+if npm run test:library >$TMPD/library.out 2>&1; then
+  pass "npm run test:library"
+else
+  fail "npm run test:library FAILED — see $TMPD/library.out"
+  grep -E '^FAIL|↳' $TMPD/library.out | sed 's/^/      /'
+fi
+
 # ---------- RETRO hygiene (nudge only, not a gate) ----------
 if [ -f "RETRO.md" ]; then
   ENTRIES=$(grep -cE '^\- \[[0-9]{4}-[0-9]{2}-[0-9]{2}\]' RETRO.md 2>/dev/null || echo 0)

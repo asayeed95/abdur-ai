@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { LIBRARY, libraryPath } from "@/lib/library";
 import { getAllPosts, postPath } from "@/lib/posts";
 import { SITE } from "@/lib/site";
 
@@ -31,5 +32,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly" as const,
   }));
 
-  return [...staticPages, ...postPages];
+  // Only approved library assets: a draft is never listed, preview flag or not.
+  const approved = LIBRARY.filter((a) => a.status === "available");
+  const libraryPages = approved.length
+    ? [
+        { url: `${SITE.url}/library`, priority: 0.8, changeFrequency: "monthly" as const },
+        ...approved.map((a) => ({
+          url: `${SITE.url}${libraryPath(a.id)}`,
+          priority: 0.8,
+          changeFrequency: "monthly" as const,
+        })),
+      ]
+    : [];
+
+  return [...staticPages, ...postPages, ...libraryPages];
 }

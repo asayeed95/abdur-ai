@@ -36,3 +36,5 @@ jobs:
         run: npm run check:robots
       - name: Signup journey (stand-in provider)
         run: npm run test:subscribe
+      - name: Library fulfillment journey (stand-in provider)
+        run: npm run test:library
