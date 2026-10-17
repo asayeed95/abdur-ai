@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="320" viewBox="0 0 800 320" role="img" aria-labelledby="title desc">
+<title id="title">RSS is a follow button for a website</title><desc id="desc">A new article on a website creates a feed entry. An RSS reader checks the feed for a title, date, summary and link. Open the link for the full article and diagrams.</desc>
+<rect width="800" height="320" fill="#F6F1E8"/>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#0B0A08}.mono{font-family:Menlo,monospace;fill:#6E655C}</style>
+<text x="32" y="31" class="mono" font-size="14" letter-spacing="1">FOLLOW THE WEBSITE THROUGH ITS FEED</text>
+<text x="32" y="80" font-size="35" font-weight="700">RSS brings the update to your reader.</text>
+<g fill="#FFFCF7" stroke="#D7CFC3"><rect x="32" y="115" width="220" height="108" rx="12"/><rect x="290" y="115" width="220" height="108" rx="12"/><rect x="548" y="115" width="220" height="108" rx="12"/></g>
+<g font-size="25" font-weight="700"><text x="50" y="151">Website</text><text x="308" y="151">RSS feed</text><text x="566" y="151">RSS reader</text></g>
+<g font-size="19" fill="#6E655C"><text x="50" y="184">Publishes an article</text><text x="308" y="181">Title, date, summary</text><text x="308" y="207">and article link</text><text x="566" y="184">Checks for updates</text></g>
+<g stroke="#D97757" stroke-width="3" fill="none"><path d="M258 169 H281 M274 162 L281 169 L274 176"/><path d="M516 169 H539 M532 162 L539 169 L532 176"/></g>
+<text x="32" y="265" font-size="23" font-weight="600">Open the link for the full article and diagrams.</text>
+<text x="32" y="299" class="mono" font-size="16">TRY IT: abdur.ai/writing/rss.xml</text>
+</svg>

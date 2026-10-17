@@ -7,8 +7,9 @@ abdur.ai: near-done public content site (Next.js 15 + Tailwind + MDX). Light bui
 1. Read `PROCESS.md` fully.
 2. Read `docs/superpowers/specs/build-plan.md`, match or propose a task-id.
 3. Read `CLAUDE.md` for handoff context — but on conflict, `PROCESS.md`'s verified-current-state table wins over `CLAUDE.md`'s older checklist.
-4. Run `./scripts/check-phase.sh`.
-5. Only then start work.
+4. Public content (posts, social, email, replies): apply the Marketing law — Linear MKT [Doc 01](https://linear.app/agencyflow/document/01-reader-first-editorial-law-ff59030e96d0) (DRAFT v1.0, working standard; links Doc 03 Playbook). State reader → need → takeaway → evidence → format → route before drafting. AGE-3643.
+5. Run `./scripts/check-phase.sh`.
+6. Only then start work.
 
 ## Hard rules (enforced)
 

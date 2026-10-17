@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="610" viewBox="0 0 800 610" role="img" aria-labelledby="title desc"><title id="title">Context processing accounted for about 85 percent of the estimate</title><desc id="desc">Thirty-day cost breakdown: cache reads $17,183.43; cache writes $12,513.16; output $5,021.53; uncached input $110.43.</desc><rect width="800" height="610" fill="#F6F1E8"/><style>text{font-family:Arial,Helvetica,sans-serif;fill:#0B0A08}.mono{font-family:Menlo,monospace}</style>
+<text x="40" y="40" font-size="16" font-weight="600" text-anchor="start" style="fill:#6E655C" class="mono">30-DAY COST BREAKDOWN</text>
+<text x="40" y="96" font-size="37" font-weight="700" text-anchor="start" style="fill:#0B0A08">85% came from cached context</text>
+<text x="40" y="132" font-size="22" font-weight="400" text-anchor="start" style="fill:#6E655C">Cache reuse is cheaper. At high volume, it still adds up.</text>
+<text x="40" y="187" font-size="24" font-weight="600" text-anchor="start" style="fill:#0B0A08">Cache reads</text>
+<text x="760" y="187" font-size="25" font-weight="700" text-anchor="end" style="fill:#0B0A08">$17,183</text>
+<rect x="40" y="201" width="720" height="21" rx="5" fill="#E8DFD3"/>
+<rect x="40" y="201" width="687.33708744" height="21" rx="5" fill="#D97757"/>
+<text x="40" y="271" font-size="24" font-weight="600" text-anchor="start" style="fill:#0B0A08">Cache writes</text>
+<text x="760" y="271" font-size="25" font-weight="700" text-anchor="end" style="fill:#0B0A08">$12,513</text>
+<rect x="40" y="285" width="720" height="21" rx="5" fill="#E8DFD3"/>
+<rect x="40" y="285" width="500.526247892" height="21" rx="5" fill="#D97757"/>
+<text x="40" y="355" font-size="24" font-weight="600" text-anchor="start" style="fill:#0B0A08">Output</text>
+<text x="760" y="355" font-size="25" font-weight="700" text-anchor="end" style="fill:#0B0A08">$5,022</text>
+<rect x="40" y="369" width="720" height="21" rx="5" fill="#E8DFD3"/>
+<rect x="40" y="369" width="200.86104587999998" height="21" rx="5" fill="#4D6653"/>
+<text x="40" y="439" font-size="24" font-weight="600" text-anchor="start" style="fill:#0B0A08">Uncached input</text>
+<text x="760" y="439" font-size="25" font-weight="700" text-anchor="end" style="fill:#0B0A08">$110</text>
+<rect x="40" y="453" width="720" height="21" rx="5" fill="#E8DFD3"/>
+<rect x="40" y="453" width="4.417231624" height="21" rx="5" fill="#6E655C"/>
+<text x="40" y="546" font-size="23" font-weight="400" text-anchor="start" style="fill:#6E655C">Already priced with the applicable cache discounts.</text>
+<line x1="40" y1="562" x2="760" y2="562" stroke="#D7CFC3" stroke-width="2"/>
+<text x="40" y="588" font-size="12" font-weight="400" text-anchor="start" style="fill:#6E655C" class="mono">LOCAL CLAUDE CODE LOGS · PRICES CHECKED OCT 15, 2026</text>
+</svg>

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="610" viewBox="0 0 800 610" role="img" aria-labelledby="title desc"><title id="title">A $2,000 credit balance covers about 3.8 days at the latest measured pace</title><desc id="desc">Latest complete week, October 8 to 14, 2026, cost estimate $3,710.74, averaging $530.11 per calendar day. Assumes all recorded work is metered.</desc><rect width="800" height="610" fill="#F6F1E8"/><style>text{font-family:Arial,Helvetica,sans-serif;fill:#0B0A08}.mono{font-family:Menlo,monospace}</style>
+<text x="40" y="40" font-size="16" font-weight="600" text-anchor="start" style="fill:#6E655C" class="mono">LATEST COMPLETE WEEK · OCT 8–14, 2026</text>
+<text x="40" y="97" font-size="36" font-weight="700" text-anchor="start" style="fill:#0B0A08">A $2,000 balance covers ~3.8 days</text>
+<text x="40" y="137" font-size="22" font-weight="400" text-anchor="start" style="fill:#6E655C">Assumes all work is metered. Included usage extends it.</text>
+<rect x="40" y="174" width="350" height="110" rx="14" fill="#FFFCF7" stroke="#D7CFC3"/>
+<text x="60" y="210" font-size="14" font-weight="600" text-anchor="start" style="fill:#6E655C" class="mono">ESTIMATED CREDITS PER DAY</text>
+<text x="60" y="258" font-size="42" font-weight="700" text-anchor="start" style="fill:#0B0A08">~$530</text>
+<rect x="410" y="174" width="350" height="110" rx="14" fill="#FFFCF7" stroke="#D7CFC3"/>
+<text x="430" y="210" font-size="14" font-weight="600" text-anchor="start" style="fill:#6E655C" class="mono">BUNDLE PURCHASE PRICE</text>
+<text x="430" y="258" font-size="42" font-weight="700" text-anchor="start" style="fill:#0B0A08">$1,400</text>
+<rect x="40.0" y="329" width="95.85714285714286" height="66" rx="8" fill="#E8DFD3"/>
+<rect x="40.0" y="329" width="95.85714285714286" height="66" rx="8" fill="#D97757"/>
+<text x="87.92857142857143" y="369" font-size="25" font-weight="700" text-anchor="middle" style="fill:#0B0A08">1</text>
+<rect x="142.85714285714286" y="329" width="95.85714285714286" height="66" rx="8" fill="#E8DFD3"/>
+<rect x="142.85714285714286" y="329" width="95.85714285714286" height="66" rx="8" fill="#D97757"/>
+<text x="190.78571428571428" y="369" font-size="25" font-weight="700" text-anchor="middle" style="fill:#0B0A08">2</text>
+<rect x="245.71428571428572" y="329" width="95.85714285714286" height="66" rx="8" fill="#E8DFD3"/>
+<rect x="245.71428571428572" y="329" width="95.85714285714286" height="66" rx="8" fill="#D97757"/>
+<text x="293.64285714285717" y="369" font-size="25" font-weight="700" text-anchor="middle" style="fill:#0B0A08">3</text>
+<rect x="348.57142857142856" y="329" width="95.85714285714286" height="66" rx="8" fill="#E8DFD3"/>
+<rect x="348.57142857142856" y="329" width="74.08103440233367" height="66" rx="8" fill="#D97757"/>
+<text x="396.5" y="369" font-size="25" font-weight="700" text-anchor="middle" style="fill:#0B0A08">4</text>
+<rect x="451.42857142857144" y="329" width="95.85714285714286" height="66" rx="8" fill="#E8DFD3"/>
+<text x="499.3571428571429" y="369" font-size="25" font-weight="700" text-anchor="middle" style="fill:#0B0A08">5</text>
+<rect x="554.2857142857143" y="329" width="95.85714285714286" height="66" rx="8" fill="#E8DFD3"/>
+<text x="602.2142857142858" y="369" font-size="25" font-weight="700" text-anchor="middle" style="fill:#0B0A08">6</text>
+<rect x="657.1428571428571" y="329" width="95.85714285714286" height="66" rx="8" fill="#E8DFD3"/>
+<text x="705.0714285714286" y="369" font-size="25" font-weight="700" text-anchor="middle" style="fill:#0B0A08">7</text>
+<text x="40" y="428" font-size="22" font-weight="400" text-anchor="start" style="fill:#6E655C">Days of work at a constant average rate</text>
+<text x="40" y="482" font-size="24" font-weight="600" text-anchor="start" style="fill:#0B0A08">For comparison: ~1.7 days at the 30-day average.</text>
+<text x="40" y="523" font-size="22" font-weight="400" text-anchor="start" style="fill:#6E655C">This is a pace estimate, not a promise of daily usage.</text>
+<line x1="40" y1="562" x2="760" y2="562" stroke="#D7CFC3" stroke-width="2"/>
+<text x="40" y="588" font-size="12" font-weight="400" text-anchor="start" style="fill:#6E655C" class="mono">LOCAL CLAUDE CODE LOGS · PRICES CHECKED OCT 15, 2026</text>
+</svg>
