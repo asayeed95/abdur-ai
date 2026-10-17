@@ -361,3 +361,12 @@ every article's h1 and body prose are untouched.
   content-publish-override: content/posts/rss-is-a-follow-button-for-your-website.mdx
   reason: Publish the founder-requested short RSS article and diagram to Writing and X as the full API test.
   approved-by: Abdur, 2026-10-15, explicit publication instruction in this chat.
+
+- task-id: AGE-3784
+  copy-override: components/MnemixSection.tsx
+  reason: Remove the nonpublic evidence and Beacon routes, unsolicited Beacon delivery assertions, whole-surface primitive count and dependent primitive inventory. Preserve canonical identity, closer, hedged latency, waitlist and existing availability wording; add no replacement capability or roadmap claims. Public-truth correction against Northsun e6fa6df658127d8bdd4f449ffe510ff45a9ece06 (AGENTS.md public v1 boundary, CONTENT-SPINE truth locks, Beacon definition §6).
+  approved-by: AGE-3784 autonomous Agencyflow intake authorization / user implementation request / 2026-10-17; bounded correction and draft PR only, not new personal founder approval or publication authority.
+- task-id: AGE-3784
+  copy-override: app/llms.txt/route.ts
+  reason: Remove the mirrored six-primitive inventory including Beacon so machine-readable homepage copy does not retain the unsupported current-surface implication removed from MnemixSection.tsx.
+  approved-by: AGE-3784 autonomous Agencyflow intake authorization / user implementation request / 2026-10-17; bounded correction and draft PR only, not new personal founder approval or publication authority.

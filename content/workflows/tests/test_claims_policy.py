@@ -3,12 +3,20 @@
 Run: python3 content/workflows/tests/test_claims_policy.py
 """
 
+import importlib.util
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import claims_policy as cp
+
+ROOT = Path(__file__).resolve().parents[3]
+spec = importlib.util.spec_from_file_location("site_claims", ROOT / "scripts/check-public-claims.py")
+site_claims = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(site_claims)
 
 
 class IdentityLineTests(unittest.TestCase):
@@ -93,6 +101,91 @@ class DualBrandTests(unittest.TestCase):
         corpus = "Try Northsun today."
         findings = cp.h2_findings(corpus)
         self.assertTrue(any("product access now" in f["detail"] for f in findings))
+
+
+class FrozenSurfaceTests(unittest.TestCase):
+    def test_approved_method_path_tuples_and_hedged_latency_pass(self):
+        for corpus in (
+            "POST /v1/recall_and_enrich.",
+            "POST /v1/calls/end",
+            "GET /v1/caller/{phone_number}",
+            "GET /v1/caller/+15551234567",
+            'designed for\n<span>sub-300ms voice recall</span>',
+        ):
+            with self.subTest(corpus=corpus):
+                self.assertEqual(cp.h2_findings(corpus), [])
+
+    def test_internal_routes_and_nested_paths_fail_without_brand(self):
+        for corpus in (
+            "GET /v1/evidence/:ref",
+            "POST /v1/beacon/inject",
+            "POST /v1/recall_and_enrich/debug",
+            "POST /v1/calls/endless",
+            "GET /v1/caller/{phone_number}/history",
+        ):
+            with self.subTest(corpus=corpus):
+                self.assertTrue(any("non-frozen" in f["detail"] for f in cp.h2_findings(corpus)))
+
+    def test_wrong_methods_fail(self):
+        for corpus in ("GET /v1/recall_and_enrich", "GET /v1/calls/end", "POST /v1/caller/{phone_number}"):
+            with self.subTest(corpus=corpus):
+                self.assertTrue(any("wrong method" in f["detail"] for f in cp.h2_findings(corpus)))
+
+
+class ProductComponentTests(unittest.TestCase):
+    """Exercise the static adapter, including source selection and JSX prose."""
+
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name)
+        for relative in site_claims.PUBLIC_SOURCES:
+            target = self.root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text((ROOT / relative).read_text())
+        root_patch = patch.object(site_claims, "ROOT", self.root)
+        root_patch.start()
+        self.addCleanup(root_patch.stop)
+        self.component = self.root / "components/MnemixSection.tsx"
+        self.original = self.component.read_text()
+
+    def test_corrected_public_copy_passes(self):
+        self.assertEqual(site_claims.check_static(), [])
+        self.assertIn(cp.ALLOWED_LATENCY, cp.public_prose(self.original))
+
+    def test_brandless_routes_cannot_hide_in_product_component(self):
+        for route in ("GET /v1/evidence/:ref", "POST /v1/beacon/inject"):
+            with self.subTest(route=route):
+                self.component.write_text(self.original + f'\nconst role = "{route}";')
+                self.assertTrue(any("non-frozen" in f for f in site_claims.check_static()))
+
+    def test_brandless_beacon_and_proactive_claims_fail_even_wrapped(self):
+        for prose in (
+            "Beacon is live today.",
+            "Beacon delivers context to agents.",
+            "The memory layer surfaces what matters to the agent, unprompted.",
+            "Proactive memory reaches out first.",
+            "Proactive context delivery is live.",
+            "Proactive memory pushes context to every agent.",
+            '<p>Proactive <span>delivery</span> is available now.</p>',
+            '<p><span>Beacon</span>{" "}is the\nnewest — it flips memory from reactive to proactive.</p>',
+            '<p>The layer surfaces context <strong>before the model</strong>\nknows to ask for it.</p>',
+            '<p>Proactive memory <span>speaks</span>{" "}unprompted.</p>',
+            "Beacon is coming soon.",
+        ):
+            with self.subTest(prose=prose):
+                self.component.write_text(self.original + "\n" + prose)
+                self.assertTrue(any("founder-gated Beacon/proactive" in f for f in site_claims.check_static()))
+
+    def test_mixed_portfolio_source_keeps_brand_context(self):
+        path = self.root / "lib/site.ts"
+        path.write_text(path.read_text() + '\nconst unrelated = "A workshop costs $47 and takes 30 seconds.";')
+        self.assertEqual(site_claims.check_static(), [])
+
+    def test_mixed_portfolio_brand_claims_are_still_checked(self):
+        path = self.root / "lib/site.ts"
+        path.write_text(path.read_text() + '\nconst claim = "Northsun supports GET /v1/evidence/:ref";')
+        self.assertTrue(any("lib/site.ts: non-frozen" in f for f in site_claims.check_static()))
 
 
 if __name__ == "__main__":

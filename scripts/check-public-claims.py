@@ -40,6 +40,12 @@ PUBLIC_SOURCES = (
     "app/about/page.tsx",
     "app/llms.txt/route.ts",
 )
+# These files contain only product copy. Brand-line windows would miss their
+# data tables and JSX-wrapped prose. Mixed portfolio sources retain context.
+PRODUCT_ONLY_SOURCES = frozenset((
+    "components/MnemixSection.tsx",
+    "components/NorthsunWaitlistForm.tsx",
+))
 # northsun.ai DNS is not live yet (verified 2026-08-22), so product CTAs must
 # point at owned surfaces: the on-site waitlist form backed by the real
 # /api/subscribe route and the frozen "mnemix-beta" audience list.
@@ -53,11 +59,17 @@ def sources() -> list[Path]:
     return [ROOT / relative for relative in PUBLIC_SOURCES] + posts
 
 
+def claim_segments(relative: str, content: str) -> list[str]:
+    if relative in PRODUCT_ONLY_SOURCES:
+        return [content]
+    return claims_policy.mnemix_context_segments(content)
+
+
 def check_static() -> list[str]:
     failures: list[str] = []
     for path in sources():
         content = path.read_text(encoding="utf-8")
-        for segment in claims_policy.mnemix_context_segments(content):
+        for segment in claim_segments(path.relative_to(ROOT).as_posix(), content):
             for finding in claims_policy.h2_findings(segment):
                 failure = f"{path.relative_to(ROOT)}: {finding['detail']}"
                 if failure not in failures:

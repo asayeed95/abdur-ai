@@ -17,7 +17,26 @@ import re
 
 
 ALLOWED_LATENCY = "designed for sub-300ms voice recall"
-FROZEN_ENDPOINTS = ("/v1/recall_and_enrich", "/v1/calls/end", "/v1/caller/")
+# Northsun CONTENT-SPINE TL-FAKE / SPINE-07, pinned for AGE-3784 at
+# e6fa6df658127d8bdd4f449ffe510ff45a9ece06. These are complete tuples,
+# never prefixes that license internal subpaths.
+FROZEN_ENDPOINTS = (
+    ("POST", r"/v1/recall_and_enrich"),
+    ("POST", r"/v1/calls/end"),
+    ("GET", r"/v1/caller/[\w{}%+.-]+"),
+)
+_V1_ROUTE = re.compile(r"(?:(?P<method>GET|PUT|POST|PATCH|DELETE|HEAD|OPTIONS|TRACE|CONNECT|QUERY)\s+)?(?P<path>/v1/[\w/{}%+:.-]+)")
+# Beacon definition §6: even a coming-soon public placement is founder-only.
+# No automatic disclosure/roadmap exemption licenses a new public placement.
+# Proactive shapes follow check-forbidden-claims.mjs's gated-proactive rule,
+# plus the brand-less unsolicited-delivery wording found in AGE-3784.
+_GATED_PROACTIVE = re.compile(
+    r"\bBeacon\b|\bproactiv\w*[^.\n]{0,60}\b(?:speak|message|reach(?:es)?\s+out|nudge|notif|unprompted|deliver|push|surface)|"
+    r"\bspeaks?\s+unprompted\b|\breach(?:es)?\s+out\s+first\b|"
+    r"\b(?:unprompted|unsolicited)\b|\bbefore\s+the\s+model\s+knows\s+to\s+ask\b",
+    re.I,
+)
+
 # Dual-brand law (2026-08): Northsun is the company and commercial platform.
 # Mnemix survives only as the Memory Lab / Forgetting Test on mnemix.ai — a
 # free diagnostic from Northsun — plus frozen technical identifiers and
@@ -114,6 +133,13 @@ _ACCESS_NOW_CLAIM = re.compile(
 )
 
 
+def public_prose(corpus: str) -> str:
+    """Join JSX-wrapped prose for claims checks; this is not a JSX evaluator."""
+    corpus = re.sub(r"\{\s*([\"'])\s*\1\s*\}", " ", corpus)
+    corpus = re.sub(r"</?[A-Za-z][^>]*>", " ", corpus)
+    return re.sub(r"\s+", " ", corpus)
+
+
 def h2_findings(corpus: str) -> list[dict[str, str]]:
     """Return deterministic H2/Class-C findings for one public text corpus.
 
@@ -125,7 +151,8 @@ def h2_findings(corpus: str) -> list[dict[str, str]]:
         return [{"gate": "H2", "detail": "claim corpus is absent or malformed"}]
 
     findings: list[dict[str, str]] = []
-    stripped = re.sub(re.escape(ALLOWED_LATENCY), " ", corpus, flags=re.I)
+    prose = public_prose(corpus)
+    stripped = re.sub(re.escape(ALLOWED_LATENCY), " ", prose, flags=re.I)
     for pattern, label in (
         (_LATENCY_NUMERIC, "numeric latency"),
         (_LATENCY_COMPARATIVE, "comparative latency"),
@@ -147,9 +174,15 @@ def h2_findings(corpus: str) -> list[dict[str, str]]:
     for match in _ENRICHMENT_VENDOR.finditer(corpus):
         if match.group(1).lower() not in ENRICH_VENDORS:
             findings.append({"gate": "H2", "detail": f"enrichment vendor outside Trestle/Twilio Lookup: {match.group(1)!r}"})
-    for match in re.finditer(r"/v1/[\w/{}_.-]+", corpus):
-        if not any(match.group(0).startswith(endpoint) for endpoint in FROZEN_ENDPOINTS):
-            findings.append({"gate": "H2", "detail": f"non-frozen /v1 route in public copy: {match.group(0)!r}"})
+    for match in _V1_ROUTE.finditer(prose):
+        path = match.group("path").rstrip(".")
+        methods = [method for method, route in FROZEN_ENDPOINTS if re.fullmatch(route, path)]
+        if not methods:
+            findings.append({"gate": "H2", "detail": f"non-frozen /v1 route in public copy: {path!r}"})
+        elif match.group("method") and match.group("method") not in methods:
+            findings.append({"gate": "H2", "detail": f"wrong method on frozen /v1 route: {match.group(0)!r}"})
+    for match in _GATED_PROACTIVE.finditer(prose):
+        findings.append({"gate": "H2", "detail": f"founder-gated Beacon/proactive public claim: {match.group(0)!r}"})
     for match in re.finditer(r"[Cc]hoose (?:Mnemix|Northsun)[^.\n]*\.?", corpus):
         text = match.group(0).strip()
         if corpus[match.start(): match.start() + len(CLOSER_REFUSAL)] == CLOSER_REFUSAL:
@@ -196,7 +229,8 @@ def mnemix_context_segments(corpus: str, radius: int = 0) -> list[str]:
     A social draft is one brand-bound payload and is checked as a whole.  A
     public-site source mixes portfolio work, so scanning its entire file would
     misclassify an unrelated timing or price statement as a brand claim.  The
-    site adapter uses the brand-bearing source line instead.  (The function
+    site adapter uses the brand-bearing source line for mixed portfolio files;
+    known product-only components are scanned in full. (The function
     name predates the Northsun rebrand and is a frozen import identifier; it
     scans both Northsun and Mnemix lines.)
     """
