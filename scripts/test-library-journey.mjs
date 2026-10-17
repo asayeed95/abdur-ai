@@ -9,7 +9,9 @@
  * status the reader saw.
  *
  * Three servers from one build:
- *  - site:     LIBRARY_PREVIEW=1, so the draft workbook is requestable.
+ *  - site:     LIBRARY_PREVIEW=1 on a simulated Vercel preview deployment
+ *              (VERCEL_ENV=preview, VERCEL_URL set), so the draft workbook is
+ *              requestable and its email links point at the preview itself.
  *  - prodlike: LIBRARY_PREVIEW=1 but VERCEL_ENV=production, so the flag must
  *              be ignored and the draft must not exist anywhere.
  *  - nokey:    LIBRARY_PREVIEW=1, no Resend config.
@@ -32,8 +34,10 @@ import net from "node:net";
 const require = createRequire(import.meta.url);
 
 const ASSET = "evidence-os-v1";
-const READ_URL = `https://abdur.ai/library/${ASSET}/read`;
-const DOWNLOAD_URL = `https://abdur.ai/library/${ASSET}/workbook.md`;
+/** The preview deployment's own host (Vercel sets VERCEL_URL server-side). */
+const PREVIEW_HOST = "abdur-ai-git-preview-test.vercel.app";
+const READ_URL = `https://${PREVIEW_HOST}/library/${ASSET}/read`;
+const DOWNLOAD_URL = `https://${PREVIEW_HOST}/library/${ASSET}/workbook.md`;
 /** Body fields documented for POST https://api.resend.com/emails (same list as the signup suite). */
 const DOCUMENTED_SEND_FIELDS = new Set([
   "from", "to", "subject", "bcc", "cc", "scheduled_at", "reply_to", "html",
@@ -123,16 +127,24 @@ const mock = http.createServer((req, res) => {
 });
 
 // ---------- Sites under test -------------------------------------------------
-function startSite({ port, mockPort, withConfig = true, production = false }) {
+function startSite({ port, mockPort, withConfig = true, production = false, preview = false }) {
   const env = { ...process.env, NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1", LIBRARY_PREVIEW: "1" };
   delete env.RESEND_API_KEY;
   delete env.RESEND_AUDIENCE_TLDR;
   delete env.VERCEL_ENV;
+  delete env.VERCEL_URL;
   if (withConfig) {
     env.RESEND_API_KEY = "re_test_not_a_real_key";
     env.RESEND_AUDIENCE_TLDR = "aud_test_tldr";
   }
-  if (production) env.VERCEL_ENV = "production";
+  if (production) {
+    env.VERCEL_ENV = "production";
+    env.VERCEL_URL = PREVIEW_HOST; // must be ignored in production
+  }
+  if (preview) {
+    env.VERCEL_ENV = "preview";
+    env.VERCEL_URL = PREVIEW_HOST;
+  }
   env.RESEND_API_BASE_URL = `http://127.0.0.1:${mockPort}`;
   const logs = [];
   const child = spawn(process.execPath, [require.resolve("next/dist/bin/next"), "start", "-p", String(port)], {
@@ -195,7 +207,7 @@ const seedContact = (email, unsubscribed, properties = {}) => contacts.set(email
 
 await new Promise((r) => mock.listen(0, "127.0.0.1", r));
 const mockPort = mock.address().port;
-const site = startSite({ port: await freePort(), mockPort });
+const site = startSite({ port: await freePort(), mockPort, preview: true });
 const prodlike = startSite({ port: await freePort(), mockPort, production: true });
 const nokey = startSite({ port: await freePort(), mockPort, withConfig: false });
 
@@ -213,9 +225,15 @@ try {
     assert(contactCalls().length === 0 && patchCalls().length === 0 && contacts.size === 0, "an unticked request touched the list");
   });
 
-  await scenario("delivery email: the registry's links only, documented fields, asset tags, one-off footer", "request shape (stand-in)", async () => {
+  await scenario("delivery email: links on the preview's own server-set origin only, documented fields, asset tags, one-off footer", "request shape (stand-in)", async () => {
     resetMock();
     await post(site.base, req({ email: "shape@example.com", url: "https://evil.example/x", delivery_url: "https://evil.example/y", download: "https://evil.example/z" }));
+    // Also try to steer the origin through the headers a proxy would set.
+    await fetch(`${site.base}/api/library`, {
+      method: "POST",
+      headers: { "content-type": "application/json", host: "evil.example", "x-forwarded-host": "evil.example" },
+      body: JSON.stringify(req({ email: "hdr@example.com" })),
+    });
     const sent = delivered[0]?.body;
     assert(sent, "no email");
     const unknown = Object.keys(sent).filter((k) => !DOCUMENTED_SEND_FIELDS.has(k));
@@ -223,6 +241,9 @@ try {
     assert(sent.html.includes(READ_URL) && sent.html.includes(DOWNLOAD_URL), "html missing the registry links");
     assert(sent.text.includes(READ_URL) && sent.text.includes(DOWNLOAD_URL), "text part missing the registry links");
     assert(!JSON.stringify(sent).includes("evil.example"), "a client-supplied URL reached the email");
+    assert(!sent.html.includes("https://abdur.ai/library/"), "a preview email links to production, where the draft 404s");
+    const viaHeaders = delivered.find((d) => d.body.to[0] === "hdr@example.com")?.body;
+    assert(viaHeaders && !JSON.stringify(viaHeaders).includes("evil.example"), "request headers steered the link origin");
     assert(sent.subject.includes("Evidence Before Shipping"), `subject ${sent.subject}`);
     const tags = Object.fromEntries((sent.tags ?? []).map((t) => [t.name, t.value]));
     assert(tags.kind === "library" && tags.asset === ASSET, `tags ${JSON.stringify(sent.tags)}`);

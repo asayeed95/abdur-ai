@@ -4,8 +4,9 @@ import { SITE } from "./site";
  * The free library (AGE-2990 / AGE-3762): lead magnets delivered by email.
  *
  * This registry is the allowlist. An asset id that is not here does not
- * exist, and every link an email carries is built from SITE.url plus a
- * registry id — never from anything the request sent.
+ * exist, and every link an email carries is built from a server-chosen
+ * origin (deliveryOrigin) plus a registry id — never from anything the
+ * request sent.
  *
  * Status:
  *  - planned:   named in the plan, no content yet. Never shown, never sent.
@@ -91,10 +92,23 @@ export function libraryPath(id: LibraryId): string {
   return `/library/${id}`;
 }
 
-/** The links a delivery email carries. Absolute, built only from SITE.url and the registry id. */
+/**
+ * Where delivery links point. Production and local builds use SITE.url. A
+ * Vercel preview deployment links to itself, because that is the only place
+ * a draft it sends can be opened (abdur.ai 404s drafts). VERCEL_URL is set by
+ * Vercel on the server; nothing a request sends can change the origin.
+ */
+export function deliveryOrigin(): string {
+  const host = process.env.VERCEL_URL;
+  if (process.env.VERCEL_ENV === "preview" && host && /^[a-z0-9.-]+$/i.test(host)) return `https://${host}`;
+  return SITE.url;
+}
+
+/** The links a delivery email carries. Absolute, built only from deliveryOrigin() and the registry id. */
 export function deliveryLinks(id: LibraryId): { read: string; download: string } {
+  const origin = deliveryOrigin();
   return {
-    read: `${SITE.url}${libraryPath(id)}/read`,
-    download: `${SITE.url}${libraryPath(id)}/workbook.md`,
+    read: `${origin}${libraryPath(id)}/read`,
+    download: `${origin}${libraryPath(id)}/workbook.md`,
   };
 }
